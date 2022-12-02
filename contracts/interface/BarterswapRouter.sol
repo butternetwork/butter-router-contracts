@@ -1,0 +1,17 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.9;
+pragma experimental ABIEncoderV2;
+
+
+interface ButterCore {
+    
+    struct AccessParams {
+        uint256[]  amountInArr;  
+        bytes[]    paramsArr;
+        uint32[]  routerIndex; 
+        address[2]  input_Out_Addre; 
+         // 0 -input  1- Out                     
+    } 
+
+    function multiSwap (AccessParams calldata params) external payable;
+}
