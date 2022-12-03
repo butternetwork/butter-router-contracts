@@ -17,7 +17,7 @@ contract ButterRouterV1{
             uint256[]  amountInArr;  
             bytes[]    paramsArr;
             uint32[]  routerIndex; 
-            address[2]  input_Out_Addre;
+            address[2]  inputOutAddre;
         } 
 
 
@@ -53,7 +53,7 @@ contract ButterRouterV1{
             uint256[] memory _amountInArr = _exchangeData.amountInArr;
             bytes[]  memory  _paramsArr = _exchangeData.paramsArr;
             uint32[] memory _routerIndex = _exchangeData.routerIndex;
-            address[2] memory _input_Out_Addre = _exchangeData.input_Out_Addre;
+            address[2] memory _input_Out_Addre = _exchangeData.inputOutAddre;
             
             uint256 msgValue;
             // uint256 currentValue;
@@ -61,34 +61,32 @@ contract ButterRouterV1{
 
             // erc20 - eth
             if(_input_Out_Addre[1] == address(0)){
-                 msgValue = msg.sender.balance;
+                 msgValue = address(this).balance;
                  TransferHelper.safeApprove(_input_Out_Addre[0], _butterCore, _amount);
                  ButterCore(_butterCore).multiSwap(ButterCore.AccessParams(_amountInArr,_paramsArr,_routerIndex,_input_Out_Addre));
-                 mosValue = msg.sender.balance - msgValue ;
+                 mosValue = address(this).balance - msgValue ;
                 //  mosValue = currentValue - msgValue;
                 MapMos(_mosAddress).swapOutNative{value:mosValue}(_mapTargetToken,_toChain,_toAddress,MapMos.SwapData(_amountInArr,_paramsArr,_routerIndex,_input_Out_Addre));
             // eth -- erc20 
             }else if(_input_Out_Addre[0] == address(0)){
 
-                 msgValue = IERC20(_input_Out_Addre[1]).balanceOf(msg.sender);
+                 msgValue = IERC20(_input_Out_Addre[1]).balanceOf(address(this));
                  ButterCore(_butterCore).multiSwap{value:_amount}(ButterCore.AccessParams(_amountInArr,_paramsArr,_routerIndex,_input_Out_Addre));
-                 mosValue = IERC20(_input_Out_Addre[1]).balanceOf(msg.sender) - msgValue;
+                 mosValue = IERC20(_input_Out_Addre[1]).balanceOf(address(this)) - msgValue;
                 //  mosValue = currentValue - msgValue;
                  TransferHelper.safeApprove(_input_Out_Addre[1], _mosAddress, mosValue);
                  MapMos(_mosAddress).swapOutToken(_token, _amount, _mapTargetToken, _toChain, _toAddress, MapMos.SwapData(_amountInArr,_paramsArr,_routerIndex,_input_Out_Addre));
 
              }else{
                  // erc20-erc20
-                 msgValue = IERC20(_input_Out_Addre[1]).balanceOf(msg.sender);
+                 msgValue = IERC20(_input_Out_Addre[1]).balanceOf(address(this));
                  TransferHelper.safeApprove(_input_Out_Addre[0], _butterCore, _amount);
                  ButterCore(_butterCore).multiSwap(ButterCore.AccessParams(_amountInArr,_paramsArr,_routerIndex,_input_Out_Addre));
-                 mosValue = IERC20(_input_Out_Addre[1]).balanceOf(msg.sender) - msgValue;
+                 mosValue = IERC20(_input_Out_Addre[1]).balanceOf(address(this)) - msgValue;
                 //  mosValue = currentValue - msgValue;
                  TransferHelper.safeApprove(_input_Out_Addre[1], _mosAddress, mosValue);
                  MapMos(_mosAddress).swapOutToken(_token, _amount, _mapTargetToken, _toChain, _toAddress, MapMos.SwapData(_amountInArr,_paramsArr,_routerIndex,_input_Out_Addre));
-
              }
-           
         }
         
         receive() external payable { 
