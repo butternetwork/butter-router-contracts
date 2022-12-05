@@ -1,0 +1,155 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "MapMos",
+  "sourceName": "contracts/interface/MapMos.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_mapTargetToken",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_toChain",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "amountIn",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "minAmountOut",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "path",
+                  "type": "bytes"
+                },
+                {
+                  "internalType": "uint64",
+                  "name": "routerIndex",
+                  "type": "uint64"
+                }
+              ],
+              "internalType": "struct MapMos.SwapParam[]",
+              "name": "swapParams",
+              "type": "tuple[]"
+            },
+            {
+              "internalType": "bytes",
+              "name": "targetToken",
+              "type": "bytes"
+            },
+            {
+              "internalType": "bytes",
+              "name": "toAddress",
+              "type": "bytes"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct MapMos.SwapData",
+          "name": "swapData",
+          "type": "tuple"
+        }
+      ],
+      "name": "swapOutNative",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_token",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_mapTargetToken",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_toChain",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "amountIn",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "minAmountOut",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "path",
+                  "type": "bytes"
+                },
+                {
+                  "internalType": "uint64",
+                  "name": "routerIndex",
+                  "type": "uint64"
+                }
+              ],
+              "internalType": "struct MapMos.SwapParam[]",
+              "name": "swapParams",
+              "type": "tuple[]"
+            },
+            {
+              "internalType": "bytes",
+              "name": "targetToken",
+              "type": "bytes"
+            },
+            {
+              "internalType": "bytes",
+              "name": "toAddress",
+              "type": "bytes"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct MapMos.SwapData",
+          "name": "swapData",
+          "type": "tuple"
+        }
+      ],
+      "name": "swapOutToken",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

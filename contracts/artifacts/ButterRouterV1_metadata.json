@@ -51,11 +51,11 @@
 	},
 	"sources": {
 		"butter-foreign/contracts/ ButterRouter.sol": {
-			"keccak256": "0x01f943ecc4935c8f68d9eb2f9eaa521ce87072b52ae446bea6e3fc08ea1e1a73",
+			"keccak256": "0x278ea2668f84abc424f05f509bc3a01231e1713ed10d76fdaec28f14ebb579ab",
 			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://f2ce6e47933844606b1d87db311f4488c893125e359efba8efb8ab02fb1aa64b",
-				"dweb:/ipfs/QmPE1bXPMfLRZWXiMeByt69eFRm2PydMPSdDkRqxrXD5fK"
+				"bzz-raw://080d2989c807a56d1b8f4b2e1517023701cfacb8c51b9166afbf389646213b7e",
+				"dweb:/ipfs/QmcvqLobS7XhGetowhrzfPhrPxP2nRhdQaKRjLLYt29kzg"
 			]
 		},
 		"butter-foreign/contracts/interface/BarterswapRouter.sol": {

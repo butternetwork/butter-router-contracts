@@ -9,9 +9,11 @@ interface ButterCore {
         uint256[]  amountInArr;  
         bytes[]    paramsArr;
         uint32[]  routerIndex; 
-        address[2]  input_Out_Addre; 
-         // 0 -input  1- Out                     
+        address[2]  inputOutAddre;  // 0 -input  1- Out                           
     } 
 
+   
     function multiSwap (AccessParams calldata params) external payable;
 }
+
+
