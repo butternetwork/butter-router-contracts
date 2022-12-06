@@ -8,16 +8,18 @@ import "./libs/TransferHelper.sol";
 import "./interface/ButterCore.sol";
 import "./interface/IERC20.sol";
 import "./interface/MapMos.sol";
+import "hardhat/console.sol";
+
 
 
 contract ButterRouterV2{
 
 
-       address constant MOSADDRESS = 0x35e7F50392Adf4B6eEb822D9102AD8A992A9B520;
+       address constant MOSADDRESS = 0xFe103B6Fc8Ee2e042a0BEC78f0a072074F7734f4;
 
        address constant BUTTERCORE = 0xb401355440842aAb5A4DeA8ABFC7439d9Cb8ab55;
 
-       address constant WBNB = 0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd;
+
 
          // targetToken on map
         // target chain id
@@ -33,6 +35,7 @@ contract ButterRouterV2{
 
             swapOutTokens(swapData,mosData,amount,mapTargetToken,toChain);
               }else{
+            console.log(swapData.inputOutAddre[0],msg.sender,address(this),amount);
             TransferHelper.safeTransferFrom(swapData.inputOutAddre[0],msg.sender,address(this),amount);
             swapOutTokens(swapData,mosData,amount,mapTargetToken,toChain);
             } 
@@ -45,11 +48,10 @@ contract ButterRouterV2{
             uint256 msgValue;
             // uint256 currentValue;
             uint256 mosValue;
-            
             // erc20 - eth
             if(_swapData.inputOutAddre[1] == address(0)){
                  msgValue = address(this).balance;
-                 TransferHelper.safeApprove(_swapData.inputOutAddre[0], MOSADDRESS,amount);
+                 TransferHelper.safeApprove(_swapData.inputOutAddre[0],BUTTERCORE,amount);
                  ButterCore(BUTTERCORE).multiSwap(_swapData);
                  mosValue = address(this).balance - msgValue ;
                 //  mosValue = currentValue - msgValue;
@@ -59,10 +61,12 @@ contract ButterRouterV2{
             }else if(_swapData.inputOutAddre[0] == address(0)){
 
                  msgValue = IERC20(_swapData.inputOutAddre[1]).balanceOf(address(this));
-                 ButterCore(BUTTERCORE).multiSwap{value:_mosData.amount}(_swapData);
+                 ButterCore(BUTTERCORE).multiSwap{value:amount}(_swapData);
                  mosValue = IERC20(_swapData.inputOutAddre[1]).balanceOf(address(this)) - msgValue;
                 //  mosValue = currentValue - msgValue;
+
                  TransferHelper.safeApprove(_swapData.inputOutAddre[1], MOSADDRESS, mosValue);
+                 console.log(_swapData.inputOutAddre[1], MOSADDRESS, mosValue);
                  MapMos(MOSADDRESS).swapOutToken(_swapData.inputOutAddre[1], mosValue, _mapTargetToken,_toChain,_mosData);
 
              }else{

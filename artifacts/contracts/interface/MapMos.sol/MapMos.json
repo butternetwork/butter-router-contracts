@@ -53,11 +53,6 @@
               "internalType": "bytes",
               "name": "toAddress",
               "type": "bytes"
-            },
-            {
-              "internalType": "uint256",
-              "name": "amount",
-              "type": "uint256"
             }
           ],
           "internalType": "struct MapMos.SwapData",
@@ -130,11 +125,6 @@
               "internalType": "bytes",
               "name": "toAddress",
               "type": "bytes"
-            },
-            {
-              "internalType": "uint256",
-              "name": "amount",
-              "type": "uint256"
             }
           ],
           "internalType": "struct MapMos.SwapData",

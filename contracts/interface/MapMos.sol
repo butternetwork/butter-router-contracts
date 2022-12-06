@@ -26,7 +26,6 @@ struct SwapData {
     SwapParam[] swapParams;
     bytes targetToken;
     bytes toAddress;
-    uint256 amount; 
 }
   
 
