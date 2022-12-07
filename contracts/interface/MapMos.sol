@@ -5,16 +5,6 @@ pragma solidity ^0.8.0;
 
 interface MapMos {
 
-
-  // struct SwapData {
-  //       uint256[]  amountInArr;  
-  //       bytes[]    paramsArr;
-  //       uint32[]  routerIndex; 
-  //       address[2]  input_Out_Addre; 
-  //        // 0 -input  1- Out                     
-  //   } 
-
-
 struct SwapParam {
     uint256 amountIn;
     uint256 minAmountOut;
