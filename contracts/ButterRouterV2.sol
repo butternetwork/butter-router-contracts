@@ -24,7 +24,7 @@ contract ButterRouterBsc{
 
 
     modifier onlyOwner() {
-        require(msg.sender == admin,"ButterswapV2Router: EXPIRED");
+        require(msg.sender == admin,"Caller is not an owner");
         _;
     }
 
@@ -79,14 +79,19 @@ contract ButterRouterBsc{
                 //  mosValue = currentValue - msgValue;
                  TransferHelper.safeApprove(_swapData.inputOutAddre[1], mosAddress,mosValue);
                  MapMosV3(mosAddress).swapOutToken(_swapData.inputOutAddre[1],_to,mosValue,_toChain,_mosData);
-             }
+            }
         }
 
 
 
-        function setMos_butterCore(address _mosAddress,address _butterCore ) public onlyOwner returns(bool){
-            require(_mosAddress != address(0) && _butterCore != address(0),'ButterRouter: FORBIDDEN');
+        function setMosAddress(address _mosAddress ) public onlyOwner returns(bool){
+            require(_mosAddress != address(0),'Address cannot be zero');
             mosAddress = _mosAddress;
+            return true;
+        }
+
+        function setButterCore(address _butterCore) public onlyOwner returns(bool){
+            require(_butterCore != address(0),'Address cannot be zero');
             butterCore = _butterCore;
             return true;
         }

@@ -23,13 +23,13 @@ contract ButterRouterBsc{
        address  public butterCore;
 
 
-    modifier onlyOwner() {
-        require(msg.sender == admin,"ButterswapV2Router: EXPIRED");
-        _;
+       modifier onlyOwner() {
+         require(msg.sender == admin,"Caller is not an owner");
+         _;
     }
 
-    constructor(address _admin) {
-        admin = _admin;
+       constructor(address _admin) {
+          admin = _admin;
     }
 
 
@@ -89,15 +89,18 @@ contract ButterRouterBsc{
 
 
 
-        function setMos_ButterCore(address _mosAddress,address _butterCore) public onlyOwner returns(bool){
-            require(_mosAddress != address(0) && _butterCore != address(0),'ButterRouter: FORBIDDEN');
+           function setMosAddress(address _mosAddress ) public onlyOwner returns(bool){
+            require(_mosAddress != address(0),'Address cannot be zero');
             mosAddress = _mosAddress;
-            butterCore = _butterCore;
             return true;
         }
 
-
-
+        function setButterCore(address _butterCore) public onlyOwner returns(bool){
+            require(_butterCore != address(0),'Address cannot be zero');
+            butterCore = _butterCore;
+            return true;
+        }
+        
 
         receive() external payable { 
     }
