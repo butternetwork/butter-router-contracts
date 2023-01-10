@@ -1,5 +1,3 @@
-
-
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.0;
@@ -49,34 +47,34 @@ library TransferHelper {
             'TransferHelper::transferFrom: transferFrom failed'
         );
     }
-    
+
     function safeTransferETH(address to, uint256 value) internal {
-        (bool success, ) = to.call{value: value}(new bytes(0));
+        (bool success,) = to.call{value : value}(new bytes(0));
         require(success, 'TransferHelper::safeTransferETH: ETH transfer failed');
     }
-    
-    
-    function HelpRoyalties(address nftaddress, uint256 tokenId,uint256 _value) external view returns(address,uint256){
-        
-       (bool success, bytes memory data) =  nftaddress.staticcall(abi.encodeWithSignature("royaltyInfo(uint256,uint256)",tokenId,_value));
-       
-      if(success && data.length == 64){
-          
-          (address addr1,uint256 value1)=abi.decode(data, (address,uint256));
-          if(addr1 != address(0) && value1 > 0 && value1 <= _value.mul(50).div(100)) {
-               
-                return( addr1,value1);
-          }else if(value1 > _value.mul(50).div(100)){
-              
-              return (addr1,_value.mul(50).div(100));
-              
-          }
-          
-      }
-       
-      return(address(0),0);
-        
-       
+
+
+    function HelpRoyalties(address nftaddress, uint256 tokenId, uint256 _value) external view returns (address, uint256){
+
+        (bool success, bytes memory data) = nftaddress.staticcall(abi.encodeWithSignature("royaltyInfo(uint256,uint256)", tokenId, _value));
+
+        if (success && data.length == 64) {
+
+            (address addr1,uint256 value1) = abi.decode(data, (address, uint256));
+            if (addr1 != address(0) && value1 > 0 && value1 <= _value.mul(50).div(100)) {
+
+                return (addr1, value1);
+            } else if (value1 > _value.mul(50).div(100)) {
+
+                return (addr1, _value.mul(50).div(100));
+
+            }
+
+        }
+
+        return (address(0), 0);
+
+
     }
-    
+
 }
