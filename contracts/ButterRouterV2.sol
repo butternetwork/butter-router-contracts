@@ -18,6 +18,9 @@ contract ButterRouterBsc {
 
     address  public butterCore;
 
+    event SwapAndBridge (address indexed from,address indexed originToken,uint256 indexed originAmount,uint256 formchainId,uint256 tochainId,address bridgeToken,uint256 bridgeAmount,bytes targetToken,bytes to);
+
+
 
     modifier onlyOwner() {
         require(msg.sender == admin, "Caller is not an owner");
@@ -34,13 +37,15 @@ contract ButterRouterBsc {
 
         require(amount > 0, "Sending value is zero");
 
+        (, bytes memory targetToken, ) = abi.decode(mosData,((MapMosV3.SwapParam)[], bytes, address));
 
+        uint256 mosValue;
         if (swapData.inputOutAddre[0] == address(0)) {
 
             require(msg.value == amount, "Not enough money");
             // eth -- erc20
             uint256 msgValue;
-            uint256 mosValue;
+
             msgValue = IERC20(swapData.inputOutAddre[1]).balanceOf(address(this));
             ButterCore(butterCore).multiSwap{value : amount}(swapData);
             mosValue = IERC20(swapData.inputOutAddre[1]).balanceOf(address(this)) - msgValue;
@@ -48,13 +53,13 @@ contract ButterRouterBsc {
             MapMosV3(mosAddress).swapOutToken(msg.sender, swapData.inputOutAddre[1], to, mosValue, toChain, mosData);
         } else {
             TransferHelper.safeTransferFrom(swapData.inputOutAddre[0], msg.sender, address(this), amount);
-            swapOutTokens(swapData, mosData, amount, toChain, to);
+            mosValue = swapOutTokens(swapData, mosData, amount, toChain, to);
         }
-
+        emit SwapAndBridge(msg.sender,swapData.inputOutAddre[0],amount,block.chainid,toChain,swapData.inputOutAddre[1],mosValue,targetToken,to);
     }
 
 
-    function swapOutTokens(ButterCore.AccessParams memory _swapData, bytes memory _mosData, uint256 amount, uint256 _toChain, bytes memory _to) internal {
+    function swapOutTokens(ButterCore.AccessParams memory _swapData, bytes memory _mosData, uint256 amount, uint256 _toChain, bytes memory _to) internal returns(uint256){
         uint256 msgValue;
         // uint256 currentValue;
         uint256 mosValue;
@@ -76,6 +81,8 @@ contract ButterRouterBsc {
             TransferHelper.safeApprove(_swapData.inputOutAddre[1], mosAddress, mosValue);
             MapMosV3(mosAddress).swapOutToken(msg.sender, _swapData.inputOutAddre[1], _to, mosValue, _toChain, _mosData);
         }
+
+        return mosValue;
     }
 
 

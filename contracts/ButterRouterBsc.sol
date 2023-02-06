@@ -19,6 +19,9 @@ contract ButterRouterBsc {
     address  public butterCore;
 
 
+    event SwapAndBridge (address indexed from,address indexed originToken,uint256 indexed originAmount,uint256 formchainId,uint256 tochainId,address bridgeToken,uint256 bridgeAmount,bytes targetToken,bytes to);
+
+
     modifier onlyOwner() {
         require(msg.sender == admin, "Caller is not an owner");
         _;
@@ -49,6 +52,10 @@ contract ButterRouterBsc {
 
 
     function swapOutTokens(ButterCore.AccessParams memory _swapData, bytes memory _mosData, uint256 amount, uint256 _toChain, bytes memory _to) internal {
+
+        
+        (, bytes memory targetToken, ) = abi.decode(_mosData,((MapMosV3.SwapParam)[], bytes, address));
+     
         uint256 msgValue;
         // uint256 currentValue;
         uint256 mosValue;
@@ -81,6 +88,8 @@ contract ButterRouterBsc {
             TransferHelper.safeApprove(_swapData.inputOutAddre[1], mosAddress, mosValue);
             MapMosV3(mosAddress).swapOutToken(msg.sender, _swapData.inputOutAddre[1], _to, mosValue, _toChain, _mosData);
         }
+
+        emit SwapAndBridge(msg.sender,_swapData.inputOutAddre[0],amount,block.chainid,_toChain,_swapData.inputOutAddre[1],mosValue,targetToken,_to);
     }
 
 
