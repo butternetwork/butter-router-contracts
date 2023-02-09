@@ -18,7 +18,7 @@ contract ButterRouterBsc {
 
     address  public butterCore;
 
-    event SwapAndBridge (address indexed from,address indexed originToken,uint256 indexed originAmount,uint256 formchainId,uint256 tochainId,address bridgeToken,uint256 bridgeAmount,bytes targetToken,bytes to);
+    event SwapAndBridge (address indexed from,address indexed originToken,uint256 indexed originAmount,uint256 formchainId,uint256 tochainId,address bridgeToken,uint256 bridgeAmount,bytes32 orderId,bytes targetToken,bytes to);
 
 
 
@@ -37,8 +37,9 @@ contract ButterRouterBsc {
 
         require(amount > 0, "Sending value is zero");
 
-        (, bytes memory targetToken, ) = abi.decode(mosData,((MapMosV3.SwapParam)[], bytes, address));
+        (, bytes memory targetToken, ) = abi.decode(mosData,((MapMosV3.SwapParam)[], bytes, address)); 
 
+        bytes32 orderId;
         uint256 mosValue;
         if (swapData.inputOutAddre[0] == address(0)) {
 
@@ -50,16 +51,17 @@ contract ButterRouterBsc {
             ButterCore(butterCore).multiSwap{value : amount}(swapData);
             mosValue = IERC20(swapData.inputOutAddre[1]).balanceOf(address(this)) - msgValue;
             TransferHelper.safeApprove(swapData.inputOutAddre[1], mosAddress, mosValue);
-            MapMosV3(mosAddress).swapOutToken(msg.sender, swapData.inputOutAddre[1], to, mosValue, toChain, mosData);
+            orderId = MapMosV3(mosAddress).swapOutToken(msg.sender, swapData.inputOutAddre[1], to, mosValue, toChain, mosData);
         } else {
             TransferHelper.safeTransferFrom(swapData.inputOutAddre[0], msg.sender, address(this), amount);
-            mosValue = swapOutTokens(swapData, mosData, amount, toChain, to);
+            (mosValue,orderId) = swapOutTokens(swapData, mosData, amount, toChain, to);
         }
-        emit SwapAndBridge(msg.sender,swapData.inputOutAddre[0],amount,block.chainid,toChain,swapData.inputOutAddre[1],mosValue,targetToken,to);
+        emit SwapAndBridge(msg.sender,swapData.inputOutAddre[0],amount,block.chainid,toChain,swapData.inputOutAddre[1],mosValue,orderId,targetToken,to);
     }
 
 
-    function swapOutTokens(ButterCore.AccessParams memory _swapData, bytes memory _mosData, uint256 amount, uint256 _toChain, bytes memory _to) internal returns(uint256){
+    function swapOutTokens(ButterCore.AccessParams memory _swapData, bytes memory _mosData, uint256 amount, uint256 _toChain, bytes memory _to) internal returns(uint256,bytes32){
+        bytes32 orderId;
         uint256 msgValue;
         // uint256 currentValue;
         uint256 mosValue;
@@ -70,7 +72,7 @@ contract ButterRouterBsc {
             ButterCore(butterCore).multiSwap(_swapData);
             mosValue = address(this).balance - msgValue;
             //  mosValue = currentValue - msgValue;
-            MapMosV3(mosAddress).swapOutNative{value : mosValue}(msg.sender, _to, _toChain, _mosData);
+           orderId = MapMosV3(mosAddress).swapOutNative{value : mosValue}(msg.sender, _to, _toChain, _mosData);
         } else {
             // erc20-erc20
             msgValue = IERC20(_swapData.inputOutAddre[1]).balanceOf(address(this));
@@ -79,10 +81,10 @@ contract ButterRouterBsc {
             mosValue = IERC20(_swapData.inputOutAddre[1]).balanceOf(address(this)) - msgValue;
             //  mosValue = currentValue - msgValue;
             TransferHelper.safeApprove(_swapData.inputOutAddre[1], mosAddress, mosValue);
-            MapMosV3(mosAddress).swapOutToken(msg.sender, _swapData.inputOutAddre[1], _to, mosValue, _toChain, _mosData);
+            orderId = MapMosV3(mosAddress).swapOutToken(msg.sender, _swapData.inputOutAddre[1], _to, mosValue, _toChain, _mosData);
         }
 
-        return mosValue;
+        return (mosValue,orderId);
     }
 
 
