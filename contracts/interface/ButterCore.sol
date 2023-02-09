@@ -13,7 +13,7 @@ interface ButterCore {
     }
 
 
-    function multiSwap(bytes32 orderId,AccessParams calldata params) external payable;
+    function multiSwap(AccessParams calldata params) external payable;
 }
 
 

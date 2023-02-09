@@ -65,7 +65,7 @@ contract ButterRouterBsc {
         if (_swapData.inputOutAddre[1] == address(0)) {
             msgValue = address(this).balance;
             TransferHelper.safeApprove(_swapData.inputOutAddre[0], butterCore, amount);
-            ButterCore(butterCore).multiSwap(bytes32(0),_swapData);
+            ButterCore(butterCore).multiSwap(_swapData);
             mosValue = address(this).balance - msgValue;
             //  mosValue = currentValue - msgValue;
             orderId = MapMosV3(mosAddress).swapOutNative{value : mosValue}(msg.sender, _to, _toChain, _mosData);
@@ -74,7 +74,7 @@ contract ButterRouterBsc {
         } else if (_swapData.inputOutAddre[0] == address(0)) {
 
             msgValue = IERC20(_swapData.inputOutAddre[1]).balanceOf(address(this));
-            ButterCore(butterCore).multiSwap{value : amount}(bytes32(0),_swapData);
+            ButterCore(butterCore).multiSwap{value : amount}(_swapData);
             mosValue = IERC20(_swapData.inputOutAddre[1]).balanceOf(address(this)) - msgValue;
             //  mosValue = currentValue - msgValue;
             TransferHelper.safeApprove(_swapData.inputOutAddre[1], mosAddress, mosValue);
@@ -84,7 +84,7 @@ contract ButterRouterBsc {
             // erc20-erc20
             msgValue = IERC20(_swapData.inputOutAddre[1]).balanceOf(address(this));
             TransferHelper.safeApprove(_swapData.inputOutAddre[0], mosAddress, amount);
-            ButterCore(butterCore).multiSwap(bytes32(0),_swapData);
+            ButterCore(butterCore).multiSwap(_swapData);
             mosValue = IERC20(_swapData.inputOutAddre[1]).balanceOf(address(this)) - msgValue;
             //  mosValue = currentValue - msgValue;
             TransferHelper.safeApprove(_swapData.inputOutAddre[1], mosAddress, mosValue);
