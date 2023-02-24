@@ -9,7 +9,7 @@ import "./interface/IERC20.sol";
 import "./interface/MapMosV3.sol";
 
 
-contract ButterRouterBsc {
+contract ButterRouterBscV2 {
 
 
     address  public admin;
@@ -41,7 +41,16 @@ contract ButterRouterBsc {
 
         bytes32 orderId;
         uint256 mosValue;
-        if (swapData.inputOutAddre[0] == address(0)) {
+        if(swapData.amountInArr.length == 0) {
+            mosValue = amount;
+            if(swapData.inputOutAddre[1] == address(0)) {
+               orderId = MapMosV3(mosAddress).swapOutNative{value : mosValue}(msg.sender, to, toChain, mosData);
+            } else {
+               TransferHelper.safeApprove(swapData.inputOutAddre[1], mosAddress, mosValue);
+               orderId = MapMosV3(mosAddress).swapOutToken(msg.sender, swapData.inputOutAddre[1], to, mosValue, toChain, mosData);
+            }
+         // erc20 - eth  
+         }else if (swapData.inputOutAddre[0] == address(0)) {
 
             require(msg.value == amount, "Not enough money");
             // eth -- erc20
