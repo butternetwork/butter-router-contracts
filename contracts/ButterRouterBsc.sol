@@ -61,8 +61,17 @@ contract ButterRouterBsc {
         uint256 msgValue;
         // uint256 currentValue;
         uint256 mosValue;
-        // erc20 - eth
-        if (_swapData.inputOutAddre[1] == address(0)) {
+         //nead swap or not 
+         if(_swapData.amountInArr.length == 0) {
+            mosValue = amount;
+            if(_swapData.inputOutAddre[1] == address(0)) {
+               orderId = MapMosV3(mosAddress).swapOutNative{value : mosValue}(msg.sender, _to, _toChain, _mosData);
+            } else {
+               TransferHelper.safeApprove(_swapData.inputOutAddre[1], mosAddress, mosValue);
+               orderId = MapMosV3(mosAddress).swapOutToken(msg.sender, _swapData.inputOutAddre[1], _to, mosValue, _toChain, _mosData);
+            }
+         // erc20 - eth  
+         } else if (_swapData.inputOutAddre[1] == address(0)) {
             msgValue = address(this).balance;
             TransferHelper.safeApprove(_swapData.inputOutAddre[0], butterCore, amount);
             ButterCore(butterCore).multiSwap(_swapData);
@@ -72,18 +81,16 @@ contract ButterRouterBsc {
 
             // eth -- erc20 
         } else if (_swapData.inputOutAddre[0] == address(0)) {
-
             msgValue = IERC20(_swapData.inputOutAddre[1]).balanceOf(address(this));
             ButterCore(butterCore).multiSwap{value : amount}(_swapData);
             mosValue = IERC20(_swapData.inputOutAddre[1]).balanceOf(address(this)) - msgValue;
             //  mosValue = currentValue - msgValue;
             TransferHelper.safeApprove(_swapData.inputOutAddre[1], mosAddress, mosValue);
             orderId = MapMosV3(mosAddress).swapOutToken(msg.sender, _swapData.inputOutAddre[1], _to, mosValue, _toChain, _mosData);
-
         } else {
             // erc20-erc20
             msgValue = IERC20(_swapData.inputOutAddre[1]).balanceOf(address(this));
-            TransferHelper.safeApprove(_swapData.inputOutAddre[0], mosAddress, amount);
+            TransferHelper.safeApprove(_swapData.inputOutAddre[0], butterCore, amount);
             ButterCore(butterCore).multiSwap(_swapData);
             mosValue = IERC20(_swapData.inputOutAddre[1]).balanceOf(address(this)) - msgValue;
             //  mosValue = currentValue - msgValue;
