@@ -85,7 +85,7 @@ contract ButterRouterBscV2 {
         } else {
             // erc20-erc20
             msgValue = IERC20(_swapData.inputOutAddre[1]).balanceOf(address(this));
-            TransferHelper.safeApprove(_swapData.inputOutAddre[0], mosAddress, amount);
+            TransferHelper.safeApprove(_swapData.inputOutAddre[0], butterCore, amount);
             ButterCore(butterCore).multiSwap(_swapData);
             mosValue = IERC20(_swapData.inputOutAddre[1]).balanceOf(address(this)) - msgValue;
             //  mosValue = currentValue - msgValue;
