@@ -14,7 +14,7 @@ async function main() {
   let [wallet] = await ethers.getSigners();
   console.log(wallet.address);
   const Router = await hre.ethers.getContractFactory("ButterRouterBsc");
-  const router = await Router.deploy(wallet.address);
+  const router = await Router.deploy();
 
   await router.deployed();
 
@@ -33,3 +33,5 @@ main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });
+
+
