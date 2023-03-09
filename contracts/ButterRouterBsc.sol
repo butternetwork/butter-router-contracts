@@ -3,14 +3,15 @@ pragma solidity ^0.8.9;
 pragma experimental ABIEncoderV2;
 
 
-import "./libs/TransferHelper.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/access/Ownable2Step.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./interface/ButterCore.sol";
-import "./interface/IERC20.sol";
 import "./interface/MapMosV3.sol";
-import "./libs/Ownable2Step.sol";
 
 
 contract ButterRouterBsc is Ownable2Step {
+    using SafeERC20 for IERC20;
 
     address  public mosAddress;
 
@@ -35,7 +36,7 @@ contract ButterRouterBsc is Ownable2Step {
 
             swapOutTokens(swapData, mosData, amount, toChain, to);
         } else {
-            TransferHelper.safeTransferFrom(swapData.inputOutAddre[0], msg.sender, address(this), amount);
+            IERC20(swapData.inputOutAddre[0]).safeTransferFrom(msg.sender, address(this), amount);
             swapOutTokens(swapData, mosData, amount, toChain, to);
         }
 
@@ -58,13 +59,13 @@ contract ButterRouterBsc is Ownable2Step {
             if(_swapData.inputOutAddre[1] == address(0)) {
                orderId = MapMosV3(mosAddress).swapOutNative{value : mosValue}(msg.sender, _to, _toChain, _mosData);
             } else {
-               TransferHelper.safeApprove(_swapData.inputOutAddre[1], mosAddress, mosValue);
+               IERC20(_swapData.inputOutAddre[1]).safeApprove(mosAddress, mosValue);
                orderId = MapMosV3(mosAddress).swapOutToken(msg.sender, _swapData.inputOutAddre[1], _to, mosValue, _toChain, _mosData);
             }
          // erc20 - eth  
          } else if (_swapData.inputOutAddre[1] == address(0)) {
             msgValue = address(this).balance;
-            TransferHelper.safeApprove(_swapData.inputOutAddre[0], butterCore, amount);
+            IERC20(_swapData.inputOutAddre[0]).safeApprove(butterCore, amount);
             ButterCore(butterCore).multiSwap(_swapData);
             mosValue = address(this).balance - msgValue;
             //  mosValue = currentValue - msgValue;
@@ -76,16 +77,16 @@ contract ButterRouterBsc is Ownable2Step {
             ButterCore(butterCore).multiSwap{value : amount}(_swapData);
             mosValue = IERC20(_swapData.inputOutAddre[1]).balanceOf(address(this)) - msgValue;
             //  mosValue = currentValue - msgValue;
-            TransferHelper.safeApprove(_swapData.inputOutAddre[1], mosAddress, mosValue);
+            IERC20(_swapData.inputOutAddre[1]).safeApprove(mosAddress, mosValue);
             orderId = MapMosV3(mosAddress).swapOutToken(msg.sender, _swapData.inputOutAddre[1], _to, mosValue, _toChain, _mosData);
         } else {
             // erc20-erc20
             msgValue = IERC20(_swapData.inputOutAddre[1]).balanceOf(address(this));
-            TransferHelper.safeApprove(_swapData.inputOutAddre[0], butterCore, amount);
+            IERC20(_swapData.inputOutAddre[0]).safeApprove(butterCore, amount);
             ButterCore(butterCore).multiSwap(_swapData);
             mosValue = IERC20(_swapData.inputOutAddre[1]).balanceOf(address(this)) - msgValue;
             //  mosValue = currentValue - msgValue;
-            TransferHelper.safeApprove(_swapData.inputOutAddre[1], mosAddress, mosValue);
+            IERC20(_swapData.inputOutAddre[1]).safeApprove(mosAddress, mosValue);
             orderId = MapMosV3(mosAddress).swapOutToken(msg.sender, _swapData.inputOutAddre[1], _to, mosValue, _toChain, _mosData);
         }
 
