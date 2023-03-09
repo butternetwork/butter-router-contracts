@@ -7,12 +7,10 @@ import "./libs/TransferHelper.sol";
 import "./interface/ButterCore.sol";
 import "./interface/IERC20.sol";
 import "./interface/MapMosV3.sol";
+import "./libs/Ownable2Step.sol";
 
+contract ButterRouterBscV2  is Ownable2Step{
 
-contract ButterRouterBscV2 {
-
-
-    address  public admin;
 
     address  public mosAddress;
 
@@ -21,15 +19,7 @@ contract ButterRouterBscV2 {
     event SwapAndBridge (address indexed from,address indexed originToken,uint256 indexed originAmount,uint256 formchainId,uint256 tochainId,address bridgeToken,uint256 bridgeAmount,bytes32 orderId,bytes targetToken,bytes to);
 
 
-
-    modifier onlyOwner() {
-        require(msg.sender == admin, "Caller is not an owner");
-        _;
-    }
-
-    constructor(address _admin) {
-        admin = _admin;
-    }
+    constructor() {}
 
 
     function entrance(ButterCore.AccessParams calldata swapData, bytes calldata mosData, uint256 amount, uint256 toChain, bytes memory to) external payable {
@@ -96,21 +86,19 @@ contract ButterRouterBscV2 {
         return (mosValue,orderId);
     }
 
-
     function setMosAddress(address _mosAddress) public onlyOwner returns (bool){
-        require(_mosAddress != address(0), 'Address cannot be zero');
+        require(_mosAddress.code.length > 0, '_mosAddress must be contract');
         mosAddress = _mosAddress;
         return true;
     }
 
     function setButterCore(address _butterCore) public onlyOwner returns (bool){
-        require(_butterCore != address(0), 'Address cannot be zero');
+        require(_butterCore.code.length > 0, '_butterCore must be contract');
         butterCore = _butterCore;
         return true;
     }
 
-    receive() external payable {
-    }
+    receive() external payable {}
 
 
 }
