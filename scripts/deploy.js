@@ -6,7 +6,7 @@
 // global scope, and execute the script.
 const hre = require("hardhat");
 
-let mos_addr = "";
+let mos_addr = "0xb4fCfdD492202c91A7eBaf887642F437a07A2664";
 
 let butter_core_addr = "";
 
@@ -14,16 +14,16 @@ async function main() {
   let [wallet] = await ethers.getSigners();
   console.log(wallet.address);
   const Router = await hre.ethers.getContractFactory("ButterRouterBsc");
-  const router = await Router.deploy();
+  const router = await Router.deploy(mos_addr,butter_core_addr);
 
   await router.deployed();
 
   console.log(
     `router deployed to ${router.address}`
   );
-  await (await router.setMosAddress(mos_addr)).wait();
-  await (await router.setButterCore(butter_core_addr)).wait();
-  console.log(await router.butterCore());
+  // await (await router.setMosAddress(mos_addr)).wait();
+  // await (await router.setButterCore(butter_core_addr)).wait();
+  // console.log(await router.butterCore());
 
 }
 

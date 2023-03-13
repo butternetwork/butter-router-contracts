@@ -21,7 +21,12 @@ contract ButterRouterBsc is Ownable2Step {
     event SwapAndBridge (address indexed from,address indexed originToken,uint256 indexed originAmount,uint256 formchainId,uint256 tochainId,address bridgeToken,uint256 bridgeAmount,bytes32 orderId,bytes targetToken, bytes to);
 
 
-    constructor() {}
+    constructor(address _mos,address _core) {
+        require(_mos.code.length > 0, '_mosAddress must be contract');
+        mosAddress = _mos;
+        require(_core.code.length > 0, '_butterCore must be contract');
+        butterCore = _core;
+    }
 
 
     function entrance(ButterCore.AccessParams calldata swapData, bytes calldata mosData, uint256 amount, uint256 toChain, bytes memory to) external payable {
