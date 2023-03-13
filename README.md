@@ -11,3 +11,22 @@ REPORT_GAS=true npx hardhat test
 npx hardhat node
 npx hardhat run scripts/deploy.js
 ```
+
+
+deploy
+
+```
+npx hardhat deployRouter --mos <mos address> --core <core address> --network <network>
+```
+
+set mos
+
+```
+npx hardhat setMos --router <router address> --mos  <mos address> --network <network>
+```
+
+set core 
+
+```
+npx hardhat setCore --router <router address> --core  <core address >--network <network>
+```

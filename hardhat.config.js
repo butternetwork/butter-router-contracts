@@ -1,10 +1,14 @@
 require("@nomicfoundation/hardhat-toolbox");
 require("dotenv/config")
+require('hardhat-deploy');
+require('./tasks')
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   solidity: "0.8.17",
-
+  namedAccounts: {
+    deployer: 0,
+  },
   networks:{
     hardhat:{
       forking:{
@@ -14,7 +18,7 @@ module.exports = {
       },
     },
     matic_testnet: {
-      url: `https://rpc-mumbai.maticvigil.com/`,
+      url: `https://polygon-mumbai.blockpi.network/v1/rpc/public`,
       chainId : 80001,
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
