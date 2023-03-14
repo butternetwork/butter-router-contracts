@@ -10,7 +10,7 @@ import "./interface/ButterCore.sol";
 import "./interface/MapMosV3.sol";
 
 
-contract ButterRouterBsc is Ownable2Step {
+contract ButterRouter is Ownable2Step {
     using SafeERC20 for IERC20;
 
     address  public mosAddress;

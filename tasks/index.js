@@ -12,11 +12,11 @@ task("deployRouter",
 
         console.log("deployer :", deployer)
 
-        let result = await deploy('ButterRouterBsc', {
+        let result = await deploy('ButterRouter', {
             from: deployer,
             args: [taskArgs.mos, taskArgs.core],
             log: true,
-            contract: 'ButterRouterBsc'
+            contract: 'ButterRouter'
         });
 
         console.log("router deployed to :", result.address);
