@@ -2,18 +2,9 @@
 pragma solidity ^0.8.9;
 pragma experimental ABIEncoderV2;
 
-
+import "../libs/ButterLib.sol";
 interface ButterCore {
-
-    struct AccessParams {
-        uint256[] amountInArr;
-        bytes[] paramsArr;
-        uint32[] routerIndex;
-        address[2] inputOutAddre;  // 0 -input  1- Out
-    }
-
-
-    function multiSwap(AccessParams calldata params) external payable;
+    function multiSwap(ButterLib.ButterCoreSwapParam calldata params) external payable returns(uint256);
 }
 
 
