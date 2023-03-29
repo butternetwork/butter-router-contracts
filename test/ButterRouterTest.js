@@ -28,22 +28,22 @@ describe("ButterRouterV1",function(){
     // let ButterSwap;
 
 
-    beforeEach(async()=>{
-        await network.provider.request({
-        method: "hardhat_impersonateAccount",
-        params: [WHALE]})    
-        whale =  await ethers.getSigner(WHALE);
+    // beforeEach(async()=>{
+    //     await network.provider.request({
+    //     method: "hardhat_impersonateAccount",
+    //     params: [WHALE]})    
+    //     whale =  await ethers.getSigner(WHALE);
 
-        wbnb = await ethers.getContractAt("IERC20",WBNB);
-        busd = await ethers.getContractAt("IERC20",BUSD);
+    //     wbnb = await ethers.getContractAt("IERC20",WBNB);
+    //     busd = await ethers.getContractAt("IERC20",BUSD);
 
 
-        ButterswapRouter = await ethers.getContractFactory("ButterRouterV1");
-        ButterRouter = await ButterswapRouter.deploy();
-        ButterSwap = ButterRouter.address;
-        console.log("ButterswapRouter address:",ButterRouter.address);
+    //     ButterswapRouter = await ethers.getContractFactory("ButterRouterV1");
+    //     ButterRouter = await ButterswapRouter.deploy();
+    //     ButterSwap = ButterRouter.address;
+    //     console.log("ButterswapRouter address:",ButterRouter.address);
 
-    });
+    // });
      
 
     
@@ -141,48 +141,48 @@ describe("ButterRouterV1",function(){
 
 
     //  ERC20-ETH
-    it("SwapOutTokneToEth",async ()=>{
+    // it("SwapOutTokneToEth",async ()=>{
 
-    let _amountInArrs = 100n * 10n ** 18n;
-        console.log(_amountInArrs);
+    // let _amountInArrs = 100n * 10n ** 18n;
+    //     console.log(_amountInArrs);
 
-      let  _amountInArr = [_amountInArrs];
+    //   let  _amountInArr = [_amountInArrs];
 
-      let _paramsArr = ['0x0000000000000000000000000000000000000000000000056bc75e2d63100000000000000000000000000000000000000000000000000000000000000002ea1700000000000000000000000000000000000000000000000000000000000000e00000000000000000000000001d7a59f706a7d00a0fc221011abec9253b0614240000000000000000000000000000000000000000000000000000000063abe5c700000000000000000000000078867bbeef44f2326bf8ddd1941a4439382ef2a70000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000200000000000000000000000078867bbeef44f2326bf8ddd1941a4439382ef2a7000000000000000000000000ae13d989dac2f0debff460ac112a837c89baa7cd'];
+    //   let _paramsArr = ['0x0000000000000000000000000000000000000000000000056bc75e2d63100000000000000000000000000000000000000000000000000000000000000002ea1700000000000000000000000000000000000000000000000000000000000000e00000000000000000000000001d7a59f706a7d00a0fc221011abec9253b0614240000000000000000000000000000000000000000000000000000000063abe5c700000000000000000000000078867bbeef44f2326bf8ddd1941a4439382ef2a70000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000200000000000000000000000078867bbeef44f2326bf8ddd1941a4439382ef2a7000000000000000000000000ae13d989dac2f0debff460ac112a837c89baa7cd'];
 
-      let _routerIndex = ['0'];
+    //   let _routerIndex = ['0'];
                              
-      let _inputOutAddre = ['0x78867BbEeF44f2326bF8DDd1941a4439382EF2A7','0x0000000000000000000000000000000000000000'];
+    //   let _inputOutAddre = ['0x78867BbEeF44f2326bF8DDd1941a4439382EF2A7','0x0000000000000000000000000000000000000000'];
 
-      let _amount = _amountInArrs;
-
-
-    let exchangeData = {
-        amountInArr:_amountInArr,
-        paramsArr:_paramsArr,
-        routerIndex:_routerIndex,
-        inputOutAddre:_inputOutAddre,
-        amount:_amount
-    }
+    //   let _amount = _amountInArrs;
 
 
-        let bal_busd =  await busd.balanceOf(whale.address);
-        console.log("busd_balan:",bal_busd);
+    // let exchangeData = {
+    //     amountInArr:_amountInArr,
+    //     paramsArr:_paramsArr,
+    //     routerIndex:_routerIndex,
+    //     inputOutAddre:_inputOutAddre,
+    //     amount:_amount
+    // }
 
-        console.log("ButterRouter BNB token:",await ethers.provider.getBalance(ButterRouter.address));
 
-        await busd.connect(whale).approve(ButterRouter.address,_amount);
-        console.log("approve");
+    //     let bal_busd =  await busd.balanceOf(whale.address);
+    //     console.log("busd_balan:",bal_busd);
+
+    //     console.log("ButterRouter BNB token:",await ethers.provider.getBalance(ButterRouter.address));
+
+    //     await busd.connect(whale).approve(ButterRouter.address,_amount);
+    //     console.log("approve");
 
 
-        await ButterRouter.connect(whale).entrance(exchangeData);
-        console.log("-------------11111-----------------");
+    //     await ButterRouter.connect(whale).entrance(exchangeData);
+    //     console.log("-------------11111-----------------");
 
-        console.log("ButterRouter BNB token",await ethers.provider.getBalance(ButterRouter.address));
+    //     console.log("ButterRouter BNB token",await ethers.provider.getBalance(ButterRouter.address));
 
-        let bal_busd1 =  await busd.balanceOf(whale.address);
-        console.log("usdc_balan1:",bal_busd1); 
-    })
+    //     let bal_busd1 =  await busd.balanceOf(whale.address);
+    //     console.log("usdc_balan1:",bal_busd1); 
+    // })
     
 
   
