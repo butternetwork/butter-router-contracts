@@ -10,12 +10,13 @@ module.exports = {
     deployer: 0,
   },
   networks:{
-    hardhat:{
-      forking:{
-        enabled:true,
-        chainid:97,
-        url:'https://bsc-testnet.public.blastapi.io'      
-      },
+    hardhat: {
+      chainId:1,
+      initialBaseFeePerGas: 0,
+      forking: {
+        url: "https://eth-mainnet.alchemyapi.io/v2/" + process.env.ALCHEMY_KEY,
+        blockNumber: 16930373        //15986531
+      }
     },
     Matic: {
       url: `https://rpc-mainnet.maticvigil.com`,

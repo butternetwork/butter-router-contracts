@@ -1,278 +1,130 @@
 
-const { baToJSON } = require("@nomicfoundation/ethereumjs-util");
-const {expect} = require("chai");
+let { loadFixture } = require("@nomicfoundation/hardhat-network-helpers") ;
+let { BigNumber } = require("ethers") ;
+const { expect } = require("chai");
 const exp = require("constants");
 const { sync } = require("glob");
-const {ethers,network} = require("hardhat");
+const { ethers, network } = require("hardhat");
 const { any } = require("hardhat/internal/core/params/argumentTypes");
 
 
+let v5_router_addr = "0x1111111254EEB25477B68fb85Ed929f73A960582";
 
-
+let ERC20 = [
+    'function approve(address spender, uint256 amount) external returns (bool)',
+    'function balanceOf(address account) external view returns (uint256)',
+    'function transfer(address to, uint value) external returns (bool)'
+]
 //// fork mainnet
+describe("ButterRouterV2", function () {
+    let router;
+    let mos;
+    // beforeEach(async () => {
 
-describe("ButterRouterV2",function(){   
-    let WHALE = '0x5096007EA5939A0948Bd89d9a48bccF8A94218e5';
-    let WBNB = '0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd';
-    let BUSD = '0x78867BbEeF44f2326bF8DDd1941a4439382EF2A7';
-    let ButterswapRouter;
-    let owenr;
-    let ButterRouter; 
-    let addre1;
-    let addre2; 
-    let index = 0;
-    let addrePancake;
-    let whale;
-    let busd;
-    let wbnb;
-    // let ButterSwap;
+    // });
+
+    async function deployFixture() {
+        MosMock = await ethers.getContractFactory("MosMock");
+        mos = await MosMock.deploy();
+        await mos.deployed();
+
+        ButterRouterV2 = await ethers.getContractFactory("ButterRouterV2");
+        router = await ButterRouterV2.deploy(mos.address);
+        await(await router.setAuthorization(v5_router_addr,true)).wait()
+        await router.deployed()
+    }
 
 
-    beforeEach(async()=>{
+    it("swapAndBridge", async () => {
+        let user;
+        // 0x1252eb0912559a206dd3600f283f2a48dca24196
+        this.timeout(0)
         await network.provider.request({
-        method: "hardhat_impersonateAccount",
-        params: [WHALE]})    
-        whale =  await ethers.getSigner(WHALE);
-
-        wbnb = await ethers.getContractAt("IERC20",WBNB);
-        busd = await ethers.getContractAt("IERC20",BUSD);
-
-
-        ButterswapRouter = await ethers.getContractFactory("ButterRouterV2");
-        ButterRouter = await ButterswapRouter.deploy();
-        ButterSwap = ButterRouter.address;
-        console.log("ButterswapRouter address:",ButterRouter.address);
-
-    });
-     
-
-    
-    // // ERC20-ERC20
-
-
-    //ERC_ETH
-    // it("SwapOutTokne",async ()=>{
-
-    // // let _amountInArrs = 1n * 10n ** 18n;
-    // //     console.log(_amountInArrs);
-
-    //   let  _amountInArr = ["1000000000000000000"];
-
-    //   let _paramsArr = ['0x0000000000000000000000000000000000000000000000000de0b6b3a764000000000000000000000000000000000000000000000000000000000000000003e800000000000000000000000000000000000000000000000000000000000000e0000000000000000000000000982720ff76e9bafdbc1bfe03b902bc715e91e7e00000000000000000000000000000000000000000000000000000000063abe5c7000000000000000000000000ae13d989dac2f0debff460ac112a837c89baa7cd00000000000000000000000078867bbeef44f2326bf8ddd1941a4439382ef2a70000000000000000000000000000000000000000000000000000000000000002000000000000000000000000ae13d989dac2f0debff460ac112a837c89baa7cd00000000000000000000000078867bbeef44f2326bf8ddd1941a4439382ef2a7'];
-
-    //   let _routerIndex = ['0'];
-      
-    //   let _inputOutAddre = ['0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd','0x78867BbEeF44f2326bF8DDd1941a4439382EF2A7'];
-
-    // //   let _amount = _amountInArrs;
-
-    // let swapData = {
-    //     amountInArr:_amountInArr,
-    //     paramsArr:_paramsArr,
-    //     routerIndex:_routerIndex,
-    //     inputOutAddre:_inputOutAddre
+            method: 'hardhat_reset',
+            params: [
+                {
+                    forking: {
+                        jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/" + process.env.ALCHEMY_KEY,
+                        blockNumber: 16930372,
+                    },
+                },
+            ],
+        })
+        await network.provider.request({
+            method: 'hardhat_impersonateAccount',
+            params: ['0x1252eb0912559a206dd3600f283f2a48dca24196'],
+        })
+        user = await ethers.getSigner('0x1252eb0912559a206dd3600f283f2a48dca24196')
+        await deployFixture();
+        //tx https://etherscan.io/tx/0x2af1262e6bb3cb4d7dacba31308feaa494ec7baa8f9c5e5852ce8ef7ba13c5e3
+        let data = "0x12aa3caf0000000000000000000000007122db0ebe4eb9b434a9f2ffe6760bc03bfbd0e00000000000000000000000006f3277ad0782a7da3eb676b85a8346a100bf9c1c000000000000000000000000dac17f958d2ee523a2206206994597c13d831ec70000000000000000000000004c7e62fbb86b204f7c6dc1f582ddd889182d5cf50000000000000000000000001252eb0912559a206dd3600f283f2a48dca2419600000000000000000000000000000000000000000083225966d50d5bd8100000000000000000000000000000000000000000000000000000000000001559be1a000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000001400000000000000000000000000000000000000000000000000000000000000160000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001100000000000000000000000000000000000000000000000000000000000f200a007e5c0d20000000000000000000000000000000000000000000000000000ce00006700206ae40711b8002dc6c04c7e62fbb86b204f7c6dc1f582ddd889182d5cf50d4a11d5eeaac28ec3f61d100daf4d40471f185200000000000000000000000000000000000000000000000000000000000000016f3277ad0782a7da3eb676b85a8346a100bf9c1c00206ae40711b8002dc6c00d4a11d5eeaac28ec3f61d100daf4d40471f18521111111254eeb25477b68fb85ed929f73a9605820000000000000000000000000000000000000000000000000000000000000001c02aaa39b223fe8d0a0e5c4f27ead9083c756cc200000000000000000000000000000000e26b9977"
+        let _amount = BigNumber.from("158531492000000000000000000");
+        let _srcToken = "0x6f3277ad0782a7DA3eb676b85a8346A100BF9C1c";
+    //     //    struct SwapParam {
+    //     address excutor;
+    //     // address srcToken;
+    //     address dstToken;
+    //     // uint256 minReturnAmount;
+    //     bytes data;
     // }
-
-    // console.log(swapData);
-
-    // // let newAmountIns = 100n * 10n ** 18n;
-    // let newAmountIns = "1000000000000000000";
-    // // let newMinAmountOuts =10n * 10n ** 18n;
-
-    // let newPaths = '0x00000000000000000000000078867bbeef44f2326bf8ddd1941a4439382ef2a7000000000000000000000000000000000000000000000002b5e3af16b1880000000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000e0000000000000000000000000000000000000000000000000000000000000028000000000000000000000000078867bbeef44f2326bf8ddd1941a4439382ef2a7000000000000000000000000ae13d989dac2f0debff460ac112a837c89baa7cd0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000002b5e3af16b1880000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000140000000000000000000000000000000000000000000000002b5e3af16b1880000000000000000000000000000000000000000000000000000000000000002ea1700000000000000000000000000000000000000000000000000000000000000e000000000000000000000000078867bbeef44f2326bf8ddd1941a4439382ef2a70000000000000000000000000000000000000000000000000000000063abe5c700000000000000000000000078867bbeef44f2326bf8ddd1941a4439382ef2a7000000000000000000000000ae13d989dac2f0debff460ac112a837c89baa7cd000000000000000000000000000000000000000000000000000000000000000200000000000000000000000078867bbeef44f2326bf8ddd1941a4439382ef2a7000000000000000000000000ae13d989dac2f0debff460ac112a837c89baa7cd00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000';
-
-    // let newRouterIndexs= '0';
-
-    // let newTargetToken = '0x00000000000000000000000078867bbeef44f2326bf8ddd1941a4439382ef2a7';
-
-    // let newtoAddress = '0x00000000000000000000000078867bbeef44f2326bf8ddd1941a4439382ef2a7';
-
-    // let newSwapParam = [{
-    //     amountIn: newAmountIns,
-    //     minAmountOut:newAmountIns,
-    //     path:newPaths, // 0xtokenin+0xtokenOut on evm, or tokenIn'X'tokenOut on near
-    //     routerIndex:newRouterIndexs,// pool id on near or router index on evm
-    // }]
-    
-    // let SwapData = {
-    //     swapParams:newSwapParam,
-    //     targetToken:newTargetToken,
-    //     toAddress:newtoAddress
-    // }
-
-    // let mapTargetToken = "0x78867BbEeF44f2326bF8DDd1941a4439382EF2A7";
-
-    // let toChain = 212;
-
-    // let amounts = "1000000000000000000";
-
-    //     let bal_WBNB = await wbnb.balanceOf(whale.address);
-    //     console.log("wbnb_balan",bal_WBNB);
-
-    //     let bal_busd =  await busd.balanceOf(ButterRouter.address);
-    //     console.log("busd_balan:",bal_busd);
-
-
-    //     await wbnb.connect(whale).approve(ButterRouter.address,amounts);
-    //     console.log("approve");
-
-    //     // console.log(exchangeData);
-    //     await ButterRouter.connect(whale).entrance(swapData,SwapData,amounts,mapTargetToken,toChain);
-    //     console.log("-------------11111-----------------");
-
-    //     let bal_busd1 =  await busd.balanceOf(ButterRouter.address);
-    //     console.log("ButterRouter:",bal_busd1); 
-
-    //     // let bal_busd1 =  await busd.balanceOf(whale.address);
-    //     // console.log("usdc_balan1:",bal_busd1); 
-    // })
-
-
-  
-
-
-    ////  ERC20-ETH
-    // it("SwapOutTokneToEth",async ()=>{
-
-    // let _amountInArrs = 1n * 10n ** 18n;
-    //     console.log(_amountInArrs);
-    
-    //   let  _amountInArr = ["100000000000000000000"];
-
-    //   let _paramsArr = ['0x0000000000000000000000000000000000000000000000056bc75e2d63100000000000000000000000000000000000000000000000000000000000e8d4a5100000000000000000000000000000000000000000000000000000000000000000e0000000000000000000000000926d9953de1dd54d5bd72491ed50a46fd0a471ca0000000000000000000000000000000000000000000000000000000063abe5c700000000000000000000000078867bbeef44f2326bf8ddd1941a4439382ef2a70000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000200000000000000000000000078867bbeef44f2326bf8ddd1941a4439382ef2a7000000000000000000000000ae13d989dac2f0debff460ac112a837c89baa7cd'];
-
-    //   let _routerIndex = ['0'];
-                            
-    //   let _inputOutAddre = ['0x78867BbEeF44f2326bF8DDd1941a4439382EF2A7','0x0000000000000000000000000000000000000000'];
-
-      
-    // let swapData = {
-    //     amountInArr:_amountInArr,
-    //     paramsArr:_paramsArr,
-    //     routerIndex:_routerIndex,
-    //     inputOutAddre:_inputOutAddre
-    // }
-
-    // console.log(swapData);
-
-    // // let newAmountIns = 100n * 10n ** 18n;
-    // let newAmountIns = "1000000000000000000";
-    // // let newMinAmountOuts =10n * 10n ** 18n;
-
-    // let newPaths = '0x0000000000000000000000000000000000000000000000056bc75e2d63100000000000000000000000000000000000000000000000000000000000e8d4a5100000000000000000000000000000000000000000000000000000000000000000e0000000000000000000000000926d9953de1dd54d5bd72491ed50a46fd0a471ca0000000000000000000000000000000000000000000000000000000063abe5c700000000000000000000000078867bbeef44f2326bf8ddd1941a4439382ef2a70000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000200000000000000000000000078867bbeef44f2326bf8ddd1941a4439382ef2a7000000000000000000000000ae13d989dac2f0debff460ac112a837c89baa7cd';
-
-    // let newRouterIndexs= '0';
-
-    // let newTargetToken = '0x00000000000000000000000078867bbeef44f2326bf8ddd1941a4439382ef2a7';
-
-    // let newtoAddress = '0x00000000000000000000000078867bbeef44f2326bf8ddd1941a4439382ef2a7';
-
-    // let newSwapParam = [{
-    //     amountIn: newAmountIns,
-    //     minAmountOut:newAmountIns,
-    //     path:newPaths, // 0xtokenin+0xtokenOut on evm, or tokenIn'X'tokenOut on near
-    //     routerIndex:newRouterIndexs,// pool id on near or router index on evm
-    // }]
-    
-    // let SwapData = {
-    //     swapParams:newSwapParam,
-    //     targetToken:newTargetToken,
-    //     toAddress:newtoAddress
-    // }
-
-    // let mapTargetToken = "0x78867BbEeF44f2326bF8DDd1941a4439382EF2A7";
-
-    // let toChain = 212;
-
-    // let amounts = "100000000000000000000";
-
-    //     let bal_busd =  await busd.balanceOf(whale.address);
-    //     console.log("busd_balan:",bal_busd);
-
-    //     console.log("BNB token:",await ethers.provider.getBalance(whale.address));
-
-    //     await busd.connect(whale).approve(ButterRouter.address,amounts);
-    //     console.log("approve");
-
-    //     await ButterRouter.connect(whale).entrance(swapData,SwapData,amounts,mapTargetToken,toChain);
-    //     console.log("-------------11111-----------------");
-
-    //     let bal_busd1 =  await busd.balanceOf(ButterRouter.address);
-    //     console.log("ButterRouter:",bal_busd1); 
-
-    //     let bal_busd1 =  await busd.balanceOf(whale.address);
-    //     console.log("usdc_balan1:",bal_busd1); 
-    // })
-
-
-    //  // ETH-WEC20
-    it("SwapEthToTokne",async ()=>{
+        let _swapData =  ethers.utils.defaultAbiCoder.encode(['tuple(address, address,bytes)'], [[v5_router_addr, "0xdAC17F958D2ee523a2206206994597C13D831ec7",data]]);
+        let _bridgeData = "0x"
+        let _permitData = "0x"
+        let token = await ethers.getContractAt(ERC20, "0x6f3277ad0782a7DA3eb676b85a8346A100BF9C1c", user); 
+        let tokenOut = await ethers.getContractAt(ERC20, "0xdAC17F958D2ee523a2206206994597C13D831ec7", user); 
+        let balanceBefore = await tokenOut.balanceOf(user.address);
+        await(await token.approve(router.address,_amount)).wait();  
+        await(await router.connect(user).swapAndBridge(_amount,_srcToken,_swapData,_bridgeData,_permitData)).wait();
+        let balanceAfter = await tokenOut.balanceOf(user.address);
         
-      let  _amountInArr = ["1000000000000000000"];
+        expect(balanceAfter).gt(balanceBefore);
+    })
 
-      let _paramsArr = ['0x0000000000000000000000000000000000000000000000000de0b6b3a764000000000000000000000000000000000000000000000000000000000002540be40000000000000000000000000000000000000000000000000000000000000000e0000000000000000000000000926d9953de1dd54d5bd72491ed50a46fd0a471ca0000000000000000000000000000000000000000000000000000000063abe5c7000000000000000000000000000000000000000000000000000000000000000000000000000000000000000078867bbeef44f2326bf8ddd1941a4439382ef2a70000000000000000000000000000000000000000000000000000000000000002000000000000000000000000ae13d989dac2f0debff460ac112a837c89baa7cd00000000000000000000000078867bbeef44f2326bf8ddd1941a4439382ef2a7'];
-
-      let _routerIndex = ['0'];
-      
-      let _inputOutAddre = ['0x0000000000000000000000000000000000000000','0x78867BbEeF44f2326bF8DDd1941a4439382EF2A7'];
-
-      
-    let swapData = {
-        amountInArr:_amountInArr,
-        paramsArr:_paramsArr,
-        routerIndex:_routerIndex,
-        inputOutAddre:_inputOutAddre
-    }
-
-    console.log(swapData);
-
-    // let newAmountIns = 100n * 10n ** 18n;
-    let newAmountIns = "1000000000000000000";
-    // let newMinAmountOuts =10n * 10n ** 18n;
-
-    let newPaths = '0x0000000000000000000000000000000000000000000000056bc75e2d63100000000000000000000000000000000000000000000000000000000000e8d4a5100000000000000000000000000000000000000000000000000000000000000000e0000000000000000000000000926d9953de1dd54d5bd72491ed50a46fd0a471ca0000000000000000000000000000000000000000000000000000000063abe5c700000000000000000000000078867bbeef44f2326bf8ddd1941a4439382ef2a70000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000200000000000000000000000078867bbeef44f2326bf8ddd1941a4439382ef2a7000000000000000000000000ae13d989dac2f0debff460ac112a837c89baa7cd';
-
-    let newRouterIndexs= '0';
-
-    let newTargetToken = '0x00000000000000000000000078867bbeef44f2326bf8ddd1941a4439382ef2a7';
-
-    let newtoAddress = '0x00000000000000000000000078867bbeef44f2326bf8ddd1941a4439382ef2a7';
-
-    let newSwapParam = [{
-        amountIn: newAmountIns,
-        minAmountOut:newAmountIns,
-        path:newPaths, // 0xtokenin+0xtokenOut on evm, or tokenIn'X'tokenOut on near
-        routerIndex:newRouterIndexs,// pool id on near or router index on evm
-    }]
-    
-    let SwapData = {
-        swapParams:newSwapParam,
-        targetToken:newTargetToken,
-        toAddress:newtoAddress
-    }
-
-    let mapTargetToken = "0x78867BbEeF44f2326bF8DDd1941a4439382EF2A7";
-
-    let toChain = 212;
-
-    let amounts = "1000000000000000000";
-
+    it("swapAndBridge", async () => {
+        let user;
+        // 0x1252eb0912559a206dd3600f283f2a48dca24196
+        this.timeout(0)
+        await network.provider.request({
+            method: 'hardhat_reset',
+            params: [
+                {
+                    forking: {
+                        jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/" + process.env.ALCHEMY_KEY,
+                        blockNumber: 16930863,
+                    },
+                },
+            ],
+        })
+        await network.provider.request({
+            method: 'hardhat_impersonateAccount',
+            params: ['0x90c1d107ad3f503cd6ba3d1756da9935530816bf'],
+        })
+        user = await ethers.getSigner('0x90c1d107ad3f503cd6ba3d1756da9935530816bf')
+        await deployFixture();
+        //tx https://etherscan.io/tx/0xb6a7276b87b9763898c38ea19b7573cd81e6af5643031b835d15aa2ad6000442
+        let data = "0xe449022e00000000000000000000000000000000000000000000002040afeac5ac1a3767000000000000000000000000000000000000000000000000250875e870d7b5850000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000120000000000000000000000080c7770b4399ae22149db17e97f9fc8a10ca5100e26b9977"
+        let _amount = BigNumber.from("594957012632774260583");
+        let _srcToken = "0xA8b919680258d369114910511cc87595aec0be6D";
+    //     //    struct SwapParam {
+    //     address excutor;
+    //     // address srcToken;
+    //     address dstToken;
+    //     // uint256 minReturnAmount;
+    //     bytes data;
+    // }
+        let _swapData =  ethers.utils.defaultAbiCoder.encode(['tuple(address, address,bytes)'], [[v5_router_addr, ethers.constants.AddressZero,data]]);
+        let _bridgeData = "0x"
+        let _permitData = "0x"
+        let token = await ethers.getContractAt(ERC20, _srcToken, user); 
+        let balanceBefore = await user.getBalance();
+        await(await token.approve(router.address,_amount)).wait();  
+        await(await router.connect(user).swapAndBridge(_amount,_srcToken,_swapData,_bridgeData,_permitData)).wait();
+        let balanceAfter = await user.getBalance();
         
-    console.log("BNB token:",await ethers.provider.getBalance(whale.address));
+        expect(balanceAfter).gt(balanceBefore);
+    })
 
-    let bal_busd =  await busd.balanceOf(whale.address);
-        console.log("busd_balan:",bal_busd);
 
-    await busd.connect(whale).approve(ButterRouter.address,amounts);
-    console.log("approve");
 
-    await ButterRouter.connect(whale).entrance(swapData,SwapData,amounts,mapTargetToken,toChain,{value:amounts});
-    console.log("-------------11111-----------------");
 
-    let bal_busd1 =  await busd.balanceOf(ButterRouter.address);
-        console.log("ButterRouter_balan:",bal_busd1);
-
-    console.log("BNB token:",await ethers.provider.getBalance(whale.address));
-    }) 
-  
 })

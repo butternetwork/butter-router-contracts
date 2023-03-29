@@ -13,7 +13,7 @@ let butter_core_addr = "";
 async function main() {
   let [wallet] = await ethers.getSigners();
   console.log(wallet.address);
-  const Router = await hre.ethers.getContractFactory("ButterRouterBsc");
+  const Router = await hre.ethers.getContractFactory("ButterRouter");
   const router = await Router.deploy(mos_addr,butter_core_addr);
 
   await router.deployed();
