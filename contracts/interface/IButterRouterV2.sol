@@ -2,12 +2,11 @@
 pragma solidity ^0.8.9;
 
 interface IButterRouterV2 {
-    
     struct SwapParam {
         address excutor;
-        // address srcToken;
+        address receiver;
         address dstToken;
-        // uint256 minReturnAmount;
+        uint256 minReturnAmount;
         bytes data;
     }
 
@@ -21,10 +20,18 @@ interface IButterRouterV2 {
         address target;
         address token; //address(0) for native token
         uint256 amount;
+        address receiver;
         bytes data;
     }
 
-     function swapAndBridge(
+    struct PayResult{
+        uint256 swapAmount;
+        address payToken;
+        address receiver;
+        uint256 payAmount;
+    }
+
+    function swapAndBridge(
         uint256 _amount,
         address _srcToken,
         bytes calldata _swapData,
@@ -32,7 +39,17 @@ interface IButterRouterV2 {
         bytes calldata _permitData
     ) external payable;
 
-    function swapAndPay(bytes32 orderId,bytes calldata data,address to,address tokenIn,address tokenOut,uint256 amountIn) external payable;
+    function swapAndPay(
+        bytes32 id,
+        uint256 _amount,
+        address _srcToken,
+        bytes calldata _swapData,
+        bytes calldata _payData,
+        bytes calldata _permitData
+    ) external payable returns(PayResult memory result);
 
-    function getFee() external view returns(address _feeReceiver,uint256 _feeRate);
+    function getFee(uint256 _amount)
+        external
+        view
+        returns (address _feeReceiver, uint256 _feeRate);
 }

@@ -119,7 +119,7 @@ task("setV2Mos",
 
 
 task("setAuthorization",
-    "set mos address"
+    "setAuthorization"
 )
     .addParam("router", "router address")
     .addParam("excutor", "excutor address")
@@ -143,7 +143,7 @@ task("setAuthorization",
     })
 
 task("setFee",
-    "set mos address"
+    "setFee"
 )
     .addParam("router", "router address")
     .addParam("feereceiver", "feeReceiver address")

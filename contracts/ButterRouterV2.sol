@@ -26,7 +26,25 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step {
 
     mapping(address => bool) public approved;
 
-    struct Temp{
+    modifier transferIn(address token,uint256 amount,bytes memory permitData) {
+        require(amount > 0,"zero in amount");
+        if (permitData.length > 0) {
+            _permit(permitData);
+        }
+        if (_isNative(token)) {
+            require(msg.value == amount);
+        } else {
+            SafeERC20.safeTransferFrom(
+                IERC20(token),
+                msg.sender,
+                address(this),
+                amount
+            );
+        }
+        _;
+    }
+
+    struct BridgeTemp{
         bytes32 orderId;
         uint256 mosValue;
         bytes  targetToken;
@@ -47,7 +65,7 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step {
         bytes targetToken,
         bytes to
     );
-    event Swap(bytes32 indexed orderId,address indexed tokenIn,address indexed tokenOut,uint256 amountIn,uint256 amountOut);
+    event SwapAndPay(bytes32 indexed orderId,address indexed tokenIn,address indexed tokenOut,uint256 amountIn,uint256 amountOut,uint256 payAmount);
     event Fee(address indexed token,address indexed receiver,uint256 indexed amount);
     event Approve(address indexed excutor,bool indexed flag);
     event SetMos(address indexed mos);
@@ -63,34 +81,23 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step {
         bytes calldata _swapData,
         bytes calldata _bridgeData,
         bytes calldata _permitData
-    ) external payable override{
-        require(_amount > 0,"zero in amount");
-        if (_permitData.length > 0) {
-            _permit(_permitData);
-        }
-        if (_isNative(_srcToken)) {
-            require(msg.value == _amount);
-        } else {
-            SafeERC20.safeTransferFrom(
-                IERC20(_srcToken),
-                msg.sender,
-                address(this),
-                _amount
-            );
-        }
-        Temp memory temp;
-        //fee
-        (,temp.mosValue) = _collectFee(_srcToken, _amount);
+    ) external payable override transferIn(_srcToken,_amount,_permitData){      
+        BridgeTemp memory temp;
+        temp.mosValue = _amount;
         temp.bridgeToken = _srcToken;  
         temp.targetToken = abi.encodePacked(_srcToken); 
         if (_swapData.length > 0) {
+            //fee
+            (,temp.mosValue) = _collectFee(_srcToken, _amount);
             SwapParam memory swap = abi.decode(_swapData, (SwapParam));
             bool result;
             (result,temp.bridgeToken,temp.mosValue) = _makeSwap(temp.mosValue,_srcToken,swap);
             require(result,"swap fail");
+            require(temp.mosValue >= swap.minReturnAmount,"receive too low");
             if(_bridgeData.length == 0 && temp.mosValue > 0){
-                // if not need bridge and swap receiver is router refund to msg.sender
-                _transfer(temp.bridgeToken,msg.sender,temp.mosValue);
+                // if not need bridge and swap receiver is router refund to user
+                 address receiver = swap.receiver == address(0) ? msg.sender : swap.receiver;
+                _transfer(temp.bridgeToken,receiver,temp.mosValue);
             }
         }
 
@@ -122,30 +129,31 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step {
         emit SwapAndBridge(msg.sender,_srcToken,_amount,block.chainid,temp.tochain,temp.bridgeToken,temp.mosValue,temp.orderId,temp.targetToken,temp.to);
     }
 
-    function swapAndPay(bytes32 orderId,bytes calldata data,address to,address tokenIn,address tokenOut,uint256 amountIn) external payable override{
-
-        require(msg.sender == mosAddress,"caller must be mos");
-        // if ERC20 Token mos should tranfer in before this
-        if(tokenIn == address(0)){
-            amountIn = msg.value;
+    function swapAndPay(bytes32 id,uint256 _amount,address _srcToken,bytes calldata _swapData,bytes calldata _payData,bytes calldata _permitData) 
+    external 
+    payable
+    override
+    transferIn(_srcToken,_amount,_permitData)
+    returns(PayResult memory payResult)
+   {
+        payResult.swapAmount = _amount;
+        payResult.payToken = _srcToken;
+        payResult.receiver;
+        if(msg.sender != mosAddress){
+           (,payResult.swapAmount) = _collectFee(_srcToken,_amount);
         }
-        uint256 swapAmount = amountIn;
-        (bytes memory swapBytes,bytes memory payBytes) = abi.decode(data,(bytes,bytes));
-         
-         if(swapBytes.length > 0 && tokenIn != tokenOut){
-             SwapParam memory swap = abi.decode(swapBytes, (SwapParam));
-             bool result;
-             (result,tokenOut,swapAmount)= _makeSwap(amountIn,tokenIn,swap);
-             emit Swap(orderId,tokenIn,tokenOut,amountIn,swapAmount); 
-             if(!result) { //swap fail refund;
-                 _transfer(tokenIn,to,swapAmount);
-                 return;
-             }
-         }
-         // if not need swap tokenIn == tokenOut
-        if(payBytes.length > 0) {
-            (Pay memory pay) = abi.decode(payBytes,(Pay));
-            if(tokenOut == pay.token && swapAmount >= pay.amount){
+        if(_swapData.length > 0){
+            SwapParam memory swap = abi.decode(_swapData, (SwapParam));
+            bool result;
+            (result,payResult.payToken,payResult.swapAmount)= _makeSwap(payResult.swapAmount,_srcToken,swap);
+            require(result,"swap fail");
+            require(payResult.swapAmount >= swap.minReturnAmount,"receive too low");
+            payResult.receiver = swap.receiver;
+        }
+
+        if(_payData.length > 0) {
+            (Pay memory pay) = abi.decode(_payData,(Pay));
+            if(payResult.payToken == pay.token && payResult.swapAmount >= pay.amount){
                 bool success;
                 if(pay.token == address(0)) {
                  (success,)  = pay.target.call{value:pay.amount}(pay.data);
@@ -156,15 +164,21 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step {
                 }
 
                 if(success) {
-                    swapAmount = swapAmount - pay.amount;
+                    payResult.payAmount = pay.amount;
                 }
             } 
+            payResult.receiver = pay.receiver;
         } 
-        if(swapAmount > 0){
-            //refund
-           _transfer(tokenOut,to,swapAmount);
+        {
+          uint256 left = payResult.swapAmount - payResult.payAmount;
+          if(left > 0){
+             payResult.receiver = payResult.receiver == address(0) ? msg.sender : payResult.receiver ;
+             //refund
+             _transfer(payResult.payToken,payResult.receiver,left);
+           }
         }
-     
+
+       emit SwapAndPay(id,_srcToken,payResult.payToken,_amount,payResult.swapAmount,payResult.payAmount);
     }
 
     function setFee(address _feeReceiver, uint256 _feeRate) external onlyOwner {
@@ -209,9 +223,12 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step {
     }
 
 
-    function getFee() external view override returns(address _feeReceiver,uint256 _feeRate){
-         _feeReceiver = feeReceiver;
-         _feeRate = feeRate;
+    function getFee(uint256 _amount) external view override returns(address _feeReceiver,uint256 _fee){
+        if(feeRate > 0 && feeReceiver != address(0)){
+           _feeReceiver = feeReceiver;
+           _fee = _amount * feeRate / FEE_DENOMINATOR;
+        }
+
     }
 
     function setMosAddress(
