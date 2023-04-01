@@ -2,51 +2,64 @@
 pragma solidity ^0.8.9;
 
 interface IButterRouterV2 {
+
     struct SwapParam {
-        address excutor;
+        address executor;
         address receiver;
         address dstToken;
         uint256 minReturnAmount;
         bytes data;
     }
 
-    struct BridgeParm {
-        uint256 tochain;
+    struct BridgeParam {
+        uint256 toChain;
         bytes receiver;
-        bytes bridgeData;
+        bytes data;
     }
 
-    struct Pay {
+    struct CallbackParam {
         address target;
-        address token; //address(0) for native token
+        //address token; //address(0) for native token
         uint256 amount;
         address receiver;
         bytes data;
     }
 
-    struct PayResult{
-        uint256 swapAmount;
-        address payToken;
-        address receiver;
-        uint256 payAmount;
-    }
-
-    function swapAndBridge(
-        uint256 _amount,
+    // 1. swap: _swapData.length > 0 and _bridgeData.length == 0
+    // 2. swap and call: _swapData.length > 0 and _callbackData.length > 0
+    function swapAndCall(
         address _srcToken,
+        uint256 _amount,
+        bytes calldata _swapData,
+        bytes calldata _callbackData,
+        bytes calldata _permitData
+    ) external payable;
+
+
+
+    // 1. bridge:  _swapData.length == 0 and _bridgeData.length > 0
+    // 2. swap and bridge: _swapData.length > 0 and _bridgeData.length > 0
+    function swapAndBridge(
+        address _srcToken,
+        uint256 _amount,
         bytes calldata _swapData,
         bytes calldata _bridgeData,
         bytes calldata _permitData
     ) external payable;
 
-    function swapAndPay(
+
+    // At remote chain call after bridge
+    // mos transfer token to router first
+    //  1. swap: _swapData.length > 0 and _callbackData.length == 0
+    //  2. call: _swapData.length == 0 and _callbackData.length > 0
+    //  3. swap and call: _swapData.length > 0 and _callbackData.length > 0
+    function remoteSwapAndCall(
         bytes32 id,
-        uint256 _amount,
         address _srcToken,
+        uint256 _amount,
         bytes calldata _swapData,
-        bytes calldata _payData,
-        bytes calldata _permitData
-    ) external payable returns(PayResult memory result);
+        bytes calldata _callbackData
+    ) external payable;
 
     function getFee(uint256 _amount)
         external

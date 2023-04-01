@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
-import "../interface/MapMosV3.sol";
+import "../interface/IButterMos.sol";
 
 contract MosMock is MapMosV3 {
     event SwapOut(

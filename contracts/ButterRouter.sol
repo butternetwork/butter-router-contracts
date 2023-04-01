@@ -6,8 +6,8 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable2Step.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "./interface/ButterCore.sol";
-import "./interface/MapMosV3.sol";
+import "./interface/IButterCore.sol";
+import "./interface/IButterMos.sol";
 
 
 contract ButterRouter is Ownable2Step {
