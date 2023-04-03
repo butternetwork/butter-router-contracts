@@ -2,6 +2,9 @@
 pragma solidity ^0.8.9;
 
 import "../interface/IButterMos.sol";
+import "../interface/IButterRouterV2.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract MosMock is MapMosV3 {
     event SwapOut(
@@ -53,5 +56,32 @@ contract MosMock is MapMosV3 {
             swapData
         );
         return bytes32(0);
+    }
+
+    function mockRemoteSwapAndCall(
+        address _router,
+        address _srcToken,
+        uint256 _amount,
+        bytes calldata _swapData,
+        bytes calldata _callbackData
+    ) external payable {
+        if (_srcToken == address(0)) {
+            require(msg.value == _amount);
+        } else {
+            SafeERC20.safeTransferFrom(
+                IERC20(_srcToken),
+                msg.sender,
+                _router,
+                _amount
+            );
+        }
+
+        IButterRouterV2(_router).remoteSwapAndCall(
+            bytes32(0),
+            _srcToken,
+            _amount,
+            _swapData,
+            _callbackData
+        );
     }
 }

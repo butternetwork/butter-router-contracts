@@ -42,13 +42,11 @@ v2 setAuthorization  (approve flag true 表示可以调用进行swap)
 npx hardhat setAuthorization --router <router address> --excutor <excutor address> --flag <flag> --network <network>
 ```
 
-v2 setFee  feeRate 的分母是 100000
+v2 setFee  feeRate 的分母是 1000000
 
 ```
-npx hardhat setFee --router <router address> --feeReceiver <feeReceiver address> --feeRate <feeRate> --network <network>
+npx hardhat setFee --router <router address> --feereceiver <feeReceiver address> --feerate <feeRate> --network <network>
 ```
-
-
 
 set core
 

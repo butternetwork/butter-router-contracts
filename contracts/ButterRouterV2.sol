@@ -14,7 +14,9 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Address for address;
 
-    address private constant _ZERO_ADDRESS = address(0);
+    address private constant ZERO_ADDRESS = address(0);
+
+    address private constant NATIVE_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
     uint256 private constant FEE_DENOMINATOR = 1000000;
 
@@ -77,7 +79,9 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
     event SetMos(address indexed mos);
     event SetFee(address indexed receiver,uint256 indexed rate);
 
-    constructor(address _mosAddress) {
+    constructor(address _mosAddress, address _owner) payable {
+        require(_owner != address(0), "_owner zero address");
+        _transferOwnership(_owner);
         _setMosAddress(_mosAddress);
     }
 
@@ -271,7 +275,7 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
             IERC20(_token).safeApprove(_callParam.target,0);
         }
 
-        _callAmount = _getBalance(_token, address(this)) - _callAmount;
+        _callAmount = _callAmount - _getBalance(_token, address(this));
     }
 
     function _doBridge(address _sender, address _token, uint256 _value, BridgeParam memory _bridge) internal returns (bytes32 _orderId) {
@@ -329,7 +333,7 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
     }
 
     function _isNative(address token) internal pure returns (bool) {
-        return (token == _ZERO_ADDRESS);
+        return (token == ZERO_ADDRESS || token == NATIVE_ADDRESS);
     }
 
     function _getBalance(address _token,address _account) internal view returns (uint256) {
