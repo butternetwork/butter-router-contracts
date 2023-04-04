@@ -45,7 +45,7 @@ npx hardhat setAuthorization --router <router address> --excutor <excutor addres
 v2 setFee  feeRate 的分母是 1000000
 
 ```
-npx hardhat setFee --router <router address> --feereceiver <feeReceiver address> --feerate <feeRate> --network <network>
+npx hardhat setFee --router <router address> --feereceiver <feeReceiver address> --feerate <feeRate> --fixedfee <fixedFee> --network <network>
 ```
 
 set core

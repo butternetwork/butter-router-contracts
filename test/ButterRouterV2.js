@@ -37,7 +37,7 @@ describe("ButterRouterV2", function () {
     it("setFee only owner", async () => {
         let [wallet, other] = await ethers.getSigners();
         await deployFixture();
-        await expect(router.connect(other).setFee(wallet.address, 100)).to.be.revertedWith("Ownable: caller is not the owner");
+        await expect(router.connect(other).setFee(wallet.address, 100,10000000)).to.be.revertedWith("Ownable: caller is not the owner");
     })
 
     it("setMosAddress only owner", async () => {
@@ -73,20 +73,20 @@ describe("ButterRouterV2", function () {
     it("setFee feeReceiver zero address", async () => {
         let [wallet, other] = await ethers.getSigners();
         await deployFixture();
-        await expect(router.connect(wallet).setFee(ethers.constants.AddressZero, 100)).to.be.revertedWith("zero address");
+        await expect(router.connect(wallet).setFee(ethers.constants.AddressZero,1000,100)).to.be.revertedWith("zero address");
     })
 
     it("setFee feeRate less than 1000000", async () => {
         let [wallet, other] = await ethers.getSigners();
         await deployFixture();
-        await expect(router.connect(wallet).setFee(wallet.address, 1000000)).to.be.reverted;
+        await expect(router.connect(wallet).setFee(wallet.address, 1000000,10000000)).to.be.reverted;
     })
 
     it("setFee correct ", async () => {
         let [wallet, other] = await ethers.getSigners();
         await deployFixture();
-        await expect(router.connect(wallet).setFee(wallet.address, 10000)).to.be.emit(router, "SetFee");
-        let fee = await router.getFee(100000);
+        await expect(router.connect(wallet).setFee(wallet.address,10000,10000000)).to.be.emit(router, "SetFee");
+        let fee = await router.getFee(100000,ethers.constants.AddressZero,1);
         expect(fee._feeReceiver).eq(wallet.address);
         expect(fee._fee).eq(1000)
     })
@@ -157,7 +157,7 @@ describe("ButterRouterV2", function () {
         let tokenOut = await ethers.getContractAt(ERC20, "0xdAC17F958D2ee523a2206206994597C13D831ec7", user); 
         let balanceBefore = await tokenOut.balanceOf(user.address);
         await(await token.approve(router.address,_amount)).wait();  
-        await(await router.connect(user).swapAndCall(_srcToken,_amount,_swapData,_bridgeData,_permitData)).wait();
+        await(await router.connect(user).swapAndCall(_srcToken,_amount,1,_swapData,_bridgeData,_permitData)).wait();
         let balanceAfter = await tokenOut.balanceOf(user.address);
 
         expect(balanceAfter).gt(balanceBefore);
@@ -196,7 +196,7 @@ describe("ButterRouterV2", function () {
         let token = await ethers.getContractAt(ERC20, _srcToken, user); 
         let balanceBefore = await user.getBalance();
         await(await token.approve(router.address,_amount)).wait();  
-        await(await router.connect(user).swapAndCall(_srcToken,_amount,_swapData,_bridgeData,_permitData)).wait();
+        await(await router.connect(user).swapAndCall(_srcToken,_amount,1,_swapData,_bridgeData,_permitData)).wait();
         let balanceAfter = await user.getBalance();
 
         expect(balanceAfter).gt(balanceBefore);
@@ -284,7 +284,7 @@ describe("ButterRouterV2", function () {
         let _permitData = "0x"
         let token = await ethers.getContractAt(ERC20, _srcToken, user); 
         await(await token.approve(router.address,_amount)).wait();  
-        await expect(router.connect(user).swapAndCall(_srcToken,_amount,_swapData,_payData,_permitData)).to.be.emit(pay,"Pay").emit(router,"SwapAndCall");
+        await expect(router.connect(user).swapAndCall(_srcToken,_amount,1,_swapData,_payData,_permitData)).to.be.emit(pay,"Pay").emit(router,"SwapAndCall");
         let result = await ethers.provider.getBalance(pay.address);
         expect(result).gt(0);
     })
