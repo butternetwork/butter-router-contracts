@@ -36,13 +36,13 @@ setV2Mos
 npx hardhat setV2Mos --router <router address> --mos  <mos address> --network <network>
 ```
 
-v2 setAuthorization  (approve flag true 表示可以调用进行swap)
+v2 setAuthorization  (approve flag true  Indicates that it can be called to swap)
 
 ```
 npx hardhat setAuthorization --router <router address> --excutor <excutor address> --flag <flag> --network <network>
 ```
 
-v2 setFee  feeRate 的分母是 1000000
+v2 setFee  feeRate   the denominator is 1000000  fixedfee is in wei
 
 ```
 npx hardhat setFee --router <router address> --feereceiver <feeReceiver address> --feerate <feeRate> --fixedfee <fixedFee> --network <network>
