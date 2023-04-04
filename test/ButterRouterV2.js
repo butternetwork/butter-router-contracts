@@ -24,19 +24,20 @@ describe("ButterRouterV2", function () {
     // });
 
     async function deployFixture() {
+        let [wallet, other] = await ethers.getSigners();
         MosMock = await ethers.getContractFactory("MosMock");
         mos = await MosMock.deploy();
         await mos.deployed();
 
         ButterRouterV2 = await ethers.getContractFactory("ButterRouterV2");
-        router = await ButterRouterV2.deploy(mos.address);
+        router = await ButterRouterV2.deploy(mos.address,wallet.address);
         await router.deployed()
     }
 
     it("setFee only owner", async () => {
         let [wallet, other] = await ethers.getSigners();
         await deployFixture();
-        await expect(router.connect(other).setFee(wallet.address, 100)).to.be.revertedWith("Ownable: caller is not the owner");
+        await expect(router.connect(other).setFee(wallet.address, 100,10000000)).to.be.revertedWith("Ownable: caller is not the owner");
     })
 
     it("setMosAddress only owner", async () => {
@@ -72,20 +73,20 @@ describe("ButterRouterV2", function () {
     it("setFee feeReceiver zero address", async () => {
         let [wallet, other] = await ethers.getSigners();
         await deployFixture();
-        await expect(router.connect(wallet).setFee(ethers.constants.AddressZero, 100)).to.be.revertedWith("zero address");
+        await expect(router.connect(wallet).setFee(ethers.constants.AddressZero,1000,100)).to.be.revertedWith("zero address");
     })
 
-    it("setFee feeRate less than 100000", async () => {
+    it("setFee feeRate less than 1000000", async () => {
         let [wallet, other] = await ethers.getSigners();
         await deployFixture();
-        await expect(router.connect(wallet).setFee(wallet.address, 100000)).to.be.reverted;
+        await expect(router.connect(wallet).setFee(wallet.address, 1000000,10000000)).to.be.reverted;
     })
 
     it("setFee correct ", async () => {
         let [wallet, other] = await ethers.getSigners();
         await deployFixture();
-        await expect(router.connect(wallet).setFee(wallet.address, 1000)).to.be.emit(router, "SetFee");
-        let fee = await router.getFee(100000);
+        await expect(router.connect(wallet).setFee(wallet.address,10000,10000000)).to.be.emit(router, "SetFee");
+        let fee = await router.getFee(100000,ethers.constants.AddressZero,1);
         expect(fee._feeReceiver).eq(wallet.address);
         expect(fee._fee).eq(1000)
     })
@@ -122,7 +123,7 @@ describe("ButterRouterV2", function () {
         expect(p).to.be.false;
     })
 
-    it("swapAndBridge", async () => {
+    it("swapAndCall", async () => {
         let user;
         // 0x1252eb0912559a206dd3600f283f2a48dca24196
         this.timeout(0)
@@ -148,13 +149,7 @@ describe("ButterRouterV2", function () {
         let data = "0x12aa3caf0000000000000000000000007122db0ebe4eb9b434a9f2ffe6760bc03bfbd0e00000000000000000000000006f3277ad0782a7da3eb676b85a8346a100bf9c1c000000000000000000000000dac17f958d2ee523a2206206994597c13d831ec70000000000000000000000004c7e62fbb86b204f7c6dc1f582ddd889182d5cf50000000000000000000000001252eb0912559a206dd3600f283f2a48dca2419600000000000000000000000000000000000000000083225966d50d5bd8100000000000000000000000000000000000000000000000000000000000001559be1a000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000001400000000000000000000000000000000000000000000000000000000000000160000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001100000000000000000000000000000000000000000000000000000000000f200a007e5c0d20000000000000000000000000000000000000000000000000000ce00006700206ae40711b8002dc6c04c7e62fbb86b204f7c6dc1f582ddd889182d5cf50d4a11d5eeaac28ec3f61d100daf4d40471f185200000000000000000000000000000000000000000000000000000000000000016f3277ad0782a7da3eb676b85a8346a100bf9c1c00206ae40711b8002dc6c00d4a11d5eeaac28ec3f61d100daf4d40471f18521111111254eeb25477b68fb85ed929f73a9605820000000000000000000000000000000000000000000000000000000000000001c02aaa39b223fe8d0a0e5c4f27ead9083c756cc200000000000000000000000000000000e26b9977"
         let _amount = BigNumber.from("158531492000000000000000000");
         let _srcToken = "0x6f3277ad0782a7DA3eb676b85a8346A100BF9C1c";
-    //     //    struct SwapParam {
-    //     address excutor;
-    //     // address srcToken;
-    //     address dstToken;
-    //     // uint256 minReturnAmount;
-    //     bytes data;
-    // }
+
         let _swapData =  ethers.utils.defaultAbiCoder.encode(['tuple(address,address,address,uint256,bytes)'], [[v5_router_addr,user.address,"0xdAC17F958D2ee523a2206206994597C13D831ec7",0,data]]);
         let _bridgeData = "0x"
         let _permitData = "0x"
@@ -162,13 +157,13 @@ describe("ButterRouterV2", function () {
         let tokenOut = await ethers.getContractAt(ERC20, "0xdAC17F958D2ee523a2206206994597C13D831ec7", user); 
         let balanceBefore = await tokenOut.balanceOf(user.address);
         await(await token.approve(router.address,_amount)).wait();  
-        await(await router.connect(user).swapAndBridge(_amount,_srcToken,_swapData,_bridgeData,_permitData)).wait();
+        await(await router.connect(user).swapAndCall(_srcToken,_amount,1,_swapData,_bridgeData,_permitData)).wait();
         let balanceAfter = await tokenOut.balanceOf(user.address);
 
         expect(balanceAfter).gt(balanceBefore);
     })
 
-    it("swapAndBridge", async () => {
+    it("swapAndCall", async () => {
         let user;
         // 0x1252eb0912559a206dd3600f283f2a48dca24196
         this.timeout(0)
@@ -201,7 +196,7 @@ describe("ButterRouterV2", function () {
         let token = await ethers.getContractAt(ERC20, _srcToken, user); 
         let balanceBefore = await user.getBalance();
         await(await token.approve(router.address,_amount)).wait();  
-        await(await router.connect(user).swapAndBridge(_amount,_srcToken,_swapData,_bridgeData,_permitData)).wait();
+        await(await router.connect(user).swapAndCall(_srcToken,_amount,1,_swapData,_bridgeData,_permitData)).wait();
         let balanceAfter = await user.getBalance();
 
         expect(balanceAfter).gt(balanceBefore);
@@ -244,12 +239,12 @@ describe("ButterRouterV2", function () {
         let token = await ethers.getContractAt(ERC20, _srcToken, user); 
         await(await token.approve(router.address,_amount)).wait();  
        // await(await router.connect(user).swapAndBridge(_amount,_srcToken,_swapData,_bridgeData,_permitData)).wait();
-        await expect(router.connect(user).swapAndBridge(_amount,_srcToken,_swapData,_bridgeData,_permitData)).to.be.emit(mos,"SwapOut").emit(router,"SwapAndBridge");
+        await expect(router.connect(user).swapAndBridge(_srcToken,_amount,_swapData,_bridgeData,_permitData)).to.be.emit(mos,"SwapOut").emit(router,"SwapAndBridge");
         let result = await ethers.provider.getBalance(mos.address);
         expect(result).gt(0);
     })
 
-    it("swapAndPay", async () => {
+    it("swapAndCall", async () => {
         let user;
         // 0x1252eb0912559a206dd3600f283f2a48dca24196
         this.timeout(0)
@@ -274,6 +269,7 @@ describe("ButterRouterV2", function () {
         await pay.deployed();
         await deployFixture();
         await(await router.setAuthorization(v5_router_addr,true)).wait()
+        await(await router.setAuthorization(pay.address,true)).wait()
         //tx https://etherscan.io/tx/0xb6a7276b87b9763898c38ea19b7573cd81e6af5643031b835d15aa2ad6000442
         let data = "0xe449022e00000000000000000000000000000000000000000000002040afeac5ac1a3767000000000000000000000000000000000000000000000000250875e870d7b5850000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000120000000000000000000000080c7770b4399ae22149db17e97f9fc8a10ca5100e26b9977"
         let _amount = BigNumber.from("594957012632774260583");
@@ -283,12 +279,58 @@ describe("ButterRouterV2", function () {
         
         let pay_fuc_encode = PayMock.interface.encodeFunctionData("payFor",[user.address]);
 
-        let _payData = ethers.utils.defaultAbiCoder.encode(['tuple(address,address,uint256,address,bytes)'],[[pay.address,ethers.constants.AddressZero,ethers.utils.parseEther("1"),user.address,pay_fuc_encode]]);
+        let _payData = ethers.utils.defaultAbiCoder.encode(['tuple(address,uint256,address,bytes)'],[[pay.address,ethers.utils.parseEther("1"),user.address,pay_fuc_encode]]);
         
         let _permitData = "0x"
         let token = await ethers.getContractAt(ERC20, _srcToken, user); 
         await(await token.approve(router.address,_amount)).wait();  
-        await expect(router.connect(user).swapAndPay(ethers.constants.HashZero,_amount,_srcToken,_swapData,_payData,_permitData)).to.be.emit(pay,"Pay").emit(router,"SwapAndPay");
+        await expect(router.connect(user).swapAndCall(_srcToken,_amount,1,_swapData,_payData,_permitData)).to.be.emit(pay,"Pay").emit(router,"SwapAndCall");
+        let result = await ethers.provider.getBalance(pay.address);
+        expect(result).gt(0);
+    })
+
+
+    
+    it("remoteSwapAndCall", async () => {
+        let user;
+        // 0x1252eb0912559a206dd3600f283f2a48dca24196
+        this.timeout(0)
+        await network.provider.request({
+            method: 'hardhat_reset',
+            params: [
+                {
+                    forking: {
+                        jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/" + process.env.ALCHEMY_KEY,
+                        blockNumber: 16930863,
+                    },
+                },
+            ],
+        })
+        await network.provider.request({
+            method: 'hardhat_impersonateAccount',
+            params: ['0x90c1d107ad3f503cd6ba3d1756da9935530816bf'],
+        })
+        user = await ethers.getSigner('0x90c1d107ad3f503cd6ba3d1756da9935530816bf')
+        PayMock = await ethers.getContractFactory("PayMock");
+        let pay = await PayMock.deploy();
+        await pay.deployed();
+        await deployFixture();
+        await(await router.setAuthorization(v5_router_addr,true)).wait()
+        await(await router.setAuthorization(pay.address,true)).wait()
+        //tx https://etherscan.io/tx/0xb6a7276b87b9763898c38ea19b7573cd81e6af5643031b835d15aa2ad6000442
+        let data = "0xe449022e00000000000000000000000000000000000000000000002040afeac5ac1a3767000000000000000000000000000000000000000000000000250875e870d7b5850000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000120000000000000000000000080c7770b4399ae22149db17e97f9fc8a10ca5100e26b9977"
+        let _amount = BigNumber.from("594957012632774260583");
+        let _srcToken = "0xA8b919680258d369114910511cc87595aec0be6D";
+           
+        let _swapData =  ethers.utils.defaultAbiCoder.encode(['tuple(address,address,address,uint256,bytes)'], [[v5_router_addr,user.address,ethers.constants.AddressZero,0,data]]);
+        
+        let pay_fuc_encode = PayMock.interface.encodeFunctionData("payFor",[user.address]);
+
+        let _payData = ethers.utils.defaultAbiCoder.encode(['tuple(address,uint256,address,bytes)'],[[pay.address,ethers.utils.parseEther("1"),user.address,pay_fuc_encode]]);
+        
+        let token = await ethers.getContractAt(ERC20, _srcToken, user); 
+        await(await token.approve(mos.address,_amount)).wait();  
+        await expect(mos.connect(user).mockRemoteSwapAndCall(router.address,_srcToken,_amount,_swapData,_payData)).to.be.emit(pay,"Pay").emit(router,"SwapAndCall");
         let result = await ethers.provider.getBalance(pay.address);
         expect(result).gt(0);
     })

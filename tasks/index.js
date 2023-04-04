@@ -80,17 +80,40 @@ task("deployRouterV2",
         const { deployments, getNamedAccounts, ethers } = hre;
         const { deploy } = deployments;
         const { deployer } = await getNamedAccounts();
+        console.log("deployer :", deployer);
+        let [wallet] = await ethers.getSigners();
+        let IDeployFactory_abi = [
+            "function deploy(bytes32 salt, bytes memory creationCode, uint256 value) external",
+            "function getAddress(bytes32 salt) external view returns (address)"
+        ]
+        let factory_addr = process.env.DEPLOY_FACTORY;
+        let factory = await ethers.getContractAt(IDeployFactory_abi, factory_addr, wallet);
+        let salt = process.env.DEPLOY_SALT;
+        let addr = await factory.getAddress(salt);
+        let code = await ethers.provider.getCode(addr);
+        if (code === '0x') {
+            let ButterRouterV2 = await ethers.getContractFactory("ButterRouterV2");
+            let param = ethers.utils.defaultAbiCoder.encode(['address', 'address'], [taskArgs.mos, deployer])
+            let create_code = ethers.utils.solidityPack(['bytes', 'bytes'], [ButterRouterV2.bytecode, param]);
+            let create = await (await factory.deploy(salt, create_code, 0)).wait();
 
-        console.log("deployer :", deployer)
+            if (create.status == 1) {
+                console.log("router v2 deployed to :", addr);
+            } else {
+                console.log("deploy fail");
+            }
+        } else {
+            console.log("already deploy. address is :", addr);
+        }
+        // let result = await deploy('ButterRouterV2', {
+        //     from: deployer,
+        //     args: [taskArgs.mos, deployer],
+        //     log: true,
+        //     contract: 'ButterRouterV2'
+        // });
 
-        let result = await deploy('ButterRouterV2', {
-            from: deployer,
-            args: [taskArgs.mos],
-            log: true,
-            contract: 'ButterRouterV2'
-        });
+        // console.log("ButterRouterV2 deployed to :", result.address);
 
-        console.log("router v2 deployed to :", result.address);
     })
 
 task("setV2Mos",
@@ -148,6 +171,7 @@ task("setFee",
     .addParam("router", "router address")
     .addParam("feereceiver", "feeReceiver address")
     .addParam("feerate", "feeRate")
+    .addParam("fixedfee", "fixedFee")
     .setAction(async (taskArgs, hre) => {
         const { deployments, getNamedAccounts, ethers } = hre;
         const { deploy } = deployments;
@@ -157,7 +181,7 @@ task("setFee",
 
         let router = Router.attach(taskArgs.router);
 
-        let result = await (await router.setFee(taskArgs.feereceiver, taskArgs.feerate)).wait();
+        let result = await (await router.setFee(taskArgs.feereceiver, taskArgs.feerate,taskArgs.fixedfee)).wait();
 
         if (result.status == 1) {
             console.log('setFee succeed');

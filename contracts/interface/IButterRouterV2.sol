@@ -3,6 +3,11 @@ pragma solidity ^0.8.9;
 
 interface IButterRouterV2 {
 
+    enum FeeType {
+        FIXED,
+        PROPORTION
+    }
+
     struct SwapParam {
         address executor;
         address receiver;
@@ -30,6 +35,7 @@ interface IButterRouterV2 {
     function swapAndCall(
         address _srcToken,
         uint256 _amount,
+        FeeType _feeType,
         bytes calldata _swapData,
         bytes calldata _callbackData,
         bytes calldata _permitData
@@ -61,8 +67,8 @@ interface IButterRouterV2 {
         bytes calldata _callbackData
     ) external payable;
 
-    function getFee(uint256 _amount)
+    function getFee(uint256 _amount,address _token,FeeType _feeType)
         external
         view
-        returns (address _feeReceiver, uint256 _feeRate);
+        returns (address _feeReceiver,address _feeToken,uint256 _fee,uint256 _feeAfter);
 }

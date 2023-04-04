@@ -14,7 +14,9 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Address for address;
 
-    address private constant _ZERO_ADDRESS = address(0);
+    address private constant ZERO_ADDRESS = address(0);
+
+    address private constant NATIVE_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
     uint256 private constant FEE_DENOMINATOR = 1000000;
 
@@ -24,15 +26,17 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
 
     uint256 public feeRate;
 
+    uint256 public fixedFee;
+
     mapping(address => bool) public approved;
 
     modifier transferIn(address token,uint256 amount,bytes memory permitData) {
-        require(amount > 0,"zero in amount");
+        require(amount > 0,"ButterRouterV2: zero in amount");
         if (permitData.length > 0) {
             _permit(permitData);
         }
         if (_isNative(token)) {
-            require(msg.value == amount);
+            require(msg.value == amount,"ButterRouterV2: cost mismatch");
         } else {
             SafeERC20.safeTransferFrom(
                 IERC20(token),
@@ -72,12 +76,14 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
         uint256 swapAmount,
         uint256 callAmount);
 
-    event CollectFee(address indexed token, address indexed receiver, uint256 indexed amount);
+    event CollectFee(address indexed token, address indexed receiver, uint256 indexed amount,FeeType feeType);
     event Approve(address indexed executor, bool indexed flag);
     event SetMos(address indexed mos);
-    event SetFee(address indexed receiver,uint256 indexed rate);
+    event SetFee(address indexed receiver,uint256 indexed rate,uint256 indexed fixedf);
 
-    constructor(address _mosAddress) {
+    constructor(address _mosAddress, address _owner) payable {
+        require(_owner != address(0), "_owner zero address");
+        _transferOwnership(_owner);
         _setMosAddress(_mosAddress);
     }
 
@@ -110,7 +116,7 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
         emit SwapAndBridge(msg.sender, swapTemp.srcToken, swapTemp.srcAmount, block.chainid, bridge.toChain, swapTemp.swapToken, swapTemp.swapAmount, orderId, bridge.receiver);
     }
 
-    function swapAndCall(address _srcToken, uint256 _amount, bytes calldata _swapData, bytes calldata _callbackData, bytes calldata _permitData)
+    function swapAndCall(address _srcToken, uint256 _amount,FeeType _feeType, bytes calldata _swapData, bytes calldata _callbackData, bytes calldata _permitData)
     external 
     payable
     override
@@ -124,7 +130,8 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
         swapTemp.srcAmount = _amount;
 
         uint256 tokenAmount;
-        (, tokenAmount) = _collectFee(swapTemp.srcToken, swapTemp.srcAmount);
+
+        (, tokenAmount) = _collectFee(swapTemp.srcToken, swapTemp.srcAmount,_feeType);
 
         require(_swapData.length > 0, "ButterRouterV2: swap data required");
 
@@ -216,7 +223,7 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
         emit SwapAndCall(id, _srcToken, targetToken, _amount, tokenAmount, callAmount);
     }
 
-    function setFee(address _feeReceiver, uint256 _feeRate) external onlyOwner {
+    function setFee(address _feeReceiver, uint256 _feeRate,uint256 _fixedFee) external onlyOwner {
         require(_feeReceiver != address(0), "zero address");
 
         require(_feeRate < FEE_DENOMINATOR);
@@ -225,19 +232,35 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
 
         feeRate = _feeRate;
 
-        emit SetFee(_feeReceiver,_feeRate);
+        fixedFee = _fixedFee;
+
+        emit SetFee(_feeReceiver,_feeRate,fixedFee);
     }
 
-   function _collectFee(address _token,uint256 _amount)internal returns(uint256 _fee,uint256 _remain){
-        if(feeReceiver != address(0) && feeRate > 0){
+   function _collectFee(address _token,uint256 _amount,FeeType _feeType)internal returns(uint256 _fee,uint256 _remain){
+        if(feeReceiver == address(0)){
+            _remain = _amount;
+            return(_fee,_remain);
+        }
+        if(_feeType == FeeType.FIXED){
+            _fee = fixedFee;
+            if(_isNative(_token)){
+               require(msg.value > fixedFee,"ButterRouterV2: cost is too little");
+               _remain = _amount - _fee;
+            } else {
+               require(msg.value == fixedFee,"ButterRouterV2: cost mismatch");
+               _remain = _amount;
+            }
+            _token = ZERO_ADDRESS;
+        } else {
             _fee = _amount * feeRate / FEE_DENOMINATOR;
             _remain = _amount - _fee;
-            _transfer(_token,feeReceiver,_fee);
-            emit CollectFee(_token,feeReceiver,_fee);
-        } else {
-            _fee = 0;
-            _remain = _amount;
         }
+        if(_fee > 0) {
+            _transfer(_token,feeReceiver,_fee);
+           emit CollectFee(_token,feeReceiver,_fee,_feeType);
+        }
+       
    }
 
     function _makeSwap(uint256 _amount, address _srcToken, SwapParam memory _swap) internal returns(bool _result, address _dstToken, uint256 _returnAmount){
@@ -271,7 +294,7 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
             IERC20(_token).safeApprove(_callParam.target,0);
         }
 
-        _callAmount = _getBalance(_token, address(this)) - _callAmount;
+        _callAmount = _callAmount - _getBalance(_token, address(this));
     }
 
     function _doBridge(address _sender, address _token, uint256 _value, BridgeParam memory _bridge) internal returns (bytes32 _orderId) {
@@ -296,11 +319,24 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
     }
 
 
-    function getFee(uint256 _amount) external view override returns(address _feeReceiver,uint256 _fee){
-        if(feeRate > 0 && feeReceiver != address(0)){
-           _feeReceiver = feeReceiver;
-           _fee = _amount * feeRate / FEE_DENOMINATOR;
+    function getFee(uint256 _amount,address _token,FeeType _feeType) external view override returns(address _feeReceiver,address _feeToken,uint256 _fee,uint256 _feeAfter){
+        if(feeReceiver == address(0)){
+            return(ZERO_ADDRESS,ZERO_ADDRESS,0,_amount);
         }
+        if(_feeType == FeeType.FIXED){
+            _feeToken = ZERO_ADDRESS;
+            _fee = fixedFee;
+            if(!_isNative(_token)){
+               _feeAfter = _amount;
+            } else {
+                _feeAfter = _amount - _fee;
+            }
+        } else {
+            _feeToken = _token;
+            _fee = _amount * feeRate / FEE_DENOMINATOR;
+            _feeAfter = _amount - _fee;
+        }
+        _feeReceiver = feeReceiver;
     }
 
     function setMosAddress(
@@ -329,7 +365,7 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
     }
 
     function _isNative(address token) internal pure returns (bool) {
-        return (token == _ZERO_ADDRESS);
+        return (token == ZERO_ADDRESS || token == NATIVE_ADDRESS);
     }
 
     function _getBalance(address _token,address _account) internal view returns (uint256) {

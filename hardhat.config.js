@@ -19,7 +19,7 @@ module.exports = {
       // }
     },
     Matic: {
-      url: `https://rpc-mainnet.maticvigil.com`,
+      url: `https://polygon.llamarpc.com`,
       chainId : 137,
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
@@ -28,13 +28,18 @@ module.exports = {
       chainId : 80001,
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
+    Avalanche: {
+      url: `https://1rpc.io/avax/c`,
+      chainId : 43114,
+      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
     Bsc: {
       url: `https://bsc-dataseed1.binance.org/`,
       chainId : 56,
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     BscTest: {
-      url: process.env.BSC_TEST_RPC_URL || "",
+      url: "https://bsc-testnet.public.blastapi.io",
       chainId : 97,
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
@@ -54,12 +59,9 @@ module.exports = {
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     Goerli: {
-      url: `https://goerli.infura.io/v3/` + process.env.GOERLI_API_KEY,
+      url: "https://rpc.ankr.com/eth_goerli",
       chainId : 5,
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     }
   }
 };
-
-
-   // mainnet  url:'https://rpc.ankr.com/bsc
