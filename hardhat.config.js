@@ -62,6 +62,46 @@ module.exports = {
       url: "https://rpc.ankr.com/eth_goerli",
       chainId : 5,
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-    }
+    },
+    Klay: {
+      url: `https://public-node-api.klaytnapi.com/v1/cypress`,
+      chainId : 8217,
+      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    KlayTest: {
+      url: `https://api.baobab.klaytn.net:8651/`,
+      chainId : 1001,
+      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    Arbitrum: {
+      url: `https://1rpc.io/arb`,
+      chainId : 42161,
+      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    Op: {
+      url: `https://1rpc.io/op`,
+      chainId : 10,
+      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    Avax: {
+      url: `https://rpc.ankr.com/avalanche`,
+      chainId : 43114,
+      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    Fantom: {
+      url: `https://1rpc.io/ftm`,
+      chainId : 250,
+      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    Gnosis: {
+      url: `https://rpc.ankr.com/gnosis`,
+      chainId : 100,
+      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    Aurora: {
+      url: `https://mainnet.aurora.dev`,
+      chainId : 1313161554,
+      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
   }
 };
