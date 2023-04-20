@@ -21,7 +21,7 @@ npx hardhat deployRouter --mos <mos address> --core <core address> --network <ne
 deploy v2
 
 ```
-npx hardhat deployRouterV2 --mos <mos address>  --network <network>
+npx hardhat deployRouterV2 --mos <mos address>  --wtoken <wtoken address> --network <network>
 ```
 
 set mos

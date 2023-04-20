@@ -62,8 +62,7 @@ contract MosMock is MapMosV3 {
         address _router,
         address _srcToken,
         uint256 _amount,
-        bytes calldata _swapData,
-        bytes calldata _callbackData
+        bytes calldata _swapData
     ) external payable {
         if (_srcToken == address(0)) {
             require(msg.value == _amount);
@@ -80,8 +79,7 @@ contract MosMock is MapMosV3 {
             bytes32(0),
             _srcToken,
             _amount,
-            _swapData,
-            _callbackData
+            _swapData
         );
     }
 }
