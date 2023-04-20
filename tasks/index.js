@@ -77,6 +77,7 @@ task("deployRouterV2",
     "deploy butter router V2 contract"
 )
     .addParam("mos", "mos address")
+    .addParam("wtoken", "wtoken address")
     .setAction(async (taskArgs, hre) => {
         const { deployments, getNamedAccounts, ethers } = hre;
         const { deploy } = deployments;
@@ -99,7 +100,7 @@ task("deployRouterV2",
         let code = await ethers.provider.getCode(addr);
         if (code === '0x') {
             let ButterRouterV2 = await ethers.getContractFactory("ButterRouterV2");
-            let param = ethers.utils.defaultAbiCoder.encode(['address', 'address'], [taskArgs.mos, deployer])
+            let param = ethers.utils.defaultAbiCoder.encode(['address', 'address','address'], [taskArgs.mos, deployer,taskArgs.wtoken])
             let create_code = ethers.utils.solidityPack(['bytes', 'bytes'], [ButterRouterV2.bytecode, param]);
             let create = await (await factory.deploy(salt_hash, create_code, 0)).wait();
 
@@ -113,7 +114,7 @@ task("deployRouterV2",
         }
         // let result = await deploy('ButterRouterV2', {
         //     from: deployer,
-        //     args: [taskArgs.mos, deployer],
+        //     args: [taskArgs.mos, deployer,taskArgs.wtoken],
         //     log: true,
         //     contract: 'ButterRouterV2'
         // });

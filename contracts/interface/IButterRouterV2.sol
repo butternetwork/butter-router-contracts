@@ -63,8 +63,7 @@ interface IButterRouterV2 {
         bytes32 id,
         address _srcToken,
         uint256 _amount,
-        bytes calldata _swapData,
-        bytes calldata _callbackData
+        bytes calldata _swapAndCall
     ) external payable;
 
     function getFee(uint256 _amount,address _token,FeeType _feeType)
