@@ -2,10 +2,8 @@
 let { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 let { BigNumber } = require("ethers");
 const { expect } = require("chai");
-const exp = require("constants");
-const { sync } = require("glob");
 const { ethers, network } = require("hardhat");
-const { any } = require("hardhat/internal/core/params/argumentTypes");
+
 
 
 let v5_router_addr = "0x1111111254EEB25477B68fb85Ed929f73A960582";
@@ -17,10 +15,15 @@ let ERC20 = [
     'function balanceOf(address account) external view returns (uint256)',
     'function transfer(address to, uint value) external returns (bool)'
 ]
+
+let ERC1155 = [
+    'function balanceOf(address account, uint256 id) external view returns (uint256)'
+]
 //// fork mainnet
 describe("ButterRouterV2", function () {
     let router;
     let mos;
+    let dexExecutor;
     // beforeEach(async () => {
 
     // });
@@ -30,13 +33,16 @@ describe("ButterRouterV2", function () {
         MosMock = await ethers.getContractFactory("MosMock");
         mos = await MosMock.deploy();
         await mos.deployed();
-
+        let DexExecutor = await ethers.getContractFactory("DexExecutor");
+        dexExecutor = await DexExecutor.deploy();
+        await dexExecutor.deployed();
         ButterRouterV2 = await ethers.getContractFactory("ButterRouterV2");
         if (!_wToken) {
             _wToken = mos.address
         }
         router = await ButterRouterV2.deploy(mos.address, wallet.address, _wToken);
         await router.deployed()
+        await (await router.setDexExecutor(dexExecutor.address)).wait();
     }
 
     it("setFee only owner", async () => {
@@ -55,6 +61,12 @@ describe("ButterRouterV2", function () {
         let [wallet, other] = await ethers.getSigners();
         await deployFixture();
         await expect(router.connect(other).setAuthorization(mos.address, true)).to.be.revertedWith("Ownable: caller is not the owner");
+    })
+
+    it("setDexExecutor only owner", async () => {
+        let [wallet, other] = await ethers.getSigners();
+        await deployFixture();
+        await expect(router.connect(other).setDexExecutor(dexExecutor.address)).to.be.revertedWith("Ownable: caller is not the owner");
     })
 
     it("rescueFunds correct", async () => {
@@ -102,10 +114,24 @@ describe("ButterRouterV2", function () {
         await expect(router.connect(wallet).setMosAddress(wallet.address)).to.be.revertedWith("ButterRouterV2:no contract");
     })
 
+    it("setDexExecutor dexExecutor must be contract", async () => {
+        let [wallet, other] = await ethers.getSigners();
+        await deployFixture();
+        await expect(router.connect(wallet).setDexExecutor(wallet.address)).to.be.revertedWith("ButterRouterV2:no contract");
+    })
+
     it("setMosAddress correct", async () => {
         let [wallet, other] = await ethers.getSigners();
         await deployFixture();
         await expect(router.connect(wallet).setMosAddress(mos.address)).to.be.emit(router, "SetMos");
+        let m = await router.mosAddress();
+        expect(m).eq(mos.address);
+    })
+
+    it("setDexExecutor correct", async () => {
+        let [wallet, other] = await ethers.getSigners();
+        await deployFixture();
+        await expect(router.connect(wallet).setDexExecutor(dexExecutor.address)).to.be.emit(router, "SetExecutor");
         let m = await router.mosAddress();
         expect(m).eq(mos.address);
     })
@@ -284,7 +310,7 @@ describe("ButterRouterV2", function () {
 
         let pay_fuc_encode = PayMock.interface.encodeFunctionData("payFor",[user.address]);
 
-        let _payData = ethers.utils.defaultAbiCoder.encode(['tuple(address,uint256,address,bytes)'],[[pay.address,ethers.utils.parseEther("1"),user.address,pay_fuc_encode]]);
+        let _payData = ethers.utils.defaultAbiCoder.encode(['tuple(address,address,uint256,address,bytes)'],[[pay.address,pay.address,ethers.utils.parseEther("1"),user.address,pay_fuc_encode]]);
 
         let _permitData = "0x"
         let token = await ethers.getContractAt(ERC20, _srcToken, user); 
@@ -331,7 +357,7 @@ describe("ButterRouterV2", function () {
 
         let pay_fuc_encode = PayMock.interface.encodeFunctionData("payFor",[user.address]);
 
-        let _payData = ethers.utils.defaultAbiCoder.encode(['tuple(address,uint256,address,bytes)'],[[pay.address,ethers.utils.parseEther("1"),user.address,pay_fuc_encode]]);
+        let _payData = ethers.utils.defaultAbiCoder.encode(['tuple(address,address,uint256,address,bytes)'],[[pay.address,pay.address,ethers.utils.parseEther("1"),user.address,pay_fuc_encode]]);
 
         let swapAndCall = ethers.utils.defaultAbiCoder.encode(['bytes','bytes','bool'],[_swapData,_payData,true]);
         let token = await ethers.getContractAt(ERC20, _srcToken, user); 
@@ -343,7 +369,7 @@ describe("ButterRouterV2", function () {
 
 
 
-    it("remoteSwapAndCall _makeUniV3Swap", async () => {
+    it("remoteSwapAndCall _makeUniV3Swap -> native", async () => {
 
         let uniV3router = "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45"
         let _srcToken = "0xdac17f958d2ee523a2206206994597c13d831ec7"
@@ -387,7 +413,7 @@ describe("ButterRouterV2", function () {
 
         let pay_fuc_encode = PayMock.interface.encodeFunctionData("payFor",[user.address]);
 
-        let _payData = ethers.utils.defaultAbiCoder.encode(['tuple(address,uint256,address,bytes)'],[[pay.address,ethers.utils.parseEther("1"),user.address,pay_fuc_encode]]);
+        let _payData = ethers.utils.defaultAbiCoder.encode(['tuple(address,address,uint256,address,bytes)'],[[pay.address,pay.address,ethers.utils.parseEther("1"),user.address,pay_fuc_encode]]);
 
         let swapAndCall = ethers.utils.defaultAbiCoder.encode(['bytes','bytes','bool'],[swap,_payData,false]);
         let token = await ethers.getContractAt(ERC20, _srcToken, user); 
@@ -400,7 +426,7 @@ describe("ButterRouterV2", function () {
         expect(result).gt(0);
     })
 
-    it("remoteSwapAndCall _makeUniV3Swap", async () => {
+    it("remoteSwapAndCall _makeUniV3Swap -> tokens", async () => {
 
         let uniV3router = "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45"
         let _srcToken = "0xdac17f958d2ee523a2206206994597c13d831ec7"
@@ -605,6 +631,46 @@ describe("ButterRouterV2", function () {
         let balanceBefore = await ethers.provider.getBalance(user.address);
         await expect(mos.connect(user).mockRemoteSwapAndCall(router.address, _srcToken, amount, swapAndCall)).to.be.emit(router, "SwapAndCall");
         let balanceAfter = await ethers.provider.getBalance(user.address);
+        expect(balanceAfter).gt(balanceBefore);
+    })
+    //tx https://etherscan.io/tx/0x8dedd4e76b6f68cfaffcb15c50bdd3456f0582373fb5335fa437524f24b6d8af
+    it("remoteSwapAndCall buy nft seaport", async () => {
+
+        let seaport = "0x00000000000001ad428e4906ae43d8f9852d0dd6"
+        let _srcToken = ethers.constants.AddressZero;
+        let receiver = "0xf0Fb76CcAec8DEB6e91C06Cb28b009b25C6cD2eF"
+        let user;
+
+        this.timeout(0)
+        await network.provider.request({
+            method: 'hardhat_reset',
+            params: [
+                {
+                    forking: {
+                        jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/" + process.env.ALCHEMY_KEY,
+                        blockNumber: 17091882,
+                    },
+                },
+            ],
+        })
+        await network.provider.request({
+            method: 'hardhat_impersonateAccount',
+            params: ['0xeB2629a2734e272Bcc07BDA959863f316F4bD4Cf'],
+        })
+        user = await ethers.getSigner('0xeB2629a2734e272Bcc07BDA959863f316F4bD4Cf')
+
+        await deployFixture(wToken);
+        await (await router.setAuthorization(seaport, true)).wait()
+        let amount = ethers.utils.parseEther("0.032");
+        let swap = "0x"
+
+        let call = "0xe7acab24000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000006200000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000000000000000000000000000f0fb76ccaec8deb6e91c06cb28b009b25c6cd2ef00000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000520000000000000000000000000000000000000000000000000000000000000058000000000000000000000000015adca07e5cf9acc1ebb9dc003ff4c5f407d1316000000000000000000000000004c00500000ad104d7dbd00e3ae0a5c00560c0000000000000000000000000000000000000000000000000000000000000001600000000000000000000000000000000000000000000000000000000000000220000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000643eaec30000000000000000000000000000000000000000000000000000000064663bc30000000000000000000000000000000000000000000000000000000000000000360c6ebe0000000000000000000000000000000000000000ca4db0b26a181ce50000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f00000000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000030000000000000000000000005ea64e0723eb5f44aeb1995d2029702b8855463e00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000065bfeda25e00000000000000000000000000000000000000000000000000000065bfeda25e000000000000000000000000000015adca07e5cf9acc1ebb9dc003ff4c5f407d13160000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002d79883d200000000000000000000000000000000000000000000000000000002d79883d200000000000000000000000000000000a26b00c1f0df003000390027140000faa7190000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009184e72a000000000000000000000000000000000000000000000000000000009184e72a00000000000000000000000000000e16b650921475afa532f7c08a8ea1c2fcda8ab930000000000000000000000000000000000000000000000000000000000000040a9aa969cd3073d8ca6d6d9c1423df9cc11d81bb02be667a8aabb3958b63f9ea0400055ac2a6e007f609648be936b23e7b0b2535cb6460eda8f66ea0ef2ed660a0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000360c6ebe"
+        let _payData = ethers.utils.defaultAbiCoder.encode(['tuple(address,address,uint256,address,bytes)'],[[seaport,seaport,amount,user.address,call]]);
+        let swapAndCall = ethers.utils.defaultAbiCoder.encode(['bytes', 'bytes', 'bool'], [swap, _payData, false]);
+        let token = await ethers.getContractAt(ERC1155, "0x5Ea64E0723eB5f44aEb1995D2029702B8855463e", user);
+        let balanceBefore = await token.balanceOf(receiver,0);
+        await expect(mos.connect(user).mockRemoteSwapAndCall(router.address, _srcToken, amount, swapAndCall,{value:amount})).to.be.emit(router, "SwapAndCall");
+        let balanceAfter = await  token.balanceOf(receiver,0);
         expect(balanceAfter).gt(balanceBefore);
     })
 

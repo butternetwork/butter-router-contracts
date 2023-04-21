@@ -4,14 +4,31 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "./lib/Helper.sol";
 
-library DexLib {
+contract DexExecutor {
     using SafeERC20 for IERC20;
 
-    address internal constant ZERO_ADDRESS = address(0);
+    enum DexType {
+        UNIV2,
+        UNIV3,
+        CURVE
+    }
 
-    address internal constant NATIVE_ADDRESS =
-        0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+    function execute(DexType dexType, address _router, uint256 _amount,bytes memory _swap) external returns(address _dstToken, uint256 _returnAmount){
+         bool _result;
+         if(dexType == DexType.UNIV2) {
+            (_result,_dstToken,_returnAmount)  = _makeUniV2Swap(_router,_amount,_swap);
+         }else if(dexType == DexType.UNIV3){
+            (_result,_dstToken,_returnAmount)  = _makeUniV3Swap(_router,_amount,_swap);
+         }else if(dexType == DexType.CURVE) {
+            (_result,_dstToken,_returnAmount)  = _makeCurveSwap(_router,_amount,_swap);
+         } else {
+             require(false,"DexExecutor:unsupport dex tpe");
+         }
+
+         require(_result,"DexExecutor:swap fail");
+    }
 
     function _makeUniV2Swap(
         address _router,
@@ -24,8 +41,8 @@ library DexLib {
         (uint256 amountOutMin, address[] memory path, address dstToken) = abi
             .decode(_swap, (uint256, address[], address));
         _dstToken = dstToken;
-        _returnAmount = _getBalance(_dstToken, address(this));
-        if (_isNative(dstToken)) {
+        _returnAmount = Helper._getBalance(_dstToken, address(this));
+        if (Helper._isNative(dstToken)) {
             (_result, ) = _router.call(
                 abi.encodeWithSignature(
                     "swapExactTokensForETH(uint256,uint256,address[],address,uint256)",
@@ -49,7 +66,7 @@ library DexLib {
             );
         }
 
-        _returnAmount = _getBalance(_dstToken, address(this));
+        _returnAmount = Helper._getBalance(_dstToken, address(this));
     }
 
     struct ExactInputParams {
@@ -70,26 +87,28 @@ library DexLib {
         (uint256 amountOutMin, bytes memory path, address dstToken) = abi
             .decode(_swap, (uint256, bytes, address));
         _dstToken = dstToken;
-        _returnAmount = _getBalance(_dstToken, address(this));
+        _returnAmount = Helper._getBalance(_dstToken, address(this));
+        address receiver = Helper._isNative(_dstToken) ? _router : address(this);
         ExactInputParams memory params = ExactInputParams(
             path,
-            address(this),
+            receiver,
             _amount,
             amountOutMin
         );
-
-        bytes memory swapData = abi.encodeWithSignature("exactInput((bytes,address,uint256,uint256))",params);
-        if (_isNative(_dstToken)) {
-            params.recipient = _router;
+        bytes memory swapData = abi.encodeWithSignature(
+            "exactInput((bytes,address,uint256,uint256))",
+            params
+        );
+        if (Helper._isNative(_dstToken)) {
             bytes[] memory c = new bytes[](2);
             c[0] = swapData;
             c[1] = abi.encodeWithSignature("unwrapWETH9(uint256,address)",amountOutMin,address(this));
-            (_result, ) = _router.call( abi.encodeWithSignature("multicall(bytes[])", c));
+            (_result, ) = _router.call(abi.encodeWithSignature("multicall(bytes[])", c));
         } else {
             (_result, ) = _router.call(swapData);
         }
 
-        _returnAmount = _getBalance(_dstToken, address(this));
+        _returnAmount = Helper._getBalance(_dstToken, address(this));
     }
 
     function _makeCurveSwap(
@@ -111,7 +130,7 @@ library DexLib {
                 (uint256, address[9], uint256[3][4], address[4], address)
             );
         _dstToken = dstToken;
-        _returnAmount = _getBalance(_dstToken, address(this));
+        _returnAmount = Helper._getBalance(_dstToken, address(this));
         (_result, ) = _router.call(
             abi.encodeWithSignature(
                 "exchange_multiple(address[9],uint256[3][4],uint256,uint256,address[4],address)",
@@ -123,21 +142,7 @@ library DexLib {
                 address(this)
             )
         );
-        _returnAmount = _getBalance(_dstToken, address(this));
+        _returnAmount = Helper._getBalance(_dstToken, address(this));
     }
 
-    function _isNative(address token) internal pure returns (bool) {
-        return (token == ZERO_ADDRESS || token == NATIVE_ADDRESS);
-    }
-
-    function _getBalance(
-        address _token,
-        address _account
-    ) internal view returns (uint256) {
-        if (_isNative(_token)) {
-            return _account.balance;
-        } else {
-            return IERC20(_token).balanceOf(_account);
-        }
-    }
 }
