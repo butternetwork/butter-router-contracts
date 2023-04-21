@@ -24,6 +24,18 @@ deploy v2
 npx hardhat deployRouterV2 --mos <mos address>  --wtoken <wtoken address> --network <network>
 ```
 
+deployDexExecutor
+
+```
+npx hardhat deployDexExecutor --network <network>
+```
+
+setDexExecutor
+
+```
+npx hardhat setDexExecutor --router <router address> --executor <executor address> --network <network>
+```
+
 set mos
 
 ```

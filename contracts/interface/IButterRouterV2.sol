@@ -24,7 +24,7 @@ interface IButterRouterV2 {
 
     struct CallbackParam {
         address target;
-        //address token; //address(0) for native token
+        address approveTo; 
         uint256 amount;
         address receiver;
         bytes data;

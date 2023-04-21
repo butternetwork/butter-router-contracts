@@ -75,7 +75,7 @@ contract MosMock is MapMosV3 {
             );
         }
 
-        IButterRouterV2(_router).remoteSwapAndCall(
+        IButterRouterV2(_router).remoteSwapAndCall{value:msg.value}(
             bytes32(0),
             _srcToken,
             _amount,
