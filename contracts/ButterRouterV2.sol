@@ -269,13 +269,13 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
             IERC20(_srcToken).safeApprove(_swap.executor,_amount);
             isNative = false;
         }
-        bytes memory returnData;
-        (_result,returnData) = dexExecutor.delegatecall(abi.encodeWithSignature("execute(uint8,address,address,uint256,bool,bytes)",
+         _returnAmount = Helper._getBalance(_dstToken, address(this));
+
+        (_result,) = dexExecutor.delegatecall(abi.encodeWithSignature("execute(uint8,address,address,uint256,bool,bytes)",
                                 _swap.dexTpye,_swap.executor,_dstToken,_amount,isNative,_swap.data));
+
+        _returnAmount = Helper._getBalance(_dstToken, address(this)) -_returnAmount;
         
-        if(_result) {
-          (_result,_returnAmount) = abi.decode(returnData,(bool,uint256));
-        }
         if (!(_result || isNative )) {
             IERC20(_srcToken).safeApprove(_swap.executor,0);
          }

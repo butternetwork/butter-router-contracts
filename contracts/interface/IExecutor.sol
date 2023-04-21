@@ -17,5 +17,5 @@ interface IExecutor {
         uint256 _amount,
         bool _isNative,
         bytes memory _swap
-    ) external returns ( bool _result,uint256 _returnAmount);
+    ) external;
 }

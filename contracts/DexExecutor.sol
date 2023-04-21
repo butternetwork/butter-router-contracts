@@ -17,17 +17,17 @@ contract DexExecutor is IExecutor {
         uint256 _amount,
         bool _isNative,
         bytes memory _swap
-    ) external override returns (bool _result,uint256 _returnAmount) {
+    ) external  {
+        bool _result;
         if (dexType == DexType.AGG) {
-            (_result, _returnAmount) = _makeAggSwap(
+            (_result) = _makeAggSwap(
                 _router,
-                _dstToken,
                 _amount,
                 _isNative,
                 _swap
             );
         } else if (dexType == DexType.UNIV2) {
-            (_result, _returnAmount) = _makeUniV2Swap(
+            (_result) = _makeUniV2Swap(
                 _router,
                 _dstToken,
                 _amount,
@@ -35,7 +35,7 @@ contract DexExecutor is IExecutor {
                 _swap
             );
         } else if (dexType == DexType.UNIV3) {
-            (_result, _returnAmount) = _makeUniV3Swap(
+            (_result) = _makeUniV3Swap(
                 _router,
                 _dstToken,
                 _amount,
@@ -43,32 +43,29 @@ contract DexExecutor is IExecutor {
                 _swap
             );
         } else if (dexType == DexType.CURVE) {
-            (_result, _returnAmount) = _makeCurveSwap(
+            (_result) = _makeCurveSwap(
                 _router,
-                _dstToken,
                 _amount,
                 _isNative,
                 _swap
             );
         } else {
-           _result = false;
+           require(false,"unsupport dex type");
         }
+        require(_result,"swap fail");
     }
 
     function _makeAggSwap(
         address _router,
-        address _dstToken,
         uint256 _amount,
         bool _isNative,
         bytes memory _swap
-    ) internal returns (bool _result, uint256 _returnAmount) {
-        _returnAmount = Helper._getBalance(_dstToken, address(this));
+    ) internal returns (bool _result) {
         if (_isNative) {
             (_result, ) = _router.call{value: _amount}(_swap);
         } else {
             (_result, ) = _router.call(_swap);
         }
-        _returnAmount = Helper._getBalance(_dstToken, address(this)) -_returnAmount;
     }
 
     function _makeUniV2Swap(
@@ -77,10 +74,10 @@ contract DexExecutor is IExecutor {
         uint256 _amount,
         bool _isNative,
         bytes memory _swap
-    ) internal returns (bool _result, uint256 _returnAmount) {
+    ) internal returns (bool _result) {
         (uint256 amountOutMin, address[] memory path,) = abi
             .decode(_swap, (uint256, address[], address));
-        _returnAmount = Helper._getBalance(_dstToken, address(this));
+      
         if (_isNative) {
          (_result, ) = _router.call{value:_amount}(
                 abi.encodeWithSignature(
@@ -115,7 +112,6 @@ contract DexExecutor is IExecutor {
             );
         }
 
-        _returnAmount = Helper._getBalance(_dstToken, address(this));
     }
 
     struct ExactInputParams {
@@ -131,10 +127,10 @@ contract DexExecutor is IExecutor {
         uint256 _amount,
         bool _isNative,
         bytes memory _swap
-    ) internal returns (bool _result, uint256 _returnAmount) {
+    ) internal returns (bool _result) {
         (uint256 amountOutMin, bytes memory path) = abi
             .decode(_swap, (uint256, bytes));
-        _returnAmount = Helper._getBalance(_dstToken, address(this));
+       
         address receiver = Helper._isNative(_dstToken)? _router: address(this);
         ExactInputParams memory params = ExactInputParams(
             path,
@@ -152,16 +148,14 @@ contract DexExecutor is IExecutor {
         } else {
             (_result, ) = _router.call{value: value}(swapData);
         }
-        _returnAmount = Helper._getBalance(_dstToken, address(this));
     }
 
     function _makeCurveSwap(
         address _router,
-        address _dstToken,
         uint256 _amount,
         bool _isNative,
         bytes memory _swap
-    ) internal returns (bool _result, uint256 _returnAmount) {
+    ) internal returns (bool _result) {
         (
             uint256 expected,
             address[9] memory routes,
@@ -169,7 +163,7 @@ contract DexExecutor is IExecutor {
             address[4] memory pools
         ) = abi.decode(_swap,(uint256, address[9], uint256[3][4], address[4]));
         uint256 value = _isNative ? _amount : 0;
-        _returnAmount = Helper._getBalance(_dstToken, address(this));
+      
         (_result, ) = _router.call{value: value}(
             abi.encodeWithSignature(
                 "exchange_multiple(address[9],uint256[3][4],uint256,uint256,address[4],address)",
@@ -181,6 +175,6 @@ contract DexExecutor is IExecutor {
                 address(this)
             )
         );
-        _returnAmount = Helper._getBalance(_dstToken, address(this));
+      
     }
 }
