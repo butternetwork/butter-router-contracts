@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.7;
+pragma solidity ^0.8.0;
 
 /// @notice DeployFactory address: 0x6258e4d2950757A749a4d4683A7342261ce12471
 ///          Support chains: - Ethereum (1), Goerli Testnet (5)

@@ -1,6 +1,6 @@
 {
   "name": "@butternetwork/router",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Butter omnichain aggregate swap contracts based on MAP Protocol",
   "main": "index.js",
   "files": [
