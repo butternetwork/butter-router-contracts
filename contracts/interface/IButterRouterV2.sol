@@ -9,6 +9,7 @@ interface IButterRouterV2 {
     }
 
     struct SwapParam {
+        uint8 dexTpye;
         address executor;
         address receiver;
         address dstToken;
