@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 
-interface MapMosV3 {
+interface IButterMos {
 
     struct SwapParam {
         uint256 amountIn;

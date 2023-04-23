@@ -6,7 +6,7 @@ import "../interface/IButterRouterV2.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract MosMock is MapMosV3 {
+contract MosMock is IButterMos {
     event SwapOut(
         uint256 indexed fromChain, // from chain
         uint256 indexed toChain, // to chain
@@ -79,6 +79,8 @@ contract MosMock is MapMosV3 {
             bytes32(0),
             _srcToken,
             _amount,
+            0x01,
+            bytes(""),
             _swapData
         );
     }

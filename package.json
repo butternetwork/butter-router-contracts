@@ -1,13 +1,27 @@
 {
-  "name": "ls",
+  "name": "@butternetwork/router",
   "version": "1.0.0",
-  "description": "",
+  "description": "Butter omnichain aggregate swap contracts based on MAP Protocol",
   "main": "index.js",
+  "files": [
+    "artifacts/contracts/**/*.sol/*.json",
+    "!artifacts/contracts/**/*.sol/*.dbg.json",
+    "deployments/*/*.json",
+    "contracts"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/butternetwork/butter-router-contracts.git"
+  },
+  "author": "Butter Network",
   "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/butternetwork/butter-router-contracts/issues"
+  },
+  "homepage": "https://butternetwork.io",
   "devDependencies": {
     "@ethersproject/providers": "^5.7.2",
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.0",
@@ -19,9 +33,10 @@
     "@typechain/hardhat": "^6.1.2",
     "@types/chai": "^4.2.0",
     "@types/mocha": "^9.1.0",
+    "@butternetwork/bridge": "^1.0.1",
     "chai": "^4.2.0",
     "ethers": "^5.4.7",
-    "hardhat": "^2.12.3",
+    "hardhat": "^2.14.0",
     "hardhat-gas-reporter": "^1.0.8",
     "solidity-coverage": "^0.8.1",
     "ts-node": "^10.9.1",
@@ -32,5 +47,15 @@
     "@openzeppelin/contracts": "^4.8.2",
     "dotenv": "^16.0.3",
     "hardhat-deploy": "^0.11.25"
-  }
+  },
+  "keywords": [
+    "butternetwork",
+    "butter",
+    "swap",
+    "mapprotocol",
+    "mapo",
+    "omnichain",
+    "cross-chain",
+    "solidity"
+  ]
 }

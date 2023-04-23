@@ -9,7 +9,7 @@ interface IButterRouterV2 {
     }
 
     struct SwapParam {
-        uint8 dexTpye;
+        uint8 dexType;
         address executor;
         address receiver;
         address dstToken;
@@ -30,6 +30,46 @@ interface IButterRouterV2 {
         address receiver;
         bytes data;
     }
+
+
+    event SwapAndBridge(
+        bytes32 indexed orderId,
+        address indexed from,
+        address indexed originToken,
+        address bridgeToken,
+        uint256 originAmount,
+        uint256 bridgeAmount,
+        uint256 fromChain,
+        uint256 toChain,
+        bytes to
+    );
+
+    event SwapAndCall(
+        address indexed from,
+        address indexed receiver,
+        address indexed target,
+        address originToken,
+        address swapToken,
+        uint256 originAmount,
+        uint256 swapAmount,
+        uint256 callAmount
+    );
+
+
+    event RemoteSwapAndCall(
+        bytes32 indexed orderId,
+        address indexed receiver,
+        address indexed target,
+        address originToken,
+        address swapToken,
+        uint256 originAmount,
+        uint256 swapAmount,
+        uint256 callAmount,
+        uint256 fromChain,
+        uint256 toChain,
+        bytes from
+    );
+
 
     // 1. swap: _swapData.length > 0 and _bridgeData.length == 0
     // 2. swap and call: _swapData.length > 0 and _callbackData.length > 0
@@ -61,9 +101,11 @@ interface IButterRouterV2 {
     //  2. call: _swapData.length == 0 and _callbackData.length > 0
     //  3. swap and call: _swapData.length > 0 and _callbackData.length > 0
     function remoteSwapAndCall(
-        bytes32 id,
+        bytes32 _orderId,
         address _srcToken,
         uint256 _amount,
+        uint256 _fromChain,
+        bytes calldata _from,
         bytes calldata _swapAndCall
     ) external payable;
 

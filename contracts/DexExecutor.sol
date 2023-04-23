@@ -11,7 +11,7 @@ contract DexExecutor is IExecutor {
     using SafeERC20 for IERC20;
 
     function execute(
-        DexType dexType,
+        uint8 _dexType,
         address _router,
         address _dstToken,
         uint256 _amount,
@@ -19,6 +19,7 @@ contract DexExecutor is IExecutor {
         bytes memory _swap
     ) external  {
         bool _result;
+        DexType dexType = DexType(_dexType);
         if (dexType == DexType.AGG) {
             (_result) = _makeAggSwap(
                 _router,

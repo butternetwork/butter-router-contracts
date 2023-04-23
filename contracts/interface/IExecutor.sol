@@ -11,7 +11,7 @@ interface IExecutor {
     }
 
     function execute(
-        DexType _dexType,
+        uint8 _dexType,
         address _router,
         address _dstToken,
         uint256 _amount,

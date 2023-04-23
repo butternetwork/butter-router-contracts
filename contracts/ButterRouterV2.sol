@@ -6,11 +6,10 @@ import "@openzeppelin/contracts/access/Ownable2Step.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+import "@butternetwork/bridge/contracts/interface/IButterMosV2.sol";
 import "./lib/Helper.sol";
 import "./lib/ErrorMessage.sol";
-import "./interface/IButterMosV2.sol";
 import "./interface/IButterRouterV2.sol";
-// import "hardhat/console.sol";
 
 contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -38,7 +37,7 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
             Helper._permit(permitData);
         }
         if (Helper._isNative(token)) {
-            require(msg.value == amount,ErrorMessage.COST_MISMATCH);
+            require(msg.value == amount,ErrorMessage.FEE_MISMATCH);
         } else {
             SafeERC20.safeTransferFrom(
                 IERC20(token),
@@ -56,37 +55,21 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
         address swapToken;
         uint256 srcAmount;
         uint256 swapAmount;
+        uint256 fromChain;
+        uint256 toChain;
+        bytes from;
     }
 
-    event SwapAndBridge(
-        address indexed from,
-        address indexed originToken,
-        uint256 indexed originAmount,
-        uint256 formChain,
-        uint256 toChain,
-        address bridgeToken,
-        uint256 bridgeAmount,
-        bytes32 orderId,
-        bytes to
-    );
-
-    event SwapAndCall(
-        bytes32 indexed orderId,
-        address indexed tokenIn,
-        address indexed tokenOut,
-        uint256 amountIn,
-        uint256 swapAmount,
-        uint256 callAmount);
 
     event CollectFee(address indexed token, address indexed receiver, uint256 indexed amount,FeeType feeType);
     event Approve(address indexed executor, bool indexed flag);
     event SetMos(address indexed mos);
-    event SetFee(address indexed receiver,uint256 indexed rate,uint256 indexed fixedf);
+    event SetFee(address indexed receiver, uint256 indexed rate, uint256 indexed fixedf);
     event SetExecutor(address indexed _executor);
 
     constructor(address _mosAddress, address _owner,address _wToken) payable {
-        require(_owner != Helper.ZERO_ADDRESS,ErrorMessage.ZERO_ADDR);
-        require(_wToken.isContract(),ErrorMessage.NO_CONTRACT);
+        require(_owner != Helper.ZERO_ADDRESS, ErrorMessage.ZERO_ADDR);
+        require(_wToken.isContract(),ErrorMessage.NOT_CONTRACT);
         wToken = _wToken;
         _transferOwnership(_owner);
         _setMosAddress(_mosAddress);
@@ -118,10 +101,10 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
         BridgeParam memory bridge = abi.decode(_bridgeData, (BridgeParam));
         bytes32 orderId = _doBridge(msg.sender, swapTemp.swapToken, swapTemp.swapAmount, bridge);
 
-        emit SwapAndBridge(msg.sender, swapTemp.srcToken, swapTemp.srcAmount, block.chainid, bridge.toChain, swapTemp.swapToken, swapTemp.swapAmount, orderId, bridge.receiver);
+        emit SwapAndBridge(orderId, msg.sender, swapTemp.srcToken, swapTemp.swapToken, swapTemp.srcAmount,swapTemp.swapAmount, block.chainid, bridge.toChain, bridge.receiver);
     }
 
-    function swapAndCall(address _srcToken, uint256 _amount,FeeType _feeType, bytes calldata _swapData, bytes calldata _callbackData, bytes calldata _permitData)
+    function swapAndCall(address _srcToken, uint256 _amount, FeeType _feeType, bytes calldata _swapData, bytes calldata _callbackData, bytes calldata _permitData)
     external 
     payable
     override
@@ -152,10 +135,10 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
             if (swapTemp.swapAmount > 0) {
                 Helper._transfer(swapTemp.swapToken, swap.receiver, swapTemp.swapAmount);
             }
-            emit SwapAndCall(bytes32(""), swapTemp.srcToken, swapTemp.swapToken, swapTemp.srcAmount, swapTemp.swapAmount , 0);
+            emit SwapAndCall(msg.sender, swap.receiver, Helper.ZERO_ADDRESS, swapTemp.srcToken, swapTemp.swapToken, swapTemp.srcAmount, swapTemp.swapAmount , 0);
         } else {
-            (CallbackParam memory callParam) = abi.decode(_callbackData,(CallbackParam));
-            require(swapTemp.swapAmount >= callParam.amount,ErrorMessage.CALL_AMOUNT_INVALID);
+            (CallbackParam memory callParam) = abi.decode(_callbackData, (CallbackParam));
+            require(swapTemp.swapAmount >= callParam.amount, ErrorMessage.CALL_AMOUNT_INVALID);
 
             (result, tokenAmount) = _callBack(swapTemp.swapToken, callParam);
             require(result,ErrorMessage.CALL_FAIL);
@@ -163,64 +146,75 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
             if (swapTemp.swapAmount > tokenAmount) {
                 Helper._transfer(swapTemp.swapToken, callParam.receiver, swapTemp.swapAmount  - tokenAmount);
             }
-            emit SwapAndCall(bytes32(""), swapTemp.srcToken, swapTemp.swapToken, swapTemp.srcAmount, swapTemp.swapAmount , tokenAmount);
+
+            emit SwapAndCall(msg.sender, callParam.receiver, callParam.target, swapTemp.srcToken, swapTemp.swapToken, swapTemp.srcAmount, swapTemp.swapAmount , tokenAmount);
         }
     }
 
     // _srcToken must erc20 Token or wToken
-    function remoteSwapAndCall(bytes32 id, address _srcToken,  uint256 _amount, bytes calldata _swapAndCall)
+    function remoteSwapAndCall(bytes32 _orderId, address _srcToken,  uint256 _amount, uint256 _fromChain, bytes calldata _from, bytes calldata _swapAndCall)
     external
     payable
     override
     nonReentrant
     {
         bool result;
-        address targetToken = _srcToken;
-        uint256 tokenAmount = _amount;
-        address receiver;
-        require (msg.sender == mosAddress,ErrorMessage.MOS_ONLY);
-        require (Helper._getBalance(_srcToken, address(this)) >= _amount,ErrorMessage.RECEIVE_LOW);
+        SwapTemp memory swapTemp;
+        swapTemp.srcToken = _srcToken;
+        swapTemp.srcAmount = _amount;
+        swapTemp.swapToken = _srcToken;
+        swapTemp.swapAmount = _amount;
 
-        (bytes memory _swapData,bytes memory _callbackData) = abi.decode(_swapAndCall,(bytes,bytes));
+        swapTemp.fromChain = _fromChain;
+        swapTemp.toChain = block.chainid;
+        swapTemp.from = _from;
+
+        require (msg.sender == mosAddress, ErrorMessage.MOS_ONLY);
+        require (Helper._getBalance(swapTemp.srcToken, address(this)) >= _amount, ErrorMessage.RECEIVE_LOW);
+
+        (bytes memory _swapData, bytes memory _callbackData) = abi.decode(_swapAndCall, (bytes, bytes));
         require (_swapData.length + _callbackData.length > 0, ErrorMessage.DATA_EMPTY);
 
         if(_swapData.length > 0) {
             SwapParam memory swap = abi.decode(_swapData, (SwapParam));
-            receiver = swap.receiver;
-            (result, targetToken, tokenAmount) = _makeSwap(tokenAmount, _srcToken, swap);
-            if (!result) {
-                if(_srcToken == wToken) {
-                    if(Helper._safeWithdraw(wToken,_amount)){
-                        _srcToken = Helper.ZERO_ADDRESS;
+            (result, swapTemp.swapToken, swapTemp.swapAmount) = _makeSwap(swapTemp.srcAmount, swapTemp.srcToken, swap);
+            if (!result || _callbackData.length == 0) {
+                // swap failed or no callback execution, transfer bridge token to receiver
+                if (swapTemp.srcToken == wToken) {
+                    if (Helper._safeWithdraw(wToken, swapTemp.srcAmount)) {
+                        swapTemp.srcToken = Helper.NATIVE_ADDRESS;
                     }
                 }
-                Helper._transfer(_srcToken, receiver, _amount);
+                Helper._transfer(swapTemp.srcToken, swap.receiver, swapTemp.srcAmount);
+
+                emit RemoteSwapAndCall(_orderId, swap.receiver, Helper.ZERO_ADDRESS, swapTemp.srcToken, swapTemp.swapToken, swapTemp.srcAmount, swapTemp.swapAmount, 0, swapTemp.fromChain, swapTemp.toChain, swapTemp.from);
                 return;
             }
         }
-        if(targetToken == wToken) {
-            if(Helper._safeWithdraw(wToken,tokenAmount)){
-                targetToken = Helper.ZERO_ADDRESS;
+        // _callbackData.length > 0
+        if (swapTemp.swapToken == wToken) {
+            if(Helper._safeWithdraw(wToken, swapTemp.swapAmount)) {
+                swapTemp.swapToken = Helper.NATIVE_ADDRESS;
             }
         }
+        {
         uint256 callAmount = 0;
-        if(_callbackData.length > 0){
-            CallbackParam memory callParam = abi.decode(_callbackData, (CallbackParam));
-            receiver = callParam.receiver;
-            if (tokenAmount >= callParam.amount) {
-                (result, callAmount) = _callBack(targetToken, callParam);
-            }
-        }
-        // refund
-        if (tokenAmount > callAmount) {
-            Helper._transfer(targetToken, receiver, tokenAmount - callAmount);
+        CallbackParam memory callParam = abi.decode(_callbackData, (CallbackParam));
+        if (swapTemp.swapAmount >= callParam.amount) {
+            (result, callAmount) = _callBack(swapTemp.swapToken, callParam);
         }
 
-        emit SwapAndCall(id, _srcToken, targetToken, _amount, tokenAmount, callAmount);
+        // refund
+        if (swapTemp.swapAmount > callAmount) {
+            Helper._transfer(swapTemp.swapToken, callParam.receiver, swapTemp.swapAmount - callAmount);
+        }
+
+        emit RemoteSwapAndCall(_orderId, callParam.receiver, callParam.target, swapTemp.srcToken, swapTemp.swapToken, swapTemp.srcAmount, swapTemp.swapAmount, callAmount, swapTemp.fromChain, swapTemp.toChain, swapTemp.from);
+        }
     }
 
     function setFee(address _feeReceiver, uint256 _feeRate,uint256 _fixedFee) external onlyOwner {
-        require(_feeReceiver != Helper.ZERO_ADDRESS,ErrorMessage.ZERO_ADDR);
+        require(_feeReceiver != Helper.ZERO_ADDRESS, ErrorMessage.ZERO_ADDR);
 
         require(_feeRate < FEE_DENOMINATOR);
 
@@ -233,21 +227,21 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
         emit SetFee(_feeReceiver,_feeRate,fixedFee);
     }
 
-   function _collectFee(address _token,uint256 _amount,FeeType _feeType)internal returns(uint256 _fee,uint256 _remain){
-        if(feeReceiver == address(0)){
+   function _collectFee(address _token, uint256 _amount, FeeType _feeType) internal returns(uint256 _fee, uint256 _remain){
+        if(feeReceiver == Helper.ZERO_ADDRESS) {
             _remain = _amount;
             return(_fee,_remain);
         }
         if(_feeType == FeeType.FIXED){
             _fee = fixedFee;
             if(Helper._isNative(_token)){
-               require(msg.value > fixedFee,ErrorMessage.COST_LITTLE);
+               require(msg.value > fixedFee, ErrorMessage.FEE_LOWER);
                _remain = _amount - _fee;
             } else {
-               require(msg.value == fixedFee,ErrorMessage.COST_MISMATCH);
+               require(msg.value == fixedFee,ErrorMessage.FEE_MISMATCH);
                _remain = _amount;
             }
-            _token = Helper.ZERO_ADDRESS;
+            _token = Helper.NATIVE_ADDRESS;
         } else {
             _fee = _amount * feeRate / FEE_DENOMINATOR;
             _remain = _amount - _fee;
@@ -266,20 +260,19 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
         if (Helper._isNative(_srcToken)) {
             isNative = true;
         } else {
-            IERC20(_srcToken).safeApprove(_swap.executor,_amount);
+            IERC20(_srcToken).safeApprove(_swap.executor, _amount);
             isNative = false;
         }
          _returnAmount = Helper._getBalance(_dstToken, address(this));
 
         (_result,) = dexExecutor.delegatecall(abi.encodeWithSignature("execute(uint8,address,address,uint256,bool,bytes)",
-                                _swap.dexTpye,_swap.executor,_dstToken,_amount,isNative,_swap.data));
+                                _swap.dexType,_swap.executor,_dstToken,_amount,isNative,_swap.data));
 
-        _returnAmount = Helper._getBalance(_dstToken, address(this)) -_returnAmount;
+        _returnAmount = Helper._getBalance(_dstToken, address(this)) - _returnAmount;
         
         if (!(_result || isNative )) {
             IERC20(_srcToken).safeApprove(_swap.executor,0);
-         }
-      
+        }
     }
 
     function _callBack(address _token, CallbackParam memory _callParam) internal returns (bool _result, uint256 _callAmount) {
@@ -321,8 +314,8 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
 
 
     function getFee(uint256 _amount,address _token,FeeType _feeType) external view override returns(address _feeReceiver,address _feeToken,uint256 _fee,uint256 _feeAfter){
-        if(feeReceiver == Helper.ZERO_ADDRESS){
-            return(Helper.ZERO_ADDRESS,Helper.ZERO_ADDRESS,0,_amount);
+        if(feeReceiver == Helper.ZERO_ADDRESS) {
+            return(Helper.ZERO_ADDRESS, Helper.ZERO_ADDRESS, 0, _amount);
         }
         if(_feeType == FeeType.FIXED){
             _feeToken = Helper.ZERO_ADDRESS;
@@ -350,7 +343,7 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
     function setDexExecutor(
         address _dexExecutor
     ) public onlyOwner {
-        require(_dexExecutor.isContract(),ErrorMessage.NO_CONTRACT);
+        require(_dexExecutor.isContract(),ErrorMessage.NOT_CONTRACT);
         dexExecutor = _dexExecutor;
         emit SetExecutor(_dexExecutor);
     }
@@ -358,7 +351,7 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
     function _setMosAddress(address _mosAddress) internal returns (bool) {
         require(
             _mosAddress.isContract(),
-            ErrorMessage.NO_CONTRACT
+            ErrorMessage.NOT_CONTRACT
         );
         mosAddress = _mosAddress;
         emit SetMos(_mosAddress);
@@ -368,7 +361,7 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
 
 
     function setAuthorization(address _excutor, bool _flag) external onlyOwner {
-        require(_excutor.isContract(), ErrorMessage.NO_CONTRACT);
+        require(_excutor.isContract(), ErrorMessage.NOT_CONTRACT);
         approved[_excutor] = _flag;
         emit Approve(_excutor,_flag);
     }

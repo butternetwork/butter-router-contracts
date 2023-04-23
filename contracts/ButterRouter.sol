@@ -51,7 +51,7 @@ contract ButterRouter is Ownable2Step {
     function swapOutTokens(ButterCore.AccessParams memory _swapData, bytes memory _mosData, uint256 amount, uint256 _toChain, bytes memory _to) internal {
 
         
-        (, bytes memory targetToken, ) = abi.decode(_mosData,((MapMosV3.SwapParam)[], bytes, address)); 
+        (, bytes memory targetToken, ) = abi.decode(_mosData,((IButterMos.SwapParam)[], bytes, address)); 
         
         bytes32 orderId;
        
@@ -62,10 +62,10 @@ contract ButterRouter is Ownable2Step {
          if(_swapData.amountInArr.length == 0) {
             mosValue = amount;
             if(_swapData.inputOutAddre[1] == address(0)) {
-               orderId = MapMosV3(mosAddress).swapOutNative{value : mosValue}(msg.sender, _to, _toChain, _mosData);
+               orderId = IButterMos(mosAddress).swapOutNative{value : mosValue}(msg.sender, _to, _toChain, _mosData);
             } else {
                IERC20(_swapData.inputOutAddre[1]).safeApprove(mosAddress, mosValue);
-               orderId = MapMosV3(mosAddress).swapOutToken(msg.sender, _swapData.inputOutAddre[1], _to, mosValue, _toChain, _mosData);
+               orderId = IButterMos(mosAddress).swapOutToken(msg.sender, _swapData.inputOutAddre[1], _to, mosValue, _toChain, _mosData);
             }
          // erc20 - eth  
          } else if (_swapData.inputOutAddre[1] == address(0)) {
@@ -74,7 +74,7 @@ contract ButterRouter is Ownable2Step {
             ButterCore(butterCore).multiSwap(_swapData);
             mosValue = address(this).balance - msgValue;
             //  mosValue = currentValue - msgValue;
-            orderId = MapMosV3(mosAddress).swapOutNative{value : mosValue}(msg.sender, _to, _toChain, _mosData);
+            orderId = IButterMos(mosAddress).swapOutNative{value : mosValue}(msg.sender, _to, _toChain, _mosData);
 
             // eth -- erc20 
         } else if (_swapData.inputOutAddre[0] == address(0)) {
@@ -83,7 +83,7 @@ contract ButterRouter is Ownable2Step {
             mosValue = IERC20(_swapData.inputOutAddre[1]).balanceOf(address(this)) - msgValue;
             //  mosValue = currentValue - msgValue;
             IERC20(_swapData.inputOutAddre[1]).safeApprove(mosAddress, mosValue);
-            orderId = MapMosV3(mosAddress).swapOutToken(msg.sender, _swapData.inputOutAddre[1], _to, mosValue, _toChain, _mosData);
+            orderId = IButterMos(mosAddress).swapOutToken(msg.sender, _swapData.inputOutAddre[1], _to, mosValue, _toChain, _mosData);
         } else {
             // erc20-erc20
             msgValue = IERC20(_swapData.inputOutAddre[1]).balanceOf(address(this));
@@ -92,7 +92,7 @@ contract ButterRouter is Ownable2Step {
             mosValue = IERC20(_swapData.inputOutAddre[1]).balanceOf(address(this)) - msgValue;
             //  mosValue = currentValue - msgValue;
             IERC20(_swapData.inputOutAddre[1]).safeApprove(mosAddress, mosValue);
-            orderId = MapMosV3(mosAddress).swapOutToken(msg.sender, _swapData.inputOutAddre[1], _to, mosValue, _toChain, _mosData);
+            orderId = IButterMos(mosAddress).swapOutToken(msg.sender, _swapData.inputOutAddre[1], _to, mosValue, _toChain, _mosData);
         }
 
         emit SwapAndBridge(msg.sender,_swapData.inputOutAddre[0],amount,block.chainid,_toChain,_swapData.inputOutAddre[1],mosValue,orderId,targetToken,_to);
