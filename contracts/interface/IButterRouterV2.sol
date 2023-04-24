@@ -11,6 +11,7 @@ interface IButterRouterV2 {
     struct SwapParam {
         uint8 dexType;
         address executor;
+        address approveTo; 
         address receiver;
         address dstToken;
         uint256 minReturnAmount;

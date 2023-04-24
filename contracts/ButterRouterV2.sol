@@ -263,7 +263,7 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
         if (Helper._isNative(_srcToken)) {
             isNative = true;
         } else {
-            IERC20(_srcToken).safeApprove(_swap.executor, _amount);
+            IERC20(_srcToken).safeApprove(_swap.approveTo, _amount);
             isNative = false;
         }
          _returnAmount = Helper._getBalance(_dstToken, address(this));
@@ -274,7 +274,7 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
         _returnAmount = Helper._getBalance(_dstToken, address(this)) - _returnAmount;
         
         if (!(_result || isNative )) {
-            IERC20(_srcToken).safeApprove(_swap.executor,0);
+            IERC20(_srcToken).safeApprove(_swap.approveTo,0);
         }
     }
 

@@ -180,7 +180,7 @@ describe("ButterRouterV2", function () {
         let data = "0x12aa3caf0000000000000000000000007122db0ebe4eb9b434a9f2ffe6760bc03bfbd0e00000000000000000000000006f3277ad0782a7da3eb676b85a8346a100bf9c1c000000000000000000000000dac17f958d2ee523a2206206994597c13d831ec70000000000000000000000004c7e62fbb86b204f7c6dc1f582ddd889182d5cf50000000000000000000000001252eb0912559a206dd3600f283f2a48dca2419600000000000000000000000000000000000000000083225966d50d5bd8100000000000000000000000000000000000000000000000000000000000001559be1a000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000001400000000000000000000000000000000000000000000000000000000000000160000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001100000000000000000000000000000000000000000000000000000000000f200a007e5c0d20000000000000000000000000000000000000000000000000000ce00006700206ae40711b8002dc6c04c7e62fbb86b204f7c6dc1f582ddd889182d5cf50d4a11d5eeaac28ec3f61d100daf4d40471f185200000000000000000000000000000000000000000000000000000000000000016f3277ad0782a7da3eb676b85a8346a100bf9c1c00206ae40711b8002dc6c00d4a11d5eeaac28ec3f61d100daf4d40471f18521111111254eeb25477b68fb85ed929f73a9605820000000000000000000000000000000000000000000000000000000000000001c02aaa39b223fe8d0a0e5c4f27ead9083c756cc200000000000000000000000000000000e26b9977"
         let _amount = BigNumber.from("158531492000000000000000000");
         let _srcToken = "0x6f3277ad0782a7DA3eb676b85a8346A100BF9C1c";
-        let _swapData =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,uint256,bytes)'], [[0,v5_router_addr,user.address,"0xdAC17F958D2ee523a2206206994597C13D831ec7",0,data]]);
+        let _swapData =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,address,uint256,bytes)'], [[0,v5_router_addr,v5_router_addr,user.address,"0xdAC17F958D2ee523a2206206994597C13D831ec7",0,data]]);
         let _bridgeData = "0x"
         let _permitData = "0x"
         let token = await ethers.getContractAt(ERC20, "0x6f3277ad0782a7DA3eb676b85a8346A100BF9C1c", user); 
@@ -220,7 +220,7 @@ describe("ButterRouterV2", function () {
         let _amount = BigNumber.from("594957012632774260583");
         let _srcToken = "0xA8b919680258d369114910511cc87595aec0be6D";
 
-        let _swapData =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,uint256,bytes)'], [[0,v5_router_addr, user.address,ethers.constants.AddressZero,0,data]]);
+        let _swapData =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,address,uint256,bytes)'], [[0,v5_router_addr,v5_router_addr,user.address,ethers.constants.AddressZero,0,data]]);
         let _bridgeData = "0x"
         let _permitData = "0x"
         let token = await ethers.getContractAt(ERC20, _srcToken, user); 
@@ -259,7 +259,7 @@ describe("ButterRouterV2", function () {
         let _amount = BigNumber.from("594957012632774260583");
         let _srcToken = "0xA8b919680258d369114910511cc87595aec0be6D";
 
-        let _swapData =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,uint256,bytes)'], [[0,v5_router_addr,user.address,ethers.constants.AddressZero,0,data]]);
+        let _swapData =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,address,uint256,bytes)'], [[0,v5_router_addr,v5_router_addr,user.address,ethers.constants.AddressZero,0,data]]);
 
         let remote =  ethers.utils.defaultAbiCoder.encode(['tuple(uint256,uint256,bytes,uint64)[]','bytes','address'],[[],"0xb6a7276b87b9763898c38ea19b7573cd81e6af5643031b835d15aa2ad6000442",ethers.constants.AddressZero])
 
@@ -305,7 +305,7 @@ describe("ButterRouterV2", function () {
         let _amount = BigNumber.from("594957012632774260583");
         let _srcToken = "0xA8b919680258d369114910511cc87595aec0be6D";
 
-        let _swapData =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,uint256,bytes)'], [[0,v5_router_addr,user.address,ethers.constants.AddressZero,0,data]]);
+        let _swapData =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,address,uint256,bytes)'], [[0,v5_router_addr,v5_router_addr,user.address,ethers.constants.AddressZero,0,data]]);
 
         let pay_fuc_encode = PayMock.interface.encodeFunctionData("payFor",[user.address]);
 
@@ -352,7 +352,7 @@ describe("ButterRouterV2", function () {
         let _amount = BigNumber.from("594957012632774260583");
         let _srcToken = "0xA8b919680258d369114910511cc87595aec0be6D";
 
-        let _swapData =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,uint256,bytes)'], [[0,v5_router_addr,user.address,ethers.constants.AddressZero,0,data]]);
+        let _swapData =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,address,uint256,bytes)'], [[0,v5_router_addr,v5_router_addr,user.address,ethers.constants.AddressZero,0,data]]);
 
         let pay_fuc_encode = PayMock.interface.encodeFunctionData("payFor",[user.address]);
 
@@ -406,7 +406,7 @@ describe("ButterRouterV2", function () {
 
         let swap = ethers.utils.defaultAbiCoder.encode(["uint256","bytes"],[amountOutMin,path]); 
 
-        swap =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,uint256,bytes)'], [[2,uniV3router,user.address,dstToken,0,swap]]);
+        swap =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,address,uint256,bytes)'], [[2,uniV3router,uniV3router,user.address,dstToken,0,swap]]);
 
         let swapAndCall = ethers.utils.defaultAbiCoder.encode(['bytes','bytes'],[swap,"0x"]);
         let token = await ethers.getContractAt(ERC20, dstToken, user); 
@@ -458,7 +458,7 @@ describe("ButterRouterV2", function () {
 
         let swap = ethers.utils.defaultAbiCoder.encode(["uint256","bytes"],[amountOutMin,path]); 
 
-        swap =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,uint256,bytes)'], [[2,uniV3router,user.address,dstToken,0,swap]]);
+        swap =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,address,uint256,bytes)'], [[2,uniV3router,uniV3router,user.address,dstToken,0,swap]]);
 
         let pay_fuc_encode = PayMock.interface.encodeFunctionData("payFor",[user.address]);
 
@@ -515,7 +515,7 @@ describe("ButterRouterV2", function () {
 
         let swap = ethers.utils.defaultAbiCoder.encode(["uint256","bytes"],[amountOutMin,path]); 
 
-        swap =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,uint256,bytes)'], [[2,uniV3router,user.address,dstToken,0,swap]]);
+        swap =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,address,uint256,bytes)'], [[2,uniV3router,uniV3router,user.address,dstToken,0,swap]]);
 
         let swapAndCall = ethers.utils.defaultAbiCoder.encode(['bytes','bytes','bool'],[swap,"0x",false]);
         let token = await ethers.getContractAt(ERC20, _srcToken, user); 
@@ -566,7 +566,7 @@ describe("ButterRouterV2", function () {
 
         let swap = ethers.utils.defaultAbiCoder.encode(["uint256","address[]"],[amountOutMin,path]); 
 
-        swap =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,uint256,bytes)'], [[1,uniV2router,user.address,dstToken,0,swap]]);
+        swap =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,address,uint256,bytes)'], [[1,uniV2router,uniV2router,user.address,dstToken,0,swap]]);
 
         let swapAndCall = ethers.utils.defaultAbiCoder.encode(['bytes','bytes'],[swap,"0x"]);
         let token = await ethers.getContractAt(ERC20, _srcToken, user); 
@@ -617,7 +617,7 @@ describe("ButterRouterV2", function () {
 
         let swap = ethers.utils.defaultAbiCoder.encode(["uint256","address[]"],[amountOutMin,path]); 
 
-        swap =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,uint256,bytes)'], [[1,uniV2router,user.address,dstToken,0,swap]]);
+        swap =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,address,uint256,bytes)'], [[1,uniV2router,uniV2router,user.address,dstToken,0,swap]]);
 
         let swapAndCall = ethers.utils.defaultAbiCoder.encode(['bytes','bytes',],[swap,"0x"]);
         let token = await ethers.getContractAt(ERC20, _srcToken, user); 
@@ -668,7 +668,7 @@ describe("ButterRouterV2", function () {
 
         let swap = ethers.utils.defaultAbiCoder.encode(["uint256","address[]"],[amountOutMin,path]); 
 
-        swap =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,uint256,bytes)'], [[1,uniV2router,user.address,dstToken,0,swap]]);
+        swap =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,address,uint256,bytes)'], [[1,uniV2router,uniV2router,user.address,dstToken,0,swap]]);
 
         let swapAndCall = ethers.utils.defaultAbiCoder.encode(['bytes','bytes',],[swap,"0x"]);
         let token = await ethers.getContractAt(ERC20, dstToken, user); 
@@ -722,7 +722,7 @@ describe("ButterRouterV2", function () {
 
         let swap =   ethers.utils.defaultAbiCoder.encode(['uint256', 'address[9]', 'uint256[3][4]', 'address[4]'], [amountOutMin,_route,_swap_params,pools]);;
 
-        swap =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,uint256,bytes)'], [[3,curverouter,user.address,dstToken,0,swap]]);
+        swap =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,address,uint256,bytes)'], [[3,curverouter,curverouter,user.address,dstToken,0,swap]]);
 
         let swapAndCall = ethers.utils.defaultAbiCoder.encode(['bytes', 'bytes'], [swap, "0x"]);
         let token = await ethers.getContractAt(ERC20, _srcToken, user);
