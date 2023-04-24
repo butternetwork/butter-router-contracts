@@ -178,15 +178,18 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
         if(_swapData.length > 0) {
             SwapParam memory swap = abi.decode(_swapData, (SwapParam));
             (result, swapTemp.swapToken, swapTemp.swapAmount) = _makeSwap(swapTemp.srcAmount, swapTemp.srcToken, swap);
-            if (!result || _callbackData.length == 0) {
-                // swap failed or no callback execution, transfer bridge token to receiver
-                if (swapTemp.srcToken == wToken) {
-                    if (Helper._safeWithdraw(wToken, swapTemp.srcAmount)) {
-                        swapTemp.srcToken = Helper.NATIVE_ADDRESS;
+             // swap failed or no callback execution, transfer bridge token to receiver
+            if (!result || _callbackData.length == 0) {   
+                {
+                    address refundToken = result ? swapTemp.swapToken : swapTemp.srcToken;
+                    uint256 retundAmount = result ? swapTemp.swapAmount : swapTemp.srcAmount;
+                    if (refundToken == wToken) {
+                        if (Helper._safeWithdraw(wToken, retundAmount)) {
+                            refundToken = Helper.NATIVE_ADDRESS;
+                        }
                     }
+                    Helper._transfer(refundToken, swap.receiver, retundAmount);
                 }
-                Helper._transfer(swapTemp.srcToken, swap.receiver, swapTemp.srcAmount);
-
                 emit RemoteSwapAndCall(_orderId, swap.receiver, Helper.ZERO_ADDRESS, swapTemp.srcToken, swapTemp.swapToken, swapTemp.srcAmount, swapTemp.swapAmount, 0, swapTemp.fromChain, swapTemp.toChain, swapTemp.from);
                 return;
             }
@@ -256,22 +259,19 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
     function _makeSwap(uint256 _amount, address _srcToken, SwapParam memory _swap) internal returns(bool _result, address _dstToken, uint256 _returnAmount){
         require(approved[_swap.executor],ErrorMessage.NO_APPROVE);
         _dstToken = _swap.dstToken;
-        bool isNative; 
-        if (Helper._isNative(_srcToken)) {
-            isNative = true;
-        } else {
-            IERC20(_srcToken).safeApprove(_swap.executor, _amount);
-            isNative = false;
+        bool isNative = Helper._isNative(_srcToken);
+        if (!isNative) {
+            IERC20(_srcToken).safeApprove(_swap.approveTo, _amount);
         }
          _returnAmount = Helper._getBalance(_dstToken, address(this));
 
-        (_result,) = dexExecutor.delegatecall(abi.encodeWithSignature("execute(uint8,address,address,uint256,bool,bytes)",
-                                _swap.dexType,_swap.executor,_dstToken,_amount,isNative,_swap.data));
+        (_result,) = dexExecutor.delegatecall(abi.encodeWithSignature("execute(uint8,address,address,address,uint256,bytes)",
+                                _swap.dexType,_swap.executor,_srcToken,_dstToken,_amount,_swap.data));
 
         _returnAmount = Helper._getBalance(_dstToken, address(this)) - _returnAmount;
         
         if (!(_result || isNative )) {
-            IERC20(_srcToken).safeApprove(_swap.executor,0);
+            IERC20(_srcToken).safeApprove(_swap.approveTo,0);
         }
     }
 

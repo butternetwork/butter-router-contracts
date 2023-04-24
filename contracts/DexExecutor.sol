@@ -10,15 +10,18 @@ import "./lib/Helper.sol";
 contract DexExecutor is IExecutor {
     using SafeERC20 for IERC20;
 
+    constructor(){}
+
     function execute(
         uint8 _dexType,
         address _router,
+        address _srcToken,
         address _dstToken,
         uint256 _amount,
-        bool _isNative,
         bytes memory _swap
-    ) external  {
+    ) external payable {
         bool _result;
+        bool _isNative = Helper._isNative(_srcToken);
         DexType dexType = DexType(_dexType);
         if (dexType == DexType.AGG) {
             (_result) = _makeAggSwap(
@@ -76,9 +79,8 @@ contract DexExecutor is IExecutor {
         bool _isNative,
         bytes memory _swap
     ) internal returns (bool _result) {
-        (uint256 amountOutMin, address[] memory path,) = abi
-            .decode(_swap, (uint256, address[], address));
-      
+        (uint256 amountOutMin, address[] memory path) = abi
+            .decode(_swap, (uint256, address[]));
         if (_isNative) {
          (_result, ) = _router.call{value:_amount}(
                 abi.encodeWithSignature(
@@ -112,7 +114,6 @@ contract DexExecutor is IExecutor {
                 )
             );
         }
-
     }
 
     struct ExactInputParams {
