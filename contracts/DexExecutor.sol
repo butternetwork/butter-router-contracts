@@ -15,12 +15,13 @@ contract DexExecutor is IExecutor {
     function execute(
         uint8 _dexType,
         address _router,
+        address _srcToken,
         address _dstToken,
         uint256 _amount,
-        bool _isNative,
         bytes memory _swap
     ) external payable {
         bool _result;
+        bool _isNative = Helper._isNative(_srcToken);
         DexType dexType = DexType(_dexType);
         if (dexType == DexType.AGG) {
             (_result) = _makeAggSwap(

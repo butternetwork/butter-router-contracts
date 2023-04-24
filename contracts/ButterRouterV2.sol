@@ -259,17 +259,14 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
     function _makeSwap(uint256 _amount, address _srcToken, SwapParam memory _swap) internal returns(bool _result, address _dstToken, uint256 _returnAmount){
         require(approved[_swap.executor],ErrorMessage.NO_APPROVE);
         _dstToken = _swap.dstToken;
-        bool isNative; 
-        if (Helper._isNative(_srcToken)) {
-            isNative = true;
-        } else {
+        bool isNative = Helper._isNative(_srcToken);
+        if (!isNative) {
             IERC20(_srcToken).safeApprove(_swap.approveTo, _amount);
-            isNative = false;
         }
          _returnAmount = Helper._getBalance(_dstToken, address(this));
-         
-        (_result,) = dexExecutor.delegatecall(abi.encodeWithSignature("execute(uint8,address,address,uint256,bool,bytes)",
-                                _swap.dexType,_swap.executor,_dstToken,_amount,isNative,_swap.data));
+
+        (_result,) = dexExecutor.delegatecall(abi.encodeWithSignature("execute(uint8,address,address,address,uint256,bytes)",
+                                _swap.dexType,_swap.executor,_srcToken,_dstToken,_amount,_swap.data));
 
         _returnAmount = Helper._getBalance(_dstToken, address(this)) - _returnAmount;
         
