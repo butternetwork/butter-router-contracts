@@ -9,7 +9,12 @@ interface IExecutor {
         UNIV3,
         CURVE
     }
-
+    // DexType
+    // the address to execute swap for DexType.UNIV2 router is uniswap v2 router
+    // _dstToken swap target Token
+    // input token amount 
+    // _isNative input whether native token
+    // _swap specific data for swap
     function execute(
         uint8 _dexType,
         address _router,
@@ -17,5 +22,5 @@ interface IExecutor {
         uint256 _amount,
         bool _isNative,
         bytes memory _swap
-    ) external;
+    ) external payable;
 }
