@@ -18,6 +18,10 @@ contract ButterRouter is Ownable2Step {
     address  public butterCore;
 
 
+    event SetMosAddress(address indexed newMos);
+
+    event SetButterCore(address indexed newCore);
+
     event SwapAndBridge (address indexed from,address indexed originToken,uint256 indexed originAmount,uint256 formchainId,uint256 tochainId,address bridgeToken,uint256 bridgeAmount,bytes32 orderId,bytes targetToken, bytes to);
 
 
@@ -102,12 +106,14 @@ contract ButterRouter is Ownable2Step {
     function setMosAddress(address _mosAddress) public onlyOwner returns (bool){
         require(_mosAddress.code.length > 0, '_mosAddress must be contract');
         mosAddress = _mosAddress;
+        emit SetMosAddress(_mosAddress);
         return true;
     }
 
     function setButterCore(address _butterCore) public onlyOwner returns (bool){
         require(_butterCore.code.length > 0, '_butterCore must be contract');
         butterCore = _butterCore;
+        emit SetButterCore(_butterCore);
         return true;
     }
 

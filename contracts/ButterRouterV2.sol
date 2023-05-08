@@ -261,7 +261,7 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
         _dstToken = _swap.dstToken;
         bool isNative = Helper._isNative(_srcToken);
         if (!isNative) {
-            IERC20(_srcToken).safeApprove(_swap.approveTo, _amount);
+            IERC20(_srcToken).safeIncreaseAllowance(_swap.approveTo, _amount);
         }
          _returnAmount = Helper._getBalance(_dstToken, address(this));
 
@@ -270,7 +270,7 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
 
         _returnAmount = Helper._getBalance(_dstToken, address(this)) - _returnAmount;
         
-        if (!(_result || isNative )) {
+        if (!isNative ) {
             IERC20(_srcToken).safeApprove(_swap.approveTo,0);
         }
     }
@@ -283,7 +283,7 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
         if (Helper._isNative(_token)) {
             (_result, )  = _callParam.target.call{value: _callParam.amount}(_callParam.data);
         } else {
-            IERC20(_token).safeApprove(_callParam.approveTo, _callParam.amount);
+            IERC20(_token).safeIncreaseAllowance(_callParam.approveTo, _callParam.amount);
             (_result, )  = _callParam.target.call(_callParam.data);
             IERC20(_token).safeApprove(_callParam.approveTo,0);
         }
