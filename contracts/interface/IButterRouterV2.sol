@@ -28,6 +28,7 @@ interface IButterRouterV2 {
         address target;
         address approveTo; 
         uint256 amount;
+        uint256 extraNativeAmount;
         address receiver;
         bytes data;
     }
