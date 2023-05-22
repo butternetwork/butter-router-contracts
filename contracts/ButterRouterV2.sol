@@ -19,8 +19,6 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
 
     address private immutable wToken;
 
-    uint256 private banlaceBeforeExec;
-
     address public mosAddress;
 
     address public dexExecutor;
@@ -32,11 +30,6 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
     uint256 public fixedFee;
 
     mapping(address => bool) public approved;
-
-    modifier snapshootBalance(){
-        banlaceBeforeExec = address(this).balance - msg.value;
-        _;
-    }
 
     modifier transferIn(address token,uint256 amount,bytes memory permitData) {
         require(amount > 0,ErrorMessage.ZERO_IN);
@@ -119,7 +112,6 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
     payable
     override
     nonReentrant
-    snapshootBalance
     transferIn(_srcToken, _amount, _permitData)
     {
         bool result;
@@ -128,7 +120,7 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
         swapTemp.srcAmount = _amount;
         swapTemp.swapToken = _srcToken;
         swapTemp.swapAmount = _amount;
-
+        uint256 _nativeBalanceBeforeExec = address(this).balance - msg.value;
         require (_swapData.length + _callbackData.length > 0, ErrorMessage.DATA_EMPTY);
         (, swapTemp.swapAmount) = _collectFee(swapTemp.srcToken, swapTemp.srcAmount,_feeType);
 
@@ -146,7 +138,7 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
         if(_callbackData.length > 0){
             (CallbackParam memory callParam) = abi.decode(_callbackData, (CallbackParam));
             require(swapTemp.swapAmount >= callParam.amount, ErrorMessage.CALL_AMOUNT_INVALID);
-            (result, swapTemp.callAmount) = _callBack(swapTemp.swapToken, callParam);
+            (result, swapTemp.callAmount) = _callBack(swapTemp.swapToken, callParam,_nativeBalanceBeforeExec);
             require(result,ErrorMessage.CALL_FAIL);
             swapTemp.receiver = callParam.receiver;
             swapTemp.target = callParam.target;
@@ -164,7 +156,6 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
     payable
     override
     nonReentrant
-    snapshootBalance
     {
         bool result;
         SwapTemp memory swapTemp;
@@ -175,7 +166,7 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
         swapTemp.fromChain = _fromChain;
         swapTemp.toChain = block.chainid;
         swapTemp.from = _from;
-
+        uint256 _nativeBalanceBeforeExec = address(this).balance - msg.value;
         require (msg.sender == mosAddress, ErrorMessage.MOS_ONLY);
         require (Helper._getBalance(swapTemp.srcToken, address(this)) >= _amount, ErrorMessage.RECEIVE_LOW);
 
@@ -210,7 +201,7 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
 
         CallbackParam memory callParam = abi.decode(_callbackData, (CallbackParam));
         if (swapTemp.swapAmount >= callParam.amount) {
-            (result, swapTemp.callAmount) = _callBack(swapTemp.swapToken, callParam);
+            (result, swapTemp.callAmount) = _callBack(swapTemp.swapToken, callParam,_nativeBalanceBeforeExec);
         }
         // refund
         if (swapTemp.swapAmount > swapTemp.callAmount) {
@@ -279,16 +270,16 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
         }
     }
 
-    function _callBack(address _token, CallbackParam memory _callParam) internal returns (bool _result, uint256 _callAmount) {
+    function _callBack(address _token, CallbackParam memory _callParam,uint256 _nativeBalanceBeforeExec) internal returns (bool _result, uint256 _callAmount) {
         require(approved[_callParam.target], ErrorMessage.NO_APPROVE);
 
         _callAmount = Helper._getBalance(_token, address(this));
 
         if (Helper._isNative(_token)) {
             (_result, )  = _callParam.target.call{value: _callParam.amount}(_callParam.data);
-        } else {
+        } else {          
             //if native value not enough return
-            if(address(this).balance < (banlaceBeforeExec + _callParam.extraNativeAmount)){
+            if(address(this).balance < (_nativeBalanceBeforeExec + _callParam.extraNativeAmount)){
                 return(false,0);
             }
             IERC20(_token).safeIncreaseAllowance(_callParam.approveTo, _callParam.amount);
