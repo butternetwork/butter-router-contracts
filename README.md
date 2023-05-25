@@ -168,10 +168,10 @@ setV2Mos
 npx hardhat setV2Mos --router <router address> --mos  <mos address> --network <network>
 ```
 
-v2 setAuthorization  (approve flag true  Indicates that it can be called to swap)
+v2 setAuthorization  (approve flag true  Indicates that it can be called to swap)  multi excutors separation by ',' like 0xd73bF6a58481715B5A3B72E9ca214A44C7Ba4533,0xd73bF6a58481715B5A3B72E9ca214A44C7Ba4533
 
 ```
-npx hardhat setAuthorization --router <router address> --executor <excutor address> --flag <flag> --network <network>
+npx hardhat setAuthorization --router <router address> --executor <excutors address array> --flag <flag> --network <network>
 ```
 
 v2 setFee  feeRate   the denominator is 1000000  fixedfee is in wei
@@ -183,5 +183,11 @@ npx hardhat setFee --router <router address> --feereceiver <feeReceiver address>
 set core
 
 ```
-npx hardhat setCore --router <router address> --core  <core address >--network <network>
+npx hardhat setCore --router <router address> --core  <core address > --network <network>
+```
+
+deployAndSetUp  before run this task setUp /task/config.js
+
+```shell
+npx hardhat deployAndSetUp  --network <network>
 ```

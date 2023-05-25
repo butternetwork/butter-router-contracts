@@ -359,10 +359,13 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
 
 
 
-    function setAuthorization(address _excutor, bool _flag) external onlyOwner {
-        require(_excutor.isContract(), ErrorMessage.NOT_CONTRACT);
-        approved[_excutor] = _flag;
-        emit Approve(_excutor,_flag);
+    function setAuthorization(address[] calldata _excutors, bool _flag) external onlyOwner {
+        require(_excutors.length > 0,ErrorMessage.DATA_EMPTY);
+        for (uint i = 0; i < _excutors.length; i++) {
+            require(_excutors[i].isContract(), ErrorMessage.NOT_CONTRACT);
+            approved[_excutors[i]] = _flag;
+            emit Approve(_excutors[i],_flag);
+        }
     }
 
     function rescueFunds(address _token, uint256 _amount) external onlyOwner {

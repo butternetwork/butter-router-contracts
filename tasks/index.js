@@ -1,4 +1,5 @@
 let { task } = require("hardhat/config");
+let {getConfig} = require("./config")
 
 task("deployRouter",
     "deploy butter router contract"
@@ -228,7 +229,7 @@ task("setAuthorization",
     "setAuthorization"
 )
     .addParam("router", "router address")
-    .addParam("executor", "executor address")
+    .addParam("executors", "executors address array")
     .addOptionalParam("flag", "flag, default: true", true, types.boolean)
     .setAction(async (taskArgs, hre) => {
         const { deployments, getNamedAccounts, ethers } = hre;
@@ -237,14 +238,21 @@ task("setAuthorization",
 
         console.log("deployer :", deployer);
 
+        let executors = taskArgs.executors.split(',');
+
+        if(executors.length < 1){
+            console.log("executors is empty ...");
+            return;
+        }
+
         let Router = await ethers.getContractFactory("ButterRouterV2");
 
         let router = Router.attach(taskArgs.router);
 
-        let result = await (await router.setAuthorization(taskArgs.executor, taskArgs.flag)).wait();
+        let result = await (await router.setAuthorization(executors, taskArgs.flag)).wait();
 
         if (result.status == 1) {
-            console.log(`Router ${router.address} setAuthorization ${taskArgs.executor} succeed`);
+            console.log(`Router ${router.address} setAuthorization ${executors} succeed`);
         } else {
             console.log('setAuthorization failed');
         }
@@ -274,5 +282,101 @@ task("setFee",
             console.log(`Router ${router.address} setFee rate(${taskArgs.feerate}), fixed(${taskArgs.fixedfee}), receiver(${taskArgs.feereceiver}) succeed`);
         } else {
             console.log('setFee failed');
+        }
+    })
+
+
+    task("deployAndSetUp",
+    "deployAndSetUp"
+         )
+    .setAction(async (taskArgs, hre) => {
+        const { deployments, getNamedAccounts, ethers,network} = hre;
+        const { deploy } = deployments;
+        const { deployer } = await getNamedAccounts();
+        console.log("deployer :", deployer);
+        let config = getConfig(network.name);
+        if(config){
+
+            console.log("<------------------------ deployAndSetUp begin ---------------------------->")
+
+            let [wallet] = await ethers.getSigners();
+            let IDeployFactory_abi = [
+                "function deploy(bytes32 salt, bytes memory creationCode, uint256 value) external",
+                "function getAddress(bytes32 salt) external view returns (address)"
+            ]
+            let factory_addr = process.env.DEPLOY_FACTORY;
+            let factory = await ethers.getContractAt(IDeployFactory_abi, factory_addr, wallet);
+            let salt = process.env.DEPLOY_SALT;
+            let salt_hash = await ethers.utils.keccak256(await ethers.utils.toUtf8Bytes(salt));
+            console.log("factory :", factory.address);
+            console.log("salt:", salt);
+            let router_addr = await factory.getAddress(salt_hash);
+            let code = await ethers.provider.getCode(router_addr);
+
+            if(code !== '0x'){
+                console.log("already deployed router address is :", router_addr);
+                return;
+            }
+
+
+            //1 - deploy router v2
+            let ButterRouterV2 = await ethers.getContractFactory("ButterRouterV2");
+            let param = ethers.utils.defaultAbiCoder.encode(['address', 'address', 'address'], [config.mos, deployer, config.wToken])
+            let create_code = ethers.utils.solidityPack(['bytes', 'bytes'], [ButterRouterV2.bytecode, param]);
+            let create = await (await factory.deploy(salt_hash, create_code, 0)).wait();
+            if (create.status == 1) {
+                console.log("router v2 deployed to :", router_addr);
+            } else {
+                console.log("router v2 deploy fail");
+                return;
+            }
+
+
+            //2 - deploy DexExecutor
+            let DexExecutor = await ethers.getContractFactory("DexExecutor");
+            let executor_salt_hash = await ethers.utils.keccak256(await ethers.utils.toUtf8Bytes(salt_hash));
+            let executor_create_code = DexExecutor.bytecode;
+            let executor_create = await (await factory.deploy(executor_salt_hash, executor_create_code, 0)).wait();
+            let executor_addr = await factory.getAddress(executor_salt_hash);
+            if (executor_create.status == 1) {
+                console.log("dexExecutor v2 deployed to :", executor_addr);
+            } else {
+                console.log("dexExecutor deploy fail");
+                return;
+            }
+
+
+            //3 - setDexExecutor 
+            let router = ButterRouterV2.attach(router_addr);
+            let result = await (await router.setDexExecutor(executor_addr)).wait();
+
+            if(result.status == 1){
+                console.log('setDexExecutor succeed');
+                console.log("new executor address is:", await router.dexExecutor());
+            }else{
+                console.log('setDexExecutor fail');
+            }
+
+
+            //4 - setFee
+            result = await (await router.setFee(config.fee.receiver, config.fee.feeRate, config.fee.fixedFee)).wait();
+            if (result.status == 1) {
+                console.log(`Router ${router.address} setFee rate(${config.fee.feeRate}), fixed(${config.fee.fixedFee}), receiver(${config.fee.receiver}) succeed`);
+            } else {
+                console.log('setFee failed');
+            }
+
+
+            //5 - setAuthorization
+            result = await (await router.setAuthorization(config.excutors,true)).wait();
+            if (result.status == 1) {
+                console.log(`Router ${router.address} setAuthorization ${config.excutors} succeed`);
+            } else {
+                console.log('setAuthorization failed');
+            }
+
+           console.log("<----------------------------- deployAndSetUp ... done ----------------------->");
+        } else {
+            console.log("config not set ...");
         }
     })
