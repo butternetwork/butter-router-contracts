@@ -125,7 +125,7 @@ module.exports = {
       chainId : 1284,
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
-    moonriver: {
+    Moonriver: {
       url: `https://rpc.api.moonriver.moonbeam.network`,
       chainId : 1285,
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
