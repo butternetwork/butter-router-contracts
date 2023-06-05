@@ -115,4 +115,6 @@ interface IButterRouterV2 {
         external
         view
         returns (address _feeReceiver,address _feeToken,uint256 _fee,uint256 _feeAfter);
+
+      function getInputBeforeFee(uint256 _amountAfterFee,address _token,FeeType _feeType) external view  returns(uint256 _input,address _feeReceiver,address _feeToken,uint256 _fee);
 }
