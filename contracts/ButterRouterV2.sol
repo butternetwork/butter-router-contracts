@@ -332,6 +332,26 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
         _feeReceiver = feeReceiver;
     }
 
+    function getInputBeforeFee(uint256 _amountAfterFee,address _token,FeeType _feeType) external view override returns(uint256 _input,address _feeReceiver,address _feeToken,uint256 _fee){
+        if(feeReceiver == Helper.ZERO_ADDRESS) {
+            return(_amountAfterFee,Helper.ZERO_ADDRESS, Helper.ZERO_ADDRESS, 0);
+        }
+       if(_feeType == FeeType.FIXED){
+            _feeToken = Helper.ZERO_ADDRESS;
+            _fee = fixedFee;
+            if(!Helper._isNative(_token)){
+               _input = _amountAfterFee;
+            } else {
+                _input = _amountAfterFee + _fee;
+            }
+        } else {
+            _feeToken = _token;
+            _input = _amountAfterFee * FEE_DENOMINATOR / (FEE_DENOMINATOR - feeRate) + 1;
+            _fee = _input - _amountAfterFee;
+        }
+        _feeReceiver = feeReceiver;
+    }
+
     function setMosAddress(
         address _mosAddress
     ) public onlyOwner returns (bool) {
