@@ -4,13 +4,17 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "./interface/IExecutor.sol";
 import "./lib/Helper.sol";
 
-contract DexExecutor is IExecutor {
+library DexExecutor {
     using SafeERC20 for IERC20;
 
-    constructor(){}
+    enum DexType {
+        AGG,
+        UNIV2,
+        UNIV3,
+        CURVE
+    }
 
     function execute(
         uint8 _dexType,
@@ -19,40 +23,18 @@ contract DexExecutor is IExecutor {
         address _dstToken,
         uint256 _amount,
         bytes memory _swap
-    ) external payable {
+    ) internal {
         bool _result;
         bool _isNative = Helper._isNative(_srcToken);
         DexType dexType = DexType(_dexType);
         if (dexType == DexType.AGG) {
-            (_result) = _makeAggSwap(
-                _router,
-                _amount,
-                _isNative,
-                _swap
-            );
+            (_result) = _makeAggSwap(_router,_amount,_isNative,_swap);
         } else if (dexType == DexType.UNIV2) {
-            (_result) = _makeUniV2Swap(
-                _router,
-                _dstToken,
-                _amount,
-                _isNative,
-                _swap
-            );
+            (_result) = _makeUniV2Swap(_router,_dstToken,_amount,_isNative,_swap);
         } else if (dexType == DexType.UNIV3) {
-            (_result) = _makeUniV3Swap(
-                _router,
-                _dstToken,
-                _amount,
-                _isNative,
-                _swap
-            );
+            (_result) = _makeUniV3Swap(_router,_dstToken,_amount,_isNative,_swap);
         } else if (dexType == DexType.CURVE) {
-            (_result) = _makeCurveSwap(
-                _router,
-                _amount,
-                _isNative,
-                _swap
-            );
+            (_result) = _makeCurveSwap(_router,_amount,_isNative,_swap);
         } else {
            require(false,"unsupport dex type");
         }
