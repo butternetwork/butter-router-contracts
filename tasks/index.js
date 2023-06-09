@@ -124,8 +124,8 @@ task("deployRouterV2",
 
     })
 
-task("deployDexExecutor",
-    "deploy DexExecutor"
+task("deployAggregationAdapter",
+    "deploy AggregationAdapter"
 )
     .setAction(async (taskArgs, hre) => {
         const { deployments, getNamedAccounts, ethers } = hre;
@@ -148,12 +148,13 @@ task("deployDexExecutor",
         let addr = await factory.getAddress(salt_hash);
         let code = await ethers.provider.getCode(addr);
         if (code === '0x') {
-            let DexExecutor = await ethers.getContractFactory("DexExecutor");
-            let create_code = DexExecutor.bytecode;
+            let AggregationAdapter = await ethers.getContractFactory("AggregationAdapter");
+            let param = ethers.utils.defaultAbiCoder.encode(['address'], [wallet.address])
+            let create_code = ethers.utils.solidityPack(['bytes', 'bytes'], [AggregationAdapter.bytecode, param]);
             let create = await (await factory.deploy(salt_hash, create_code, 0)).wait();
 
             if (create.status == 1) {
-                console.log("DexExecutor deployed to :", addr);
+                console.log("AggregationAdapter deployed to :", addr);
             } else {
                 console.log("deploy fail");
             }
@@ -196,33 +197,6 @@ task("setV2Mos",
             console.log('create failed');
         }
     })
-
-task("setDexExecutor",
-    "set DexExecutor"
-)
-    .addParam("router", "router address")
-    .addParam("executor", "executor address")
-    .setAction(async (taskArgs, hre) => {
-        const { deployments, getNamedAccounts, ethers } = hre;
-        const { deploy } = deployments;
-        const { deployer } = await getNamedAccounts();
-
-        console.log("deployer :", deployer);
-
-        let Router = await ethers.getContractFactory("ButterRouterV2");
-
-        let router = Router.attach(taskArgs.router);
-
-        let result = await (await router.setDexExecutor(taskArgs.executor)).wait();
-
-        if (result.status == 1) {
-            console.log('setDexExecutor succeed');
-            console.log("new executor address is:", await router.dexExecutor());
-        } else {
-            console.log('create failed');
-        }
-    })
-
 
 
 task("setAuthorization",
@@ -332,33 +306,23 @@ task("setFee",
             }
 
 
-            //2 - deploy DexExecutor
-            let DexExecutor = await ethers.getContractFactory("DexExecutor");
+            //2 - deploy AggregationAdapter
+            let AggregationAdapter = await ethers.getContractFactory("AggregationAdapter");
             let executor_salt_hash = await ethers.utils.keccak256(await ethers.utils.toUtf8Bytes(salt_hash));
-            let executor_create_code = DexExecutor.bytecode;
+            param = ethers.utils.defaultAbiCoder.encode(['address'], [wallet.address])
+            let executor_create_code = ethers.utils.solidityPack(['bytes', 'bytes'], [AggregationAdapter.bytecode, param]);;
             let executor_create = await (await factory.deploy(executor_salt_hash, executor_create_code, 0)).wait();
             let executor_addr = await factory.getAddress(executor_salt_hash);
             if (executor_create.status == 1) {
-                console.log("dexExecutor v2 deployed to :", executor_addr);
+                console.log("AggregationAdapter deployed to :", executor_addr);
             } else {
-                console.log("dexExecutor deploy fail");
+                console.log("AggregationAdapter deploy fail");
                 return;
             }
 
 
-            //3 - setDexExecutor 
+            //3 - setFee
             let router = ButterRouterV2.attach(router_addr);
-            let result = await (await router.setDexExecutor(executor_addr)).wait();
-
-            if(result.status == 1){
-                console.log('setDexExecutor succeed');
-                console.log("new executor address is:", await router.dexExecutor());
-            }else{
-                console.log('setDexExecutor fail');
-            }
-
-
-            //4 - setFee
             result = await (await router.setFee(config.fee.receiver, config.fee.feeRate, config.fee.fixedFee)).wait();
             if (result.status == 1) {
                 console.log(`Router ${router.address} setFee rate(${config.fee.feeRate}), fixed(${config.fee.fixedFee}), receiver(${config.fee.receiver}) succeed`);
@@ -366,8 +330,8 @@ task("setFee",
                 console.log('setFee failed');
             }
 
-
-            //5 - setAuthorization
+            //4 - setAuthorization
+            config.excutors.push(executor_addr)
             result = await (await router.setAuthorization(config.excutors,true)).wait();
             if (result.status == 1) {
                 console.log(`Router ${router.address} setAuthorization ${config.excutors} succeed`);
@@ -380,3 +344,75 @@ task("setFee",
             console.log("config not set ...");
         }
     })
+
+
+    async function deployReceiver(router,dexExecutor,salt) {
+        let [wallet] = await ethers.getSigners();
+        let IDeployFactory_abi = [
+            "function deploy(bytes32 salt, bytes memory creationCode, uint256 value) external",
+            "function getAddress(bytes32 salt) external view returns (address)"
+        ]
+        let factory_addr = process.env.DEPLOY_FACTORY;
+        let factory = await ethers.getContractAt(IDeployFactory_abi, factory_addr, wallet);
+        salt = await ethers.utils.keccak256(await ethers.utils.toUtf8Bytes(salt));
+        let receiver_addr = await factory.getAddress(salt);
+        let code = await ethers.provider.getCode(receiver_addr);
+
+        if(code !== '0x'){
+            console.log("already deployed receiver address is :", receiver_addr);
+            return;
+        }
+
+        let Receiver = await ethers.getContractFactory("Receiver");
+        let param = ethers.utils.defaultAbiCoder.encode(['address', 'address'], [router, dexExecutor])
+        let create_code = ethers.utils.solidityPack(['bytes', 'bytes'], [Receiver.bytecode, param]);
+        let create = await (await factory.deploy(salt_hash, create_code, 0)).wait();
+        if (create.status == 1) {
+            console.log("Receiver deployed to :", receiver_addr);
+            receiver = Receiver.attach(receiver_addr);
+
+            let amarokRouter = "";
+            if(amarokRouter && amarokRouter != "" && amarokRouter != ethers.constants.AddressZero){
+                let result = await (await receiver.setAmarokRouter(amarokRouter)).wait();
+                if(result.status == 1) {
+                    console.log("receiver seted amarok router :", amarokRouter);
+                } else {
+                    console.log("receiver set amarok router fail");
+                }
+            }
+
+            let sgRouter = "";
+            if(sgRouter && sgRouter != "" && sgRouter != ethers.constants.AddressZero){
+                result = await (await receiver.setStargateRouter(sgRouter)).wait();
+                if(result.status == 1) {
+                    console.log("receiver seted Stargate router :", sgRouter);
+                } else {
+                    console.log("receiver set Stargate router fail");
+                }
+            }
+
+            let cBridgeMessageBus = "";
+            if(cBridgeMessageBus && cBridgeMessageBus != "" && cBridgeMessageBus != ethers.constants.AddressZero){
+                result = await (await receiver.setCBridgeMessageBus(cBridgeMessageBus)).wait();
+                if(result.status == 1) {
+                    console.log("receiver seted CBridgeMessageBus :", cBridgeMessageBus);
+                } else {
+                    console.log("receiver set CBridgeMessageBus fail");
+                }
+            }
+
+            let recoverGas = 0;
+            if(recoverGas > 0) {
+                result = await (await receiver.setRecoverGas(recoverGas)).wait();
+                if(result.status == 1) {
+                    console.log("receiver seted RecoverGas :", recoverGas);
+                } else {
+                    console.log("receiver set RecoverGas fail");
+                }
+            }
+
+        } else {
+            console.log("Receiver deploy fail");
+            return;
+        }
+    }

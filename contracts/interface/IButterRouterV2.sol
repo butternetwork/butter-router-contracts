@@ -50,6 +50,7 @@ interface IButterRouterV2 {
         address indexed from,
         address indexed receiver,
         address indexed target,
+        bytes32 transferId,
         address originToken,
         address swapToken,
         uint256 originAmount,
@@ -76,6 +77,7 @@ interface IButterRouterV2 {
     // 1. swap: _swapData.length > 0 and _bridgeData.length == 0
     // 2. swap and call: _swapData.length > 0 and _callbackData.length > 0
     function swapAndCall(
+        bytes32 _transferId,
         address _srcToken,
         uint256 _amount,
         FeeType _feeType,
