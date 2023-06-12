@@ -43,16 +43,16 @@ contract AggregationAdapter is Ownable2Step,ReentrancyGuard {
         require(params.swaps.length > 0, "empty swap data");
         (uint256 amount, uint256 initInputTokenBalance) = _depositToken( params.srcToken);
         uint256 finalTokenAmount = Helper._getBalance( params.dstToken,address(this));
-        (uint256 amountAdjust, uint256 firstAdjust) = _reBuildSwaps(amount,params.swaps);
+        (uint256 amountAdjust, uint256 firstAdjust,bool isUp) = _reBuildSwaps(amount,params.swaps);
         bool isFirst = true;
         SwapData[] memory _swaps = params.swaps;
         for (uint256 i = 0; i < _swaps.length; i++) {
             if (_swaps[i].dexType > 0 && amountAdjust > 0) {
                 if (isFirst) {
-                    _swaps[i].fromAmount -= firstAdjust;
+                    isUp ? _swaps[i].fromAmount += firstAdjust : _swaps[i].fromAmount -= firstAdjust;
                     isFirst = false;
                 } else {
-                    _swaps[i].fromAmount -= amountAdjust;
+                    isUp ? _swaps[i].fromAmount += amountAdjust : _swaps[i].fromAmount -= amountAdjust;
                 }
             }
             bool isNative = Helper._isNative(params.srcToken);
@@ -105,7 +105,7 @@ contract AggregationAdapter is Ownable2Step,ReentrancyGuard {
     function _reBuildSwaps(
         uint256 _amount,
         SwapData[] memory _swaps
-    ) private pure returns (uint256 amountAdjust, uint256 firstAdjust) {
+    ) private pure returns (uint256 amountAdjust, uint256 firstAdjust,bool isUp) {
         uint256 total = 0;
         uint256 count = 0;
         for (uint256 i = 0; i < _swaps.length; i++) {
@@ -114,11 +114,19 @@ contract AggregationAdapter is Ownable2Step,ReentrancyGuard {
                 count++;
             }
         }
-        if (total > _amount) {
+        if (total > _amount) {  
             require(count > 0,"cannt adjust");
+            isUp = false;
             uint256 margin = total - _amount;
             amountAdjust = margin / count;
             firstAdjust = amountAdjust + (margin - amountAdjust * count);
+        } else if(total < _amount){
+            if(count > 0) {
+              isUp = true;
+              uint256 margin =  _amount - total;
+              amountAdjust = margin / count;
+              firstAdjust = amountAdjust + (margin - amountAdjust * count);
+            }
         }
     }
 
