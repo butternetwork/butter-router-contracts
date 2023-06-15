@@ -37,7 +37,7 @@ let config = new Map(
         }],
         
         ["Bsc",{
-            wToken:"0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7",
+            wToken:"0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
             mos:"0x630105189c7114667a7179Aa57f07647a5f42B7F",
             fee:{
             receiver:"",
@@ -45,6 +45,8 @@ let config = new Map(
             fixedFee:"100000000"
                 },
             excutors:[
+                "0x4a364f8c717cAAD9A442737Eb7b8A55cc6cf18D8",//stargate
+                "0x3335733c454805df6a77f825f266e136fb4a3333",//rubic
                 "0x1111111254eeb25477b68fb85ed929f73a960582",//1inch
                 "0x10ED43C718714eb63d5aA57B78B54704E256024E",//pancake
                 "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",//sushi 
@@ -60,6 +62,8 @@ let config = new Map(
             fixedFee:"100000000"
                 },
             excutors:[
+                "0x45A01E4e04F14f7A4a6702c74187c5F6222033cd",//stargate
+                "0x3335733c454805df6a77f825f266e136fb4a3333",//rubic
                 "0xAaaCfe8F51B8baA4286ea97ddF145e946d5e7f46",//algebra	
                 "0x1111111254eeb25477b68fb85ed929f73a960582",//1inch
                 "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff",//quick 
@@ -407,7 +411,7 @@ let config = new Map(
 
         ["BscTest",{
             wToken:"0xae13d989dac2f0debff460ac112a837c89baa7cd",
-            mos:"0x6858B990A504D7Fc41D0BBB5178c4675518BDA27",
+            mos:"0x3C12F82ea96c855944efe9f3aC4ce18449Aa634B",
             fee:{
             receiver:"0xCBdb1Da4f99276b0c427776BDE93838Bc19386Cc",
             feeRate:"3000",//denominator is 1000000
@@ -415,13 +419,14 @@ let config = new Map(
                 },
             excutors:[
                 "0xD99D1c33F9fC3444f8101754aBC46c52416550D1",	
-                "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506"
+                "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",
+                "0x6710b000cc6728e068C095B66535E1A8b552e816"
             ]
         }],
 
         ["Makalu",{
             wToken:"0x2eD27dF9B4c903aB53666CcA59AFB431F7D15e91",
-            mos:"0xb4fCfdD492202c91A7eBaf887642F437a07A2664",
+            mos:"0x3D8da6f43e35E05162d874BdaF93f61995A34D81",
             fee:{
             receiver:"0xCBdb1Da4f99276b0c427776BDE93838Bc19386Cc",
             feeRate:"3000",//denominator is 1000000
@@ -434,7 +439,7 @@ let config = new Map(
 
         ["Goerli",{
             wToken:"0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6",
-            mos:"0x2e2D0FBF6c69B21a56d49ca3A31fEB8Df923f2FB",
+            mos:"0xe03573615eF3bff296C09A93DCD4409981f82540",
             fee:{
             receiver:"0xCBdb1Da4f99276b0c427776BDE93838Bc19386Cc",
             feeRate:"3000",//denominator is 1000000
@@ -443,13 +448,14 @@ let config = new Map(
             excutors:[
                 "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
                 "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",
-                "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45"
+                "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45",
+                "0xa064aa3f10de46cb114e543a9f8d90770cfb0d7c"
             ]
         }],
 
         ["MaticTest",{
             wToken:"0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889",
-            mos:"0x6858B990A504D7Fc41D0BBB5178c4675518BDA27",
+            mos:"0x71f38FE43031397C102F10fb857a6D432af10642",
             fee:{
             receiver:"0xCBdb1Da4f99276b0c427776BDE93838Bc19386Cc",
             feeRate:"3000",//denominator is 1000000
@@ -458,7 +464,8 @@ let config = new Map(
             excutors:[
                 "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff",
                 "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",
-                "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45"
+                "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45",
+                "0x15e6c86a9ac9a32f91125794fda82eeb807ed818"
             ]
         }],
         
