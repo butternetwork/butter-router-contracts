@@ -6,7 +6,9 @@ ButterRouter.sol is  the old version of the main contract.
 
 ButterRouterV2.sol  is new version contract.
 
-DexExecutor.sol  is the swap tool contract of the new version contract ,called by ButterRouterV2 use delegatecall to complete swap.
+AggregationAdapter.sol  is the swap aggregation adapter contract of the new version contract ,called by ButterRouterV2  to complete swap.
+
+Receiver.sol is impls for bridges. called by bridges to complete swap or others on target chain.
 
 ## Main interfaces explanation(v2)
 
@@ -16,6 +18,7 @@ DexExecutor.sol  is the swap tool contract of the new version contract ,called b
     // 1. swap: _swapData.length > 0 and _bridgeData.length == 0
     // 2. swap and call: _swapData.length > 0 and _callbackData.length > 0
     function swapAndCall(
+        bytes32 _transferId,
         address _srcToken,
         uint256 _amount,
         FeeType _feeType,
@@ -76,7 +79,9 @@ PRIVATE_KEY=
 ALCHEMY_KEY = 
 DEPLOY_FACTORY = 0x6258e4d2950757A749a4d4683A7342261ce12471;
 //bytes32 deploy ButterRouterV2 salt
-DEPLOY_SALT = 
+ROUTER_DEPLOY_SALT = 
+AGG_DEPLOY_SALT = 
+RECEIVER_DEPLOY_SALT = 
 ```
 
 ### Compiling contracts
@@ -132,13 +137,31 @@ Compiled 6 Solidity files successfully
 
 The deploy script is located in deploy folder . We can run the following command to deploy.
 
+#### v1
+
 deploy
 
 ```
 npx hardhat deployRouter --mos <mos address> --core <core address> --network <network>
 ```
 
-deploy v2
+set core
+
+```
+npx hardhat setCore --router <router address> --core  <core address > --network <network>
+```
+
+set mos
+
+```
+npx hardhat setMos --router <router address> --mos  <mos address> --network <network>
+```
+
+---
+
+#### v2
+
+deploy router
 
 ```
 npx hardhat deployRouterV2 --mos <mos address>  --wtoken <wtoken address> --network <network>
@@ -153,35 +176,53 @@ npx hardhat deployAggregationAdapter --network <network>
 set mos
 
 ```
-npx hardhat setMos --router <router address> --mos  <mos address> --network <network>
-```
-
-setV2Mos
-
-```
 npx hardhat setV2Mos --router <router address> --mos  <mos address> --network <network>
 ```
 
-v2 setAuthorization  (approve flag true  Indicates that it can be called to swap)  multi excutors separation by ',' like 0xd73bF6a58481715B5A3B72E9ca214A44C7Ba4533,0xd73bF6a58481715B5A3B72E9ca214A44C7Ba4533
+set authorization  (approve flag true  Indicates that it can be called to swap)  multi excutors separation by ',' like 0xd73bF6a58481715B5A3B72E9ca214A44C7Ba4533,0xd73bF6a58481715B5A3B72E9ca214A44C7Ba4533
 
 ```
 npx hardhat setAuthorization --router <router address> --executor <excutors address array> --flag <flag> --network <network>
 ```
 
-v2 setFee  feeRate   the denominator is 1000000  fixedfee is in wei
+ setFee  (feeRate - the denominator is 1000000  fixedfee is in wei)
 
 ```
 npx hardhat setFee --router <router address> --feereceiver <feeReceiver address> --feerate <feeRate> --fixedfee <fixedFee> --network <network>
 ```
 
-set core
-
-```
-npx hardhat setCore --router <router address> --core  <core address > --network <network>
-```
-
 deployAndSetUp  before run this task setUp /task/config.js
 
-```shell
+```
 npx hardhat deployAndSetUp  --network <network>
+```
+
+deployReceiver
+
+```shell
+npx hardhat deployReceiver --router <butter router address> --network <network>
+```
+
+setStargateRouter
+
+```shell
+npx hardhat setStargateRouter --receiver <receiver address> --stargate <stargate router address> --network <network>
+```
+
+setAmarokRouter
+
+```shell
+npx hardhat setAmarokRouter --receiver <receiver address> --amarok <amarok router address> --network <network>
+```
+
+setCBridgeMessageBus
+
+```shell
+npx hardhat setCBridgeMessageBus --receiver <receiver address> --cbridge <cbridge messageBus address> --network <network>
+```
+
+setButter
+
+```shell
+npx hardhat setButter --receiver <receiver address> --butter <butter router address> --network <network>
 ```
