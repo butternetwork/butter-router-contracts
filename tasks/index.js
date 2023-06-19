@@ -91,7 +91,7 @@ task("deployRouterV2",
         ]
         let factory_addr = process.env.DEPLOY_FACTORY;
         let factory = await ethers.getContractAt(IDeployFactory_abi, factory_addr, wallet);
-        let salt = process.env.DEPLOY_SALT;
+        let salt = process.env.ROUTER_DEPLOY_SALT;
         let salt_hash = await ethers.utils.keccak256(await ethers.utils.toUtf8Bytes(salt));
 
         console.log("factory :", factory.address);
@@ -139,7 +139,8 @@ task("deployAggregationAdapter",
         ]
         let factory_addr = process.env.DEPLOY_FACTORY;
         let factory = await ethers.getContractAt(IDeployFactory_abi, factory_addr, wallet);
-        let salt = process.env.DEPLOY_SALT;
+        let salt = process.env.AGG_DEPLOY_SALT;
+        salt = ethers.utils.keccak256(await ethers.utils.toUtf8Bytes(salt));
         let salt_hash = await ethers.utils.keccak256(await ethers.utils.toUtf8Bytes(salt));
 
         console.log("factory :", factory.address);
@@ -280,10 +281,10 @@ task("setFee",
             ]
             let factory_addr = process.env.DEPLOY_FACTORY;
             let factory = await ethers.getContractAt(IDeployFactory_abi, factory_addr, wallet);
-            let salt = process.env.DEPLOY_SALT;
+            let salt = process.env.ROUTER_DEPLOY_SALT;
             let salt_hash = await ethers.utils.keccak256(await ethers.utils.toUtf8Bytes(salt));
             console.log("factory :", factory.address);
-            console.log("salt:", salt);
+            console.log("router salt:", salt);
             let router_addr = await factory.getAddress(salt_hash);
             let code = await ethers.provider.getCode(router_addr);
 
@@ -308,7 +309,8 @@ task("setFee",
 
             //2 - deploy AggregationAdapter
             let AggregationAdapter = await ethers.getContractFactory("AggregationAdapter");
-            let executor_salt_hash = await ethers.utils.keccak256(await ethers.utils.toUtf8Bytes(salt_hash));
+            console.log("agg salt:", process.env.AGG_DEPLOY_SALT);
+            let executor_salt_hash = await ethers.utils.keccak256(await ethers.utils.toUtf8Bytes(process.env.AGG_DEPLOY_SALT));
             param = ethers.utils.defaultAbiCoder.encode(['address'], [wallet.address])
             let executor_create_code = ethers.utils.solidityPack(['bytes', 'bytes'], [AggregationAdapter.bytecode, param]);;
             let executor_create = await (await factory.deploy(executor_salt_hash, executor_create_code, 0)).wait();
@@ -345,8 +347,18 @@ task("setFee",
         }
     })
 
-
-    async function deployReceiver(router,dexExecutor,salt) {
+    // <--------------------------------------------------receiver------------------------------------------------------------->
+   
+   
+    task("deployReceiver",
+    "deployReceiver"
+         )
+    .addParam("router", "router address")
+    .setAction(async (taskArgs, hre) => {
+        const { deployments, getNamedAccounts, ethers,network} = hre;
+        const { deploy } = deployments;
+        const { deployer } = await getNamedAccounts();
+        console.log("deployer :", deployer);
         let [wallet] = await ethers.getSigners();
         let IDeployFactory_abi = [
             "function deploy(bytes32 salt, bytes memory creationCode, uint256 value) external",
@@ -354,7 +366,9 @@ task("setFee",
         ]
         let factory_addr = process.env.DEPLOY_FACTORY;
         let factory = await ethers.getContractAt(IDeployFactory_abi, factory_addr, wallet);
-        salt = await ethers.utils.keccak256(await ethers.utils.toUtf8Bytes(salt));
+        let salt = process.env.RECEIVER_DEPLOY_SALT;
+        console.log("receiver salt:", salt);
+        let salt_hash = await ethers.utils.keccak256(await ethers.utils.toUtf8Bytes(salt));
         let receiver_addr = await factory.getAddress(salt);
         let code = await ethers.provider.getCode(receiver_addr);
 
@@ -363,56 +377,92 @@ task("setFee",
             return;
         }
 
-        let Receiver = await ethers.getContractFactory("Receiver");
-        let param = ethers.utils.defaultAbiCoder.encode(['address', 'address'], [router, dexExecutor])
+        let param = ethers.utils.defaultAbiCoder.encode(['address', 'address'], [taskArgs.router, wallet.address])
         let create_code = ethers.utils.solidityPack(['bytes', 'bytes'], [Receiver.bytecode, param]);
         let create = await (await factory.deploy(salt_hash, create_code, 0)).wait();
         if (create.status == 1) {
             console.log("Receiver deployed to :", receiver_addr);
-            receiver = Receiver.attach(receiver_addr);
-
-            let amarokRouter = "";
-            if(amarokRouter && amarokRouter != "" && amarokRouter != ethers.constants.AddressZero){
-                let result = await (await receiver.setAmarokRouter(amarokRouter)).wait();
-                if(result.status == 1) {
-                    console.log("receiver seted amarok router :", amarokRouter);
-                } else {
-                    console.log("receiver set amarok router fail");
-                }
-            }
-
-            let sgRouter = "";
-            if(sgRouter && sgRouter != "" && sgRouter != ethers.constants.AddressZero){
-                result = await (await receiver.setStargateRouter(sgRouter)).wait();
-                if(result.status == 1) {
-                    console.log("receiver seted Stargate router :", sgRouter);
-                } else {
-                    console.log("receiver set Stargate router fail");
-                }
-            }
-
-            let cBridgeMessageBus = "";
-            if(cBridgeMessageBus && cBridgeMessageBus != "" && cBridgeMessageBus != ethers.constants.AddressZero){
-                result = await (await receiver.setCBridgeMessageBus(cBridgeMessageBus)).wait();
-                if(result.status == 1) {
-                    console.log("receiver seted CBridgeMessageBus :", cBridgeMessageBus);
-                } else {
-                    console.log("receiver set CBridgeMessageBus fail");
-                }
-            }
-
-            let recoverGas = 0;
-            if(recoverGas > 0) {
-                result = await (await receiver.setRecoverGas(recoverGas)).wait();
-                if(result.status == 1) {
-                    console.log("receiver seted RecoverGas :", recoverGas);
-                } else {
-                    console.log("receiver set RecoverGas fail");
-                }
-            }
-
         } else {
-            console.log("Receiver deploy fail");
-            return;
+            console.log("Receiver deployed fail");
         }
-    }
+    })
+
+    task("setStargateRouter",
+    "setStargateRouter"
+         )
+    .addParam("receiver", "receiver address")
+    .addParam("stargate", "stargate router address")
+    .setAction(async (taskArgs, hre) => {
+        const { deployments, getNamedAccounts, ethers,network} = hre;
+        const { deploy } = deployments;
+        const { deployer } = await getNamedAccounts();
+        console.log("deployer :", deployer);
+        let Receiver = await ethers.getContractFactory("Receiver");
+        let receiver = Receiver.attach(taskArgs.receiver);
+        let result = await (await receiver.setStargateRouter(taskArgs.stargate)).wait();
+        if(result.status == 1) {
+            console.log("receiver seted stargate router :", taskArgs.stargate);
+        } else {
+            console.log("receiver set stargate router fail");
+        }
+    })
+
+    task("setAmarokRouter",
+    "setAmarokRouter"
+         )
+    .addParam("receiver", "receiver address")
+    .addParam("amarok", "amarok router address")
+    .setAction(async (taskArgs, hre) => {
+        const { deployments, getNamedAccounts, ethers,network} = hre;
+        const { deploy } = deployments;
+        const { deployer } = await getNamedAccounts();
+        console.log("deployer :", deployer);
+        let Receiver = await ethers.getContractFactory("Receiver");
+        let receiver = Receiver.attach(taskArgs.receiver);
+        let result = await (await receiver.setAmarokRouter(taskArgs.amarok)).wait();
+        if(result.status == 1) {
+            console.log("receiver seted amarok router :", taskArgs.amarok);
+        } else {
+            console.log("receiver set amarok router fail");
+        }
+    })
+
+    task("setCBridgeMessageBus",
+    "setCBridgeMessageBus"
+         )
+    .addParam("receiver", "receiver address")
+    .addParam("cbridge", "cbridge MessageBus address")
+    .setAction(async (taskArgs, hre) => {
+        const { deployments, getNamedAccounts, ethers,network} = hre;
+        const { deploy } = deployments;
+        const { deployer } = await getNamedAccounts();
+        console.log("deployer :", deployer);
+        let Receiver = await ethers.getContractFactory("Receiver");
+        let receiver = Receiver.attach(taskArgs.receiver);
+        let result = await (await receiver.setCBridgeMessageBus(taskArgs.cbridge)).wait();
+        if(result.status == 1) {
+            console.log("receiver seted cbridge MessageBus :", taskArgs.cbridge);
+        } else {
+            console.log("receiver set cbridge MessageBus fail");
+        }
+    })
+
+    task("setButter",
+    "setButter"
+         )
+    .addParam("receiver", "receiver address")
+    .addParam("butter", "butter router address")
+    .setAction(async (taskArgs, hre) => {
+        const { deployments, getNamedAccounts, ethers,network} = hre;
+        const { deploy } = deployments;
+        const { deployer } = await getNamedAccounts();
+        console.log("deployer :", deployer);
+        let Receiver = await ethers.getContractFactory("Receiver");
+        let receiver = Receiver.attach(taskArgs.receiver);
+        let result = await (await receiver.setAuthorization(taskArgs.butter)).wait();
+        if(result.status == 1) {
+            console.log("receiver seted butter router :", taskArgs.butter);
+        } else {
+            console.log("receiver set butter router fail");
+        }
+    })
