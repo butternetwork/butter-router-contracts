@@ -6,7 +6,9 @@ ButterRouter.sol is  the old version of the main contract.
 
 ButterRouterV2.sol  is new version contract.
 
-AggregationAdapter.sol  is the swap tool contract of the new version contract ,called by ButterRouterV2 use delegatecall to complete swap.
+AggregationAdapter.sol  is the swap aggregation adapter contract of the new version contract ,called by ButterRouterV2  to complete swap.
+
+Receiver.sol is impls for bridges. called by bridges to complete swap or others on target chain.
 
 ## Main interfaces explanation(v2)
 
