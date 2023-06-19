@@ -6,7 +6,7 @@ ButterRouter.sol is  the old version of the main contract.
 
 ButterRouterV2.sol  is new version contract.
 
-DexExecutor.sol  is the swap tool contract of the new version contract ,called by ButterRouterV2 use delegatecall to complete swap.
+AggregationAdapter.sol  is the swap tool contract of the new version contract ,called by ButterRouterV2 use delegatecall to complete swap.
 
 ## Main interfaces explanation(v2)
 
