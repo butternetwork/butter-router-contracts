@@ -600,10 +600,11 @@ describe("ButterRouterV2", function () {
         
         let swapAndCall = ethers.utils.defaultAbiCoder.encode(['bytes','bytes'],[swap,"0x"]);
         let token = await ethers.getContractAt(ERC20, _srcToken, user); 
+        let dstTokenContract = await ethers.getContractAt(ERC20, dstToken, user); 
         await(await token.approve(mos.address,amount)).wait();  
-        let balanceBefore = await ethers.provider.getBalance(user.address);
+        let balanceBefore = await dstTokenContract.balanceOf(user.address);
         await expect(mos.connect(user).mockRemoteSwapAndCall(router.address,_srcToken,amount,swapAndCall)).to.be.emit(router,"RemoteSwapAndCall");
-        let balanceAfter = await ethers.provider.getBalance(user.address);
+        let balanceAfter = await dstTokenContract.balanceOf(user.address);
         expect(balanceAfter).gt(balanceBefore);
     })
 
@@ -742,10 +743,11 @@ describe("ButterRouterV2", function () {
         
         let swapAndCall = ethers.utils.defaultAbiCoder.encode(['bytes','bytes',],[swap,"0x"]);
         let token = await ethers.getContractAt(ERC20, _srcToken, user); 
+        let dstTokenContract = await ethers.getContractAt(ERC20, dstToken, user); 
         await(await token.approve(mos.address,amount)).wait();  
-        let balanceBefore = await ethers.provider.getBalance(user.address);
+        let balanceBefore = await dstTokenContract.balanceOf(user.address);
         await expect(mos.connect(user).mockRemoteSwapAndCall(router.address,_srcToken,amount,swapAndCall)).to.be.emit(router,"RemoteSwapAndCall");
-        let balanceAfter = await ethers.provider.getBalance(user.address);
+        let balanceAfter = await dstTokenContract.balanceOf(user.address);
         expect(balanceAfter).gt(balanceBefore);
     })
     //  //tx https://etherscan.io/tx/0x78083d1e4b6d074e2a21814eb9eb39462b231d881fa2a3147bf5a7bb3215dfc8

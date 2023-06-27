@@ -174,39 +174,40 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
 
         if(_swapData.length > 0) {
             SwapParam memory swap = abi.decode(_swapData, (SwapParam));
-            (result, swapTemp.swapToken, swapTemp.swapAmount) = _makeSwap(swapTemp.srcAmount, swapTemp.srcToken, swap);
-             // swap failed or no callback execution, transfer bridge token to receiver
-            if (!result || _callbackData.length == 0) {   
-                {
-                    address refundToken = result ? swapTemp.swapToken : swapTemp.srcToken;
-                    uint256 retundAmount = result ? swapTemp.swapAmount : swapTemp.srcAmount;
-                    if (refundToken == wToken) {
-                        if (Helper._safeWithdraw(wToken, retundAmount)) {
-                            refundToken = Helper.NATIVE_ADDRESS;
-                        }
-                    }
-                    Helper._transfer(refundToken, swap.receiver, retundAmount);
-                }
+            if(_srcToken == wToken && Helper._isNative(swap.dstToken)){
+                result = Helper._safeWithdraw(wToken, swapTemp.srcAmount);
+                if(result) swapTemp.swapToken = Helper.NATIVE_ADDRESS;
+            }else if(_srcToken== swap.dstToken){
+                //if user just want to receiver wtoken
+                result = true;
+            } else {
+                (result, swapTemp.swapToken, swapTemp.swapAmount) = _makeSwap(swapTemp.srcAmount, swapTemp.srcToken, swap);
+            }
+             //if swap failed ,transfer bridge token to receiver
+            if (!result) {   
+                Helper._transfer(swapTemp.srcToken, swap.receiver, swapTemp.srcAmount);
                 emit RemoteSwapAndCall(_orderId, swap.receiver, Helper.ZERO_ADDRESS, swapTemp.srcToken, swapTemp.swapToken, swapTemp.srcAmount, swapTemp.swapAmount, 0, swapTemp.fromChain, swapTemp.toChain, swapTemp.from);
                 return;
             }
+            swapTemp.target = swap.executor;
+            swapTemp.receiver = swap.receiver;
         }
-        // _callbackData.length > 0
-        if (swapTemp.swapToken == wToken) {
-            if(Helper._safeWithdraw(wToken, swapTemp.swapAmount)) {
-                swapTemp.swapToken = Helper.NATIVE_ADDRESS;
+        
+        if(_callbackData.length > 0){
+            CallbackParam memory callParam = abi.decode(_callbackData, (CallbackParam));
+            if (swapTemp.swapAmount >= callParam.amount) {
+                (result, swapTemp.callAmount) = _callBack(swapTemp.swapToken, callParam,_nativeBalanceBeforeExec);
+                if(result){
+                    swapTemp.target = callParam.target;  
+                }
             }
-        }
-
-        CallbackParam memory callParam = abi.decode(_callbackData, (CallbackParam));
-        if (swapTemp.swapAmount >= callParam.amount) {
-            (result, swapTemp.callAmount) = _callBack(swapTemp.swapToken, callParam,_nativeBalanceBeforeExec);
+            swapTemp.receiver = callParam.receiver;
         }
         // refund
         if (swapTemp.swapAmount > swapTemp.callAmount) {
-            Helper._transfer(swapTemp.swapToken, callParam.receiver, (swapTemp.swapAmount - swapTemp.callAmount));
+            Helper._transfer(swapTemp.swapToken, swapTemp.receiver, (swapTemp.swapAmount - swapTemp.callAmount));
         }
-        emit RemoteSwapAndCall(_orderId, callParam.receiver, callParam.target, swapTemp.srcToken, swapTemp.swapToken, swapTemp.srcAmount, swapTemp.swapAmount, swapTemp.callAmount, swapTemp.fromChain, swapTemp.toChain, swapTemp.from);
+        emit RemoteSwapAndCall(_orderId,swapTemp.receiver,swapTemp.target, swapTemp.srcToken, swapTemp.swapToken, swapTemp.srcAmount, swapTemp.swapAmount, swapTemp.callAmount, swapTemp.fromChain, swapTemp.toChain, swapTemp.from);
 
     }
 
