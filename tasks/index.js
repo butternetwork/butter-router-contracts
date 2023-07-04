@@ -376,7 +376,7 @@ task("setFee",
             console.log("already deployed receiver address is :", receiver_addr);
             return;
         }
-
+        let Receiver = await ethers.getContractFactory("Receiver");
         let param = ethers.utils.defaultAbiCoder.encode(['address', 'address'], [taskArgs.router, wallet.address])
         let create_code = ethers.utils.solidityPack(['bytes', 'bytes'], [Receiver.bytecode, param]);
         let create = await (await factory.deploy(salt_hash, create_code, 0)).wait();

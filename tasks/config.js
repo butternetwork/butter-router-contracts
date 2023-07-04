@@ -10,6 +10,10 @@ let config = new Map(
             fixedFee:"100000000"
                 },
             excutors:[
+                "0x8731d54E9D02c286767d56ac03e8037C07e01e98",//stargate
+                "0x150f94B44927F078737562f0fcF3C95c01Cc2376",//stargate eth
+                "0xb1b2eeF380f21747944f46d28f683cD1FBB4d03c",//stargate eth
+                "0x3335733c454805df6a77f825f266e136FB4a3333",//rubic
                 "0x0000000022D53366457F9d5E68Ec105046FC4383",//curve
                 "0x1111111254eeb25477b68fb85ed929f73a960582",//1inch
                 "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F",//sushi 
@@ -28,6 +32,8 @@ let config = new Map(
             fixedFee:"100000000"
                 },
             excutors:[
+                "0x45A01E4e04F14f7A4a6702c74187c5F6222033cd",//stargate
+                "0x3335733c454805df6a77f825f266e136FB4a3333",//rubic
                 "0x0000000022D53366457F9d5E68Ec105046FC4383",//curve 
                 "0x60aE616a2155Ee3d9A68541Ba4544862310933d4",//joe
                 "0x1111111254eeb25477b68fb85ed929f73a960582",//1inch 
@@ -82,6 +88,10 @@ let config = new Map(
             fixedFee:"100000000"
                 },
             excutors:[
+                "0x53Bf833A5d6c4ddA888F69c22C88C9f356a41614",//stargate
+                "0xbf22f0f184bCcbeA268dF387a49fF5238dD23E40",//stargate eth
+                "0xb1b2eeF380f21747944f46d28f683cD1FBB4d03c",//stargate eth
+                "0x3335733c454805df6a77f825f266e136FB4a3333",//rubic
                 "0x0000000022D53366457F9d5E68Ec105046FC4383",//curve	
                 "0x1111111254eeb25477b68fb85ed929f73a960582",//1inch
                 "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",//sushi 
@@ -98,6 +108,10 @@ let config = new Map(
             fixedFee:"100000000"
                 },
             excutors:[
+                "0xB0D502E938ed5f4df2E681fE6E419ff29631d62b",//stargate
+                "0xB49c4e680174E331CB0A7fF3Ab58afC9738d5F8b",//stargate eth
+                "0xb1b2eeF380f21747944f46d28f683cD1FBB4d03c",//stargate eth
+                "0x3335733c454805df6a77f825f266e136FB4a3333",//rubic
                 "0x0000000022D53366457F9d5E68Ec105046FC4383",//curve	
                 "0x1111111254eeb25477b68fb85ed929f73a960582",//1inch
             ]
@@ -112,6 +126,7 @@ let config = new Map(
             fixedFee:"100000000"
                 },
             excutors:[
+                "0x8E70e517057e7380587Ea6990dAe81cB1Ba405ce",//rubic
                 "0x8B791913eB07C32779a16750e3868aA8495F5964",//mute 	
                 "0x1111111254eeb25477b68fb85ed929f73a960582",//1inch
                 "0x2da10A1e27bF85cEdD8FFb1AbBe97e53391C0295",//sync-swap 	
@@ -128,6 +143,7 @@ let config = new Map(
             fixedFee:"100000000"
                 },
             excutors:[	
+                "0x3335733c454805df6a77f825f266e136FB4a3333",//rubic
                 "0x1111111254eeb25477b68fb85ed929f73a960582",//1inch
                 "0x2CB45Edb4517d5947aFdE3BEAbF95A582506858B",//trisolaris 
                 "0xa3a1eF5Ae6561572023363862e238aFA84C72ef5"//wanna 
@@ -169,6 +185,7 @@ let config = new Map(
             fixedFee:"100000000"
                 },
             excutors:[	
+                "0x3335733c454805df6a77f825f266e136FB4a3333",//rubic
                 "0x6c3A0E2E78848274B7E3346b8Ef8a4cBB2fEE2a9",//cro-swap  
                 "0xeC0A7a0C2439E8Cb67b992b12ecd020Ea943c7Be",//crodex
                 "0xcd7d16fb918511bf7269ec4f48d61d79fb26f918",//crona-swap 
@@ -212,6 +229,8 @@ let config = new Map(
             fixedFee:"100000000"
                 },
             excutors:[	
+                "0xAf5191B0De278C7286d6C7CC6ab6BB8A73bA2Cd6",//stargate
+                "0x3335733c454805df6a77f825f266e136FB4a3333",//rubic
                 "0x0000000022D53366457F9d5E68Ec105046FC4383",//curve 
                 "0x1111111254eeb25477b68fb85ed929f73a960582",//1inch 
                 "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",//sushi 
@@ -291,6 +310,7 @@ let config = new Map(
             fixedFee:"100000000"
                 },
             excutors:[	
+                "0x2F6F07CDcf3588944Bf4C42aC74ff24bF56e7590",//stargate
                 "0x1E876cCe41B7b844FDe09E38Fa1cf00f213bFf56",//net-swap 
             ]
         }],
@@ -317,6 +337,7 @@ let config = new Map(
             fixedFee:"100000000"
                 },
             excutors:[	
+                "0x3335733c454805df6a77f825f266e136FB4a3333",//rubic
                 "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",//sushi   
                 "0xAA30eF758139ae4a7f798112902Bf6d65612045f",//solarbeam   
             ]
@@ -358,6 +379,7 @@ let config = new Map(
             fixedFee:"100000000"
                 },
             excutors:[	
+                "0x3335733c454805df6a77f825f266e136FB4a3333",//rubic
                 "0xb9667cf9a495a123b0c43b924f6c2244f42817be",//ape-swap    
                 "0xF9678db1CE83f6f51E5df348E2Cc842Ca51EfEc1",//omnidex	
                 "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",//sushi 
@@ -387,7 +409,8 @@ let config = new Map(
             feeRate:"3000",//denominator is 1000000
             fixedFee:"100000000"
                 },
-            excutors:[
+            excutors:[  
+            "0x3335733c454805df6a77f825f266e136FB4a3333",//rubic
              "0xE915D2393a08a00c5A463053edD31bAe2199b9e7",//arts-swap
             ]
         }],
