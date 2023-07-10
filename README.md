@@ -1,18 +1,18 @@
 # Brief Description
 
-This project is  the entry contract for [butterSwap](https://butterswap.io).It consists of three main contracts.
+This project is  the entry contract for [butterSwap](https://butterswap.io).
+
 
 ButterRouter.sol is  the old version of the main contract.
 
-ButterRouterV2.sol  is new version contract.
-
-AggregationAdapter.sol  is the swap aggregation adapter contract of the new version contract ,called by ButterRouterV2  to complete swap.
-
-Receiver.sol is impls for bridges. called by bridges to complete swap or others on target chain.
+ButterRouter V2 consists of three main contracts.
+* ButterRouterV2.sol  is new version contract.
+* AggregationAdapter.sol  is the swap aggregation adapter contract of the new version contract ,called by ButterRouterV2  to complete swap.
+* Receiver.sol is impls for bridges. called by bridges to complete swap or others on target chain.
 
 ## Main interfaces explanation(v2)
 
-1.swapAndCall  swap tokens and pay for
+1. swapAndCall  swap tokens and execute a callback method
 
 ```solidity
     // 1. swap: _swapData.length > 0 and _bridgeData.length == 0
@@ -28,7 +28,7 @@ Receiver.sol is impls for bridges. called by bridges to complete swap or others 
     ) external payable;
 ```
 
-2.swapAndBridge swap tokens and bridge outToken to other chain.
+2. swapAndBridge swap tokens and bridge outToken to other chain.
 
 ```solidity
     // 1. bridge:  _swapData.length == 0 and _bridgeData.length > 0
@@ -42,7 +42,7 @@ Receiver.sol is impls for bridges. called by bridges to complete swap or others 
     ) external payable;
 ```
 
-3.remoteSwapAndCall called by butter mos after bridge to swap tokens and payFor on bridge target chain.
+3. remoteSwapAndCall called by butter mos after bridge, to swap tokens and execute a callback on target chain.
 
 ```solidity
     // At remote chain call after bridge
@@ -59,6 +59,15 @@ Receiver.sol is impls for bridges. called by bridges to complete swap or others 
         bytes calldata _swapAndCall
     ) external payable;
 ```
+
+## Installation
+
+```shell
+npm install --save-dev @butternetwork/router
+# or
+yarn add --dev @butternetwork/router
+```
+
 
 ## Contract Deployment and SetUp Workflow
 
@@ -86,7 +95,7 @@ RECEIVER_DEPLOY_SALT =
 
 ### Compiling contracts
 
-We can simply use hardhat built-in compile task to compile our contract in the contracts folder.
+Simply useing hardhat built-in compile task to compile contracts.
 
 ```
 $ npx hardhat compile
@@ -96,7 +105,7 @@ Compiled 1 contract successfully
 
 The compiled artifacts will be saved in the `artifacts/` directory by default
 
-### Testing contracts
+### Testing
 
 ```
 Compiled 6 Solidity files successfully
@@ -133,7 +142,7 @@ Compiled 6 Solidity files successfully
   27 passing (37s)
 ```
 
-### Deploy contracts and setUp
+### Deploy and setup
 
 The deploy script is located in deploy folder . We can run the following command to deploy.
 
@@ -179,19 +188,20 @@ set mos
 npx hardhat setV2Mos --router <router address> --mos  <mos address> --network <network>
 ```
 
-set authorization  (approve flag true  Indicates that it can be called to swap)  multi excutors separation by ',' like 0xd73bF6a58481715B5A3B72E9ca214A44C7Ba4533,0xd73bF6a58481715B5A3B72E9ca214A44C7Ba4533
+set authorization  (approve flag `true`  indicates that it can be called by router),
+multi executors separation by ',', like `0xd73bF6a58481715B5A3B72E9ca214A44C7Ba4533,0xd73bF6a58481715B5A3B72E9ca214A44C7Ba4533`
 
 ```
 npx hardhat setAuthorization --router <router address> --executor <excutors address array> --flag <flag> --network <network>
 ```
 
- setFee  (feeRate - the denominator is 1000000  fixedfee is in wei)
+ setFee  (feeRate - the denominator is 1000000, fixed fee is in wei)
 
 ```
 npx hardhat setFee --router <router address> --feereceiver <feeReceiver address> --feerate <feeRate> --fixedfee <fixedFee> --network <network>
 ```
 
-deployAndSetUp  before run this task setUp /task/config.js
+deployAndSetUp  before run this task, set task/config.js
 
 ```
 npx hardhat deployAndSetUp  --network <network>

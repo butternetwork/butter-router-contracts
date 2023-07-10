@@ -10,7 +10,7 @@ import "./lib/Helper.sol";
 import "./lib/ErrorMessage.sol";
 
 // Stargate deploy address https://stargateprotocol.gitbook.io/stargate/developers/contract-addresses/mainnet   -- router
-// context(Amarok) deploy address  https://docs.connext.network/resources/deployments  -- context
+// connext(Amarok) deploy address  https://docs.connext.network/resources/deployments  -- connext
 // celer deploy address https://im-docs.celer.network/developer/contract-addresses-and-rpc-info -- MessageBus
 
 interface IAuthorization {

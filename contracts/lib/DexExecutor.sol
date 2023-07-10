@@ -4,7 +4,7 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "./lib/Helper.sol";
+import "./Helper.sol";
 
 library DexExecutor {
     using SafeERC20 for IERC20;
@@ -28,17 +28,17 @@ library DexExecutor {
         bool _isNative = Helper._isNative(_srcToken);
         DexType dexType = DexType(_dexType);
         if (dexType == DexType.AGG) {
-            (_result) = _makeAggSwap(_router,_amount,_isNative,_swap);
+            (_result) = _makeAggSwap(_router, _amount, _isNative, _swap);
         } else if (dexType == DexType.UNIV2) {
-            (_result) = _makeUniV2Swap(_router,_dstToken,_amount,_isNative,_swap);
+            (_result) = _makeUniV2Swap(_router, _dstToken, _amount, _isNative, _swap);
         } else if (dexType == DexType.UNIV3) {
-            (_result) = _makeUniV3Swap(_router,_dstToken,_amount,_isNative,_swap);
+            (_result) = _makeUniV3Swap(_router, _dstToken, _amount, _isNative, _swap);
         } else if (dexType == DexType.CURVE) {
-            (_result) = _makeCurveSwap(_router,_amount,_isNative,_swap);
+            (_result) = _makeCurveSwap(_router, _amount, _isNative, _swap);
         } else {
-           require(false,"unsupport dex type");
+           require(false,"DexExecutor: unsupported dex type");
         }
-        require(_result,"swap fail");
+        require(_result, "DexExecutor: swap fail");
     }
 
     function _makeAggSwap(
@@ -122,7 +122,7 @@ library DexExecutor {
             _amount,
             amountOutMin
         );
-        bytes memory swapData = abi.encodeWithSignature("exactInput((bytes,address,uint256,uint256))",params);
+        bytes memory swapData = abi.encodeWithSignature("exactInput((bytes,address,uint256,uint256))", params);
         uint256 value = _isNative ? _amount : 0;
         if (Helper._isNative(_dstToken)) {
             bytes[] memory c = new bytes[](2);

@@ -50,7 +50,7 @@ module.exports = {
       chainId : 56,
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
-    klaytn: {
+    Klaytn: {
       url: `https://public-node-api.klaytnapi.com/v1/cypress`,
       chainId : 8217,
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
@@ -76,7 +76,7 @@ module.exports = {
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     Astar: {
-      url: `https://rpc.astar.network:8545/`,
+      url: `https://evm.astar.network`,
       chainId : 592,
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
@@ -95,12 +95,7 @@ module.exports = {
       chainId : 25,
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
-    Dfk: {
-      url: `https://dfkchain.api.onfinality.io/public`,
-      chainId : 53935,
-      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-    },
-    Ethpow: {
+    Ethw: {
       url: `https://mainnet.ethereumpow.org`,
       chainId : 10001,
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
@@ -150,7 +145,7 @@ module.exports = {
       chainId : 106,
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
-    Zksync: {
+    zkSync: {
       url: `https://mainnet.era.zksync.io`,
       chainId : 324,
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
