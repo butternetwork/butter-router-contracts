@@ -294,7 +294,7 @@ task("setFee",
             }
 
 
-            1 - deploy router v2
+            // 1 - deploy router v2
             let ButterRouterV2 = await ethers.getContractFactory("ButterRouterV2");
             let param = ethers.utils.defaultAbiCoder.encode(['address', 'address', 'address'], [config.mos, deployer, config.wToken])
             let create_code = ethers.utils.solidityPack(['bytes', 'bytes'], [ButterRouterV2.bytecode, param]);
@@ -307,7 +307,7 @@ task("setFee",
             }
 
 
-            2 - deploy AggregationAdapter
+            // 2 - deploy AggregationAdapter
             let AggregationAdapter = await ethers.getContractFactory("AggregationAdapter");
             console.log("agg salt:", process.env.AGG_DEPLOY_SALT);
             let executor_salt_hash = await ethers.utils.keccak256(await ethers.utils.toUtf8Bytes(process.env.AGG_DEPLOY_SALT));

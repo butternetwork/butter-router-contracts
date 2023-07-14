@@ -90,6 +90,11 @@ module.exports = {
       chainId : 42220,
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
+    Okt: {
+      url: `https://exchainrpc.okex.org/`,
+      chainId : 66,
+      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
     Cronos: {
       url: `https://cronos-evm.publicnode.com`,
       chainId : 25,

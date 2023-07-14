@@ -19,7 +19,8 @@ let config = new Map(
                 "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F",//sushi 
                 "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",//univ2
                 "0xE592427A0AEce92De3Edee1F18E0157C05861564",//univ3
-                "0xB4B0ea46Fe0E9e8EAB4aFb765b527739F2718671",//verse 
+                "0xB4B0ea46Fe0E9e8EAB4aFb765b527739F2718671",//verse
+                "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64", // openocean
             ]
         }],
 
@@ -38,7 +39,8 @@ let config = new Map(
                 "0x60aE616a2155Ee3d9A68541Ba4544862310933d4",//joe
                 "0x1111111254eeb25477b68fb85ed929f73a960582",//1inch 
                 "0xE54Ca86531e17Ef3616d22Ca28b0D458b6C89106",//pangolin 
-                "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506"//sushi 
+                "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506", //sushi
+                "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64", // openocean
             ]
         }],
         
@@ -55,7 +57,8 @@ let config = new Map(
                 "0x3335733c454805df6a77f825f266e136fb4a3333",//rubic
                 "0x1111111254eeb25477b68fb85ed929f73a960582",//1inch
                 "0x10ED43C718714eb63d5aA57B78B54704E256024E",//pancake
-                "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",//sushi 
+                "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",//sushi
+                "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64", // openocean
             ]
         }],
         
@@ -75,7 +78,8 @@ let config = new Map(
                 "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff",//quick 
                 "0xf5b509bB0909a69B1c207E495f687a596C168E12",//quickv3 
                 "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",//sushi 
-                "0xE592427A0AEce92De3Edee1F18E0157C05861564"//univ3
+                "0xE592427A0AEce92De3Edee1F18E0157C05861564", //univ3
+                "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64", // openocean
             ]
         }],
 
@@ -95,7 +99,8 @@ let config = new Map(
                 "0x0000000022D53366457F9d5E68Ec105046FC4383",//curve	
                 "0x1111111254eeb25477b68fb85ed929f73a960582",//1inch
                 "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",//sushi 
-                "0xE592427A0AEce92De3Edee1F18E0157C05861564"//univ3
+                "0xE592427A0AEce92De3Edee1F18E0157C05861564", //univ3
+                "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64", // openocean
             ]
         }],
 
@@ -114,6 +119,7 @@ let config = new Map(
                 "0x3335733c454805df6a77f825f266e136FB4a3333",//rubic
                 "0x0000000022D53366457F9d5E68Ec105046FC4383",//curve	
                 "0x1111111254eeb25477b68fb85ed929f73a960582",//1inch
+                "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64", // openocean
             ]
         }],
 
@@ -146,7 +152,21 @@ let config = new Map(
                 "0x3335733c454805df6a77f825f266e136FB4a3333",//rubic
                 "0x1111111254eeb25477b68fb85ed929f73a960582",//1inch
                 "0x2CB45Edb4517d5947aFdE3BEAbF95A582506858B",//trisolaris 
-                "0xa3a1eF5Ae6561572023363862e238aFA84C72ef5"//wanna 
+                "0xa3a1eF5Ae6561572023363862e238aFA84C72ef5", //wanna
+                "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64", // openocean
+            ]
+        }],
+
+        ["Okt",{
+            wToken:"0x8F8526dbfd6E38E3D8307702cA8469Bae6C56C15",
+            mos:"0x8F8526dbfd6E38E3D8307702cA8469Bae6C56C15",
+            fee:{
+                receiver:"0x4A53841B9b16182f996a65aAb407e7622CBCf966",
+                feeRate:"7000",//denominator is 1000000
+                fixedFee:"5000000000000000000"
+            },
+            excutors:[
+                "0xc0006Be82337585481044a7d11941c0828FFD2D4", // openocean
             ]
         }],
 
@@ -223,7 +243,8 @@ let config = new Map(
                 "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",//sushi 
                 "0x6b3d631B87FE27aF29efeC61d2ab8CE4d621cCBF",//soul 
                 "0x16327E3FbDaCA3bcF7E38F5Af2599D2DDc33aE52",//spirit  
-                "0xF491e7B69E4244ad4002BC14e878a34207E38c29",//spooky 
+                "0xF491e7B69E4244ad4002BC14e878a34207E38c29",//spooky
+                "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64", // openocean
             ]
         }],
 
@@ -239,6 +260,7 @@ let config = new Map(
                 "0x0000000022D53366457F9d5E68Ec105046FC4383",//curve
                 "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",//sushi 
                 "0x1C232F01118CB8B424793ae03F870aa7D0ac7f77",//Honeyswap
+                "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64", // openocean
             ]
         }],
 
@@ -254,7 +276,8 @@ let config = new Map(
             excutors:[	
                 "0x24ad62502d1C652Cc7684081169D04896aC20f30",//trader 
                 "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",//sushi 
-                "0xf012702a5f0e54015362cBCA26a26fc90AA832a3",//viper 
+                "0xf012702a5f0e54015362cBCA26a26fc90AA832a3",//viper
+                "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64", // openocean
             ]
         }],
 

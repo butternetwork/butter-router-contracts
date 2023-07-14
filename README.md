@@ -192,7 +192,7 @@ set authorization  (approve flag `true`  indicates that it can be called by rout
 multi executors separation by ',', like `0xd73bF6a58481715B5A3B72E9ca214A44C7Ba4533,0xd73bF6a58481715B5A3B72E9ca214A44C7Ba4533`
 
 ```
-npx hardhat setAuthorization --router <router address> --executor <excutors address array> --flag <flag> --network <network>
+npx hardhat setAuthorization --router <router address> --executors <excutors address array> --flag <flag> --network <network>
 ```
 
  setFee  (feeRate - the denominator is 1000000, fixed fee is in wei)
