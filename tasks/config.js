@@ -501,6 +501,19 @@ let config = new Map(
                 "0x15e6c86a9ac9a32f91125794fda82eeb807ed818"
             ]
         }],
+
+        ["zkSyncTest",{
+            wToken:"0x20b28B1e4665FFf290650586ad76E977EAb90c5D",
+            mos:"0x20b28B1e4665FFf290650586ad76E977EAb90c5D",
+            fee:{
+            receiver:"0xCBdb1Da4f99276b0c427776BDE93838Bc19386Cc",
+            feeRate:"7000",//denominator is 1000000
+            fixedFee:"1000000000000000000"
+                },
+            excutors:[
+                "0x3dBe031355BDdECD4D70673A80b708a73D157814"
+            ]
+        }],
         
     ]
 )
