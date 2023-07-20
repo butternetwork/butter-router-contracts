@@ -1,5 +1,8 @@
 let { task } = require("hardhat/config");
 let {getConfig} = require("./config")
+let { Wallet } = require('zksync-web3')
+let { HardhatRuntimeEnvironment } = require('hardhat/types') 
+let { Deployer } = require('@matterlabs/hardhat-zksync-deploy')
 
 task("deployRouter",
     "deploy butter router contract"
@@ -334,6 +337,65 @@ task("setFee",
 
             //4 - setAuthorization
             config.excutors.push(executor_addr);
+            result = await (await router.setAuthorization(config.excutors,true)).wait();
+            if (result.status == 1) {
+                console.log(`Router ${router.address} setAuthorization ${config.excutors} succeed`);
+            } else {
+                console.log('setAuthorization failed');
+            }
+
+           console.log("<----------------------------- deployAndSetUp ... done ----------------------->");
+        } else {
+            console.log("config not set ...");
+        }
+    })
+
+
+    task("deployAndSetUpZk",
+    "deployAndSetUp"
+         )
+    .setAction(async (taskArgs, hre) => {
+        const { deployments, getNamedAccounts, ethers,network} = hre;
+        const { deploy } = deployments;
+        const { deployer } = await getNamedAccounts();
+        console.log("deployer :", deployer);
+        let config = getConfig(network.name);
+        if(config){
+
+            console.log("<------------------------ deployAndSetUp begin ---------------------------->")
+
+            const wallet = new Wallet(process.env.PRIVATE_KEY)
+            // Create deployer object and load the artifact of the contract we want to deploy.
+            const deployer = new Deployer(hre, wallet)
+
+            // 1 - deploy router v2
+            const router_artifact = await deployer.loadArtifact('ButterRouterV2')
+            // Deploy this contract. The returned object will be of a `Contract` type,
+            // similar to the ones in `ethers`.
+            const butterRouter = await deployer.deploy(router_artifact,[config.mos,wallet.address,config.wToken])
+
+            console.log("ButterRouter deployed on :",butterRouter.address);
+
+            // 2 - deploy AggregationAdapter
+            const adapt_artifact = await deployer.loadArtifact('AggregationAdapter')
+            // Deploy this contract. The returned object will be of a `Contract` type,
+            // similar to the ones in `ethers`.
+            const adapt = await deployer.deploy(adapt_artifact,[wallet.address])
+
+            console.log("AggregationAdapter deployed on :",adapt.address);
+
+            //3 - setFee
+            let ButterRouterV2 = await ethers.getContractFactory("ButterRouterV2");
+            let router = ButterRouterV2.attach(butterRouter.address);
+            let result = await (await router.setFee(config.fee.receiver, config.fee.feeRate, config.fee.fixedFee)).wait();
+            if (result.status == 1) {
+                console.log(`Router ${router.address} setFee rate(${config.fee.feeRate}), fixed(${config.fee.fixedFee}), receiver(${config.fee.receiver}) succeed`);
+            } else {
+                console.log('setFee failed');
+            }
+
+            //4 - setAuthorization
+            config.excutors.push(adapt.address);
             result = await (await router.setAuthorization(config.excutors,true)).wait();
             if (result.status == 1) {
                 console.log(`Router ${router.address} setAuthorization ${config.excutors} succeed`);

@@ -48,7 +48,11 @@
   "dependencies": {
     "@openzeppelin/contracts": "^4.8.2",
     "dotenv": "^16.0.3",
-    "hardhat-deploy": "^0.11.25"
+    "hardhat-deploy": "^0.11.25",
+    "zksync-web3": "^0.14.3",
+    "@matterlabs/hardhat-zksync-deploy": "^0.6.3",
+    "@matterlabs/hardhat-zksync-solc": "^0.3.17",
+    "@matterlabs/hardhat-zksync-verify": "^0.1.6"
   },
   "keywords": [
     "butternetwork",

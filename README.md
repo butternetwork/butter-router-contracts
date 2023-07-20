@@ -2,10 +2,10 @@
 
 This project is  the entry contract for [butterSwap](https://butterswap.io).
 
-
 ButterRouter.sol is  the old version of the main contract.
 
 ButterRouter V2 consists of three main contracts.
+
 * ButterRouterV2.sol  is new version contract.
 * AggregationAdapter.sol  is the swap aggregation adapter contract of the new version contract ,called by ButterRouterV2  to complete swap.
 * Receiver.sol is impls for bridges. called by bridges to complete swap or others on target chain.
@@ -67,7 +67,6 @@ npm install --save-dev @butternetwork/router
 # or
 yarn add --dev @butternetwork/router
 ```
-
 
 ## Contract Deployment and SetUp Workflow
 
@@ -205,6 +204,12 @@ deployAndSetUp  before run this task, set task/config.js
 
 ```
 npx hardhat deployAndSetUp  --network <network>
+```
+
+deployAndSetUpZk  before run this task, compile the contracts use the command  npx hardhat compile --network  `<zksync or zkSyncTest>`
+
+```
+npx hardhat deployAndSetUpZk --network <zksync or zkSyncTest>
 ```
 
 deployReceiver
