@@ -12,7 +12,7 @@ ButterRouter V2 consists of three main contracts.
 
 ## Main interfaces explanation(v2)
 
-1. swapAndCall  swap tokens and execute a callback method
+1. `swapAndCall`  swap tokens and execute a callback method
 
 ```solidity
     // 1. swap: _swapData.length > 0 and _bridgeData.length == 0
@@ -28,7 +28,7 @@ ButterRouter V2 consists of three main contracts.
     ) external payable;
 ```
 
-2. swapAndBridge swap tokens and bridge outToken to other chain.
+2. `swapAndBridge` swap tokens and bridge outToken to other chain.
 
 ```solidity
     // 1. bridge:  _swapData.length == 0 and _bridgeData.length > 0
@@ -42,7 +42,7 @@ ButterRouter V2 consists of three main contracts.
     ) external payable;
 ```
 
-3. remoteSwapAndCall called by butter mos after bridge, to swap tokens and execute a callback on target chain.
+3. `remoteSwapAndCall` called by butter mos after bridge, to swap tokens and execute a callback on target chain.
 
 ```solidity
     // At remote chain call after bridge
@@ -147,19 +147,19 @@ The deploy script is located in deploy folder . We can run the following command
 
 #### v1
 
-deploy
+1. deploy
 
 ```
 npx hardhat deployRouter --mos <mos address> --core <core address> --network <network>
 ```
 
-set core
+2. set core
 
 ```
 npx hardhat setCore --router <router address> --core  <core address > --network <network>
 ```
 
-set mos
+3. set mos
 
 ```
 npx hardhat setMos --router <router address> --mos  <mos address> --network <network>
@@ -169,74 +169,87 @@ npx hardhat setMos --router <router address> --mos  <mos address> --network <net
 
 #### v2
 
-deploy router
+1. deploy router
 
 ```
 npx hardhat deployRouterV2 --mos <mos address>  --wtoken <wtoken address> --network <network>
 ```
 
-deployAggregationAdapter
+2. deployAggregationAdapter
 
 ```
 npx hardhat deployAggregationAdapter --network <network>
 ```
 
-set mos
+3. set mos
 
 ```
 npx hardhat setV2Mos --router <router address> --mos  <mos address> --network <network>
 ```
 
-set authorization  (approve flag `true`  indicates that it can be called by router),
-multi executors separation by ',', like `0xd73bF6a58481715B5A3B72E9ca214A44C7Ba4533,0xd73bF6a58481715B5A3B72E9ca214A44C7Ba4533`
+4. set authorization
+
 
 ```
 npx hardhat setAuthorization --router <router address> --executors <excutors address array> --flag <flag> --network <network>
 ```
 
- setFee  (feeRate - the denominator is 1000000, fixed fee is in wei)
+**NOTE**
+* approve flag `true`  indicates that it can be called by router)
+
+* multi executors separation by ',', like `0xd73bF6a58481715B5A3B72E9ca214A44C7Ba4533,0xd73bF6a58481715B5A3B72E9ca214A44C7Ba4533`
+
+
+ 5. setFee  (feeRate - the denominator is 1000000, fixed fee is in wei)
 
 ```
 npx hardhat setFee --router <router address> --feereceiver <feeReceiver address> --feerate <feeRate> --fixedfee <fixedFee> --network <network>
 ```
 
-deployAndSetUp  before run this task, set task/config.js
+6. deployAndSetUp
 
+before run this task, set task/config.js
 ```
 npx hardhat deployAndSetUp  --network <network>
 ```
 
-deployAndSetUpZk  before run this task, compile the contracts use the command  npx hardhat compile --network  `<zksync or zkSyncTest>`
+7. deployAndSetUpZk
+
+**before run this task, compile the contracts**
 
 ```
-npx hardhat deployAndSetUpZk --network <zksync or zkSyncTest>
+npx hardhat compile --network  `<zkSync or zkSyncTest>`
 ```
 
-deployReceiver
+```
+npx hardhat deployAndSetUpZk --network <zkSync or zkSyncTest>
+```
+
+8. deployReceiver
 
 ```shell
 npx hardhat deployReceiver --router <butter router address> --network <network>
 ```
 
-setStargateRouter
+9. setStargateRouter
 
 ```shell
 npx hardhat setStargateRouter --receiver <receiver address> --stargate <stargate router address> --network <network>
 ```
 
-setAmarokRouter
+10. setAmarokRouter
 
 ```shell
 npx hardhat setAmarokRouter --receiver <receiver address> --amarok <amarok router address> --network <network>
 ```
 
-setCBridgeMessageBus
+11. setCBridgeMessageBus
 
 ```shell
 npx hardhat setCBridgeMessageBus --receiver <receiver address> --cbridge <cbridge messageBus address> --network <network>
 ```
 
-setButter
+12. setButter
 
 ```shell
 npx hardhat setButter --receiver <receiver address> --butter <butter router address> --network <network>

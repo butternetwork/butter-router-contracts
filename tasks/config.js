@@ -134,7 +134,7 @@ let config = new Map(
             excutors:[
                 "0x8E70e517057e7380587Ea6990dAe81cB1Ba405ce",//rubic
                 "0x8B791913eB07C32779a16750e3868aA8495F5964",//mute 	
-                "0x1111111254eeb25477b68fb85ed929f73a960582",//1inch
+                "0x6e2B76966cbD9cF4cC2Fa0D76d24d5241E0ABC2F",//1inch
                 "0x2da10A1e27bF85cEdD8FFb1AbBe97e53391C0295",//sync-swap 	
             ]
         }],
