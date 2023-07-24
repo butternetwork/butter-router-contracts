@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/draft-IERC20Permit.sol";
 library Helper {
     using SafeERC20 for IERC20;
     address internal constant ZERO_ADDRESS = address(0);
+    uint256 private constant MAX_UINT = type(uint256).max;
 
     address internal constant NATIVE_ADDRESS =
         0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
@@ -39,6 +40,33 @@ library Helper {
     function _safeWithdraw(address _wToken,uint _value) internal returns(bool) {
         (bool success, bytes memory data) = _wToken.call(abi.encodeWithSelector(0x2e1a7d4d, _value));
         return (success && (data.length == 0 || abi.decode(data, (bool))));
+    }
+
+    function _maxApproveERC20(
+        IERC20 assetId,
+        address spender,
+        uint256 amount
+    ) internal {
+        if (_isNative(address(assetId))) return;
+        uint256 allowance = assetId.allowance(address(this), spender);
+        if (allowance < amount)
+            SafeERC20.safeIncreaseAllowance(
+                IERC20(assetId),
+                spender,
+                MAX_UINT - allowance
+            );
+    }
+
+    function _getFirst4Bytes(
+        bytes memory data
+    ) internal pure returns (bytes4 outBytes4) {
+        if (data.length == 0) {
+            return 0x0;
+        }
+
+        assembly {
+            outBytes4 := mload(add(data, 32))
+        }
     }
 
     

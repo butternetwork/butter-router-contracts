@@ -3,6 +3,7 @@ let {getConfig} = require("./config")
 let { Wallet } = require('zksync-web3')
 let { HardhatRuntimeEnvironment } = require('hardhat/types') 
 let { Deployer } = require('@matterlabs/hardhat-zksync-deploy')
+let {updateSelectorInfo,setRouters,setStargatePoolId,setLayerZeroChainId} = require("../utils/helper")
 
 task("deployRouter",
     "deploy butter router contract"
@@ -408,6 +409,51 @@ task("setFee",
             console.log("config not set ...");
         }
     })
+    // <--------------------------------------------------rubic adapt------------------------------------------------------------->
+
+    task("deployRubicAdapter",
+    "deployRubicAdapter" )
+    .setAction(async (taskArgs, hre) => {
+        const { deployments, getNamedAccounts, ethers,network} = hre;
+        const { deploy } = deployments;
+        const { deployer } = await getNamedAccounts();
+        console.log("deployer :", deployer);
+        let [wallet] = await ethers.getSigners();
+        let IDeployFactory_abi = [
+            "function deploy(bytes32 salt, bytes memory creationCode, uint256 value) external",
+            "function getAddress(bytes32 salt) external view returns (address)"
+        ]
+        let factory_addr = process.env.DEPLOY_FACTORY;
+        let factory = await ethers.getContractAt(IDeployFactory_abi, factory_addr, wallet);
+        let salt = process.env.RUBIC_ADAPTER_SALT;
+        console.log("RubicAdapter salt:", salt);
+        let salt_hash = await ethers.utils.keccak256(await ethers.utils.toUtf8Bytes(salt));
+        let adapter_addr = await factory.getAddress(salt);
+        let code = await ethers.provider.getCode(receiver_addr);
+        let RubicAdapter = await ethers.getContractFactory("RubicAdapter");
+        if(code !== '0x'){
+            console.log("already deployed adapter address is :", adapter_addr);
+        }else{
+            let param = ethers.utils.defaultAbiCoder.encode(['address'], [deployer])
+            let create_code = ethers.utils.solidityPack(['bytes', 'bytes'], [RubicAdapter.bytecode, param]);
+            let create = await (await factory.deploy(salt_hash, create_code, 0)).wait();
+            if (create.status == 1) {
+                console.log("adapter deployed to :", receiver_addr);
+            } else {
+                console.log("adapter deployed fail");
+                return;
+            }
+        }
+
+        let adapter = RubicAdapter.attach(adapter_addr);
+        await updateSelectorInfo(adapter.address,network);
+        await setRouters(adapter.address,network);
+        await setStargatePoolId(adapter.address,network);
+        await setLayerZeroChainId(adapter.address,network);
+
+        console.log("done ...........")
+    })
+
 
     // <--------------------------------------------------receiver------------------------------------------------------------->
    
