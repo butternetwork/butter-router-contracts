@@ -438,10 +438,11 @@ describe("ButterRouterV2", function () {
             srcToken:_srcToken,
             dstToken:dstToken,
             receiver:router.address,
-            leftRecerver:user.address,
+            leftReceiver:user.address,
             minAmount:0,
             swaps:swaps
         }
+
         let AggregationAdapter = await ethers.getContractFactory("AggregationAdapter");
 
         let data = AggregationAdapter.interface.encodeFunctionData("swap",[param])
@@ -510,7 +511,7 @@ describe("ButterRouterV2", function () {
             srcToken:_srcToken,
             dstToken:dstToken,
             receiver:router.address,
-            leftRecerver:user.address,
+            leftReceiver:user.address,
             minAmount:0,
             swaps:swaps
         }
@@ -588,7 +589,7 @@ describe("ButterRouterV2", function () {
             srcToken:_srcToken,
             dstToken:dstToken,
             receiver:router.address,
-            leftRecerver:user.address,
+            leftReceiver:user.address,
             minAmount:0,
             swaps:swaps
         }
@@ -660,7 +661,7 @@ describe("ButterRouterV2", function () {
             srcToken:_srcToken,
             dstToken:dstToken,
             receiver:router.address,
-            leftRecerver:user.address,
+            leftReceiver:user.address,
             minAmount:0,
             swaps:swaps
         }
@@ -731,7 +732,7 @@ describe("ButterRouterV2", function () {
             srcToken:_srcToken,
             dstToken:dstToken,
             receiver:router.address,
-            leftRecerver:user.address,
+            leftReceiver:user.address,
             minAmount:0,
             swaps:swaps
         }
@@ -803,7 +804,7 @@ describe("ButterRouterV2", function () {
             srcToken:_srcToken,
             dstToken:dstToken,
             receiver:router.address,
-            leftRecerver:user.address,
+            leftReceiver:user.address,
             minAmount:0,
             swaps:swaps
         }
@@ -877,7 +878,7 @@ describe("ButterRouterV2", function () {
             srcToken:_srcToken,
             dstToken:dstToken,
             receiver:router.address,
-            leftRecerver:user.address,
+            leftReceiver:user.address,
             minAmount:0,
             swaps:swaps
         }
@@ -895,7 +896,7 @@ describe("ButterRouterV2", function () {
         let balanceAfter = await ethers.provider.getBalance(user.address);
         expect(balanceAfter).gt(balanceBefore);
     })
-    //tx https://etherscan.io/tx/0x8dedd4e76b6f68cfaffcb15c50bdd3456f0582373fb5335fa437524f24b6d8af
+    // tx https://etherscan.io/tx/0x8dedd4e76b6f68cfaffcb15c50bdd3456f0582373fb5335fa437524f24b6d8af
     it("remoteSwapAndCall buy nft seaport", async () => {
 
         let seaport = "0x00000000000001ad428e4906ae43d8f9852d0dd6"
