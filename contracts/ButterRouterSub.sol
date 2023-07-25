@@ -74,7 +74,7 @@ contract ButterRouterSub is IButterRouterV2, Ownable2Step, ReentrancyGuard {
         bytes calldata _bridgeData,
         bytes calldata _permitData
     ) external payable override nonReentrant transferIn(_srcToken, _amount, _permitData) {
-        require(_bridgeData.length > 0, ErrorMessage.BRIDGE_REQUIRE);
+        // require(_bridgeData.length > 0, ErrorMessage.BRIDGE_REQUIRE);
 
         SwapTemp memory swapTemp;
         swapTemp.srcToken = _srcToken;
