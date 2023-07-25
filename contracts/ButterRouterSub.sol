@@ -81,23 +81,26 @@ contract ButterRouterSub is IButterRouterV2, Ownable2Step, ReentrancyGuard {
         swapTemp.srcAmount = _amount;
         swapTemp.swapToken = _srcToken;
         swapTemp.swapAmount = _amount;
-
+        bytes memory receiver;
         if (_swapData.length > 0) {
             SwapParam memory swap = abi.decode(_swapData, (SwapParam));
             bool result;
             (result, swapTemp.swapToken, swapTemp.swapAmount) = _makeSwap(swapTemp.srcAmount, swapTemp.srcToken, swap);
             require(result, ErrorMessage.SWAP_FAIL);
             require(swapTemp.swapAmount >= swap.minReturnAmount,ErrorMessage.RECEIVE_LOW);
+            if(_bridgeData.length == 0 && swapTemp.swapAmount > 0){
+                receiver = abi.encodePacked(swap.receiver);
+                Helper._transfer(swapTemp.swapToken,swap.receiver,swapTemp.swapAmount);
+            }
         } 
         bytes32 orderId;
-        bytes memory receiver;
         if(_bridgeData.length > 0){
            BridgeParam memory bridge = abi.decode(_bridgeData, (BridgeParam));
            swapTemp.toChain = bridge.toChain;
            receiver = bridge.receiver;
            orderId = _doBridge(msg.sender, swapTemp.swapToken, swapTemp.swapAmount, bridge); 
         }
-       emit SwapAndBridge(orderId,msg.sender,swapTemp.srcToken, swapTemp.swapToken,swapTemp.srcAmount, swapTemp.swapAmount,block.chainid,swapTemp.toChain,receiver);
+        emit SwapAndBridge(orderId,msg.sender,swapTemp.srcToken, swapTemp.swapToken,swapTemp.srcAmount, swapTemp.swapAmount,block.chainid,swapTemp.toChain,receiver);
 
     }
 
