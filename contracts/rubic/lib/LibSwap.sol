@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "./Helper.sol";
+import "./LibAsset.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // import "hardhat/console.sol";
 library LibSwap {
@@ -29,13 +29,13 @@ library LibSwap {
         require(_swap.callTo.code.length > 0,"E10");
         uint256 fromAmount = _swap.fromAmount;
         require(fromAmount > 0,"E11");
-        uint256 nativeValue = Helper._isNative(_swap.sendingAssetId)
+        uint256 nativeValue = LibAsset._isNative(_swap.sendingAssetId)
             ? _swap.fromAmount
             : 0;
-        uint256 initialSendingAssetBalance = Helper._getBalance(_swap.sendingAssetId,address(this));
-        uint256 initialReceivingAssetBalance = Helper._getBalance(_swap.receivingAssetId,address(this));
+        uint256 initialSendingAssetBalance = LibAsset._getBalance(_swap.sendingAssetId,address(this));
+        uint256 initialReceivingAssetBalance = LibAsset._getBalance(_swap.receivingAssetId,address(this));
         if (nativeValue == 0) {
-            Helper._maxApproveERC20(
+            LibAsset._maxApproveERC20(
                 IERC20(_swap.sendingAssetId),
                 _swap.approveTo,
                 _swap.fromAmount
@@ -45,7 +45,7 @@ library LibSwap {
         // solhint-disable-next-line avoid-low-level-calls
         (bool success,) = _swap.callTo.call{value: nativeValue}(_swap.callData);
         require(success,"E22");
-        uint256 newBalance = Helper._getBalance(_swap.receivingAssetId,address(this));
+        uint256 newBalance = LibAsset._getBalance(_swap.receivingAssetId,address(this));
         emit AssetSwapped(
             transactionId,
             _swap.callTo,

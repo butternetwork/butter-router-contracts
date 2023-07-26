@@ -352,6 +352,125 @@ task("setFee",
     })
 
 
+    task("deployRouterPlus",
+    "deployRouterPlus"
+         )
+    .setAction(async (taskArgs, hre) => {
+        const { deployments, getNamedAccounts, ethers,network} = hre;
+        const { deploy } = deployments;
+        const { deployer } = await getNamedAccounts();
+        console.log("deployer :", deployer);
+        let config = getConfig(network.name);
+        if(config){
+
+            console.log("<------------------------ deployRouterPlus begin ---------------------------->")
+
+            let [wallet] = await ethers.getSigners();
+            let IDeployFactory_abi = [
+                "function deploy(bytes32 salt, bytes memory creationCode, uint256 value) external",
+                "function getAddress(bytes32 salt) external view returns (address)"
+            ]
+            let factory_addr = process.env.DEPLOY_FACTORY;
+            let factory = await ethers.getContractAt(IDeployFactory_abi, factory_addr, wallet);
+            let salt = process.env.ROUTER_DEPLOY_SALT;
+            let salt_hash = await ethers.utils.keccak256(await ethers.utils.toUtf8Bytes(salt));
+            salt_hash =  await ethers.utils.keccak256(await ethers.utils.toUtf8Bytes(salt_hash));
+            console.log("factory :", factory.address);
+            console.log("router salt:", salt);
+            let router_addr = await factory.getAddress(salt_hash);
+            let code = await ethers.provider.getCode(router_addr);
+
+            if(code !== '0x'){
+                console.log("already deployed router address is :", router_addr);
+                return;
+            }
+
+
+            // 1 - deploy router v2
+            let ButterRouterV2 = await ethers.getContractFactory("ButterRouterPlus");
+            let param = ethers.utils.defaultAbiCoder.encode(['address', 'address'], [deployer, config.wToken])
+            let create_code = ethers.utils.solidityPack(['bytes', 'bytes'], [ButterRouterV2.bytecode, param]);
+            let create = await (await factory.deploy(salt_hash, create_code, 0)).wait();
+            if (create.status == 1) {
+                console.log("router plus deployed to :", router_addr);
+            } else {
+                console.log("router plus deploy fail");
+                return;
+            }
+
+            //2 - setFee
+            let router = ButterRouterV2.attach(router_addr);
+            result = await (await router.setFee(config.fee.receiver, config.fee.feeRate, config.fee.fixedFee)).wait();
+            if (result.status == 1) {
+                console.log(`Router ${router.address} setFee rate(${config.fee.feeRate}), fixed(${config.fee.fixedFee}), receiver(${config.fee.receiver}) succeed`);
+            } else {
+                console.log('setFee failed');
+            }
+
+            //4 - setAuthorization
+            result = await (await router.setAuthorization(config.excutors,true)).wait();
+            if (result.status == 1) {
+                console.log(`Router ${router.address} setAuthorization ${config.excutors} succeed`);
+            } else {
+                console.log('setAuthorization failed');
+            }
+
+           console.log("<----------------------------- deployRouterPlus ... done ----------------------->");
+        } else {
+            console.log("config not set ...");
+        }
+    })
+
+    task("deployRouterPlusZk",
+    "deployRouterPlus"
+         )
+    .setAction(async (taskArgs, hre) => {
+        const { deployments, getNamedAccounts, ethers,network} = hre;
+        const { deploy } = deployments;
+        const { deployer } = await getNamedAccounts();
+        console.log("deployer :", deployer);
+        let config = getConfig(network.name);
+        if(config){
+
+            console.log("<------------------------ deployAndSetUp begin ---------------------------->")
+
+            const wallet = new Wallet(process.env.PRIVATE_KEY)
+            // Create deployer object and load the artifact of the contract we want to deploy.
+            const deployer = new Deployer(hre, wallet)
+
+            // 1 - deploy router v2
+            const router_artifact = await deployer.loadArtifact('ButterRouterPlus')
+            // Deploy this contract. The returned object will be of a `Contract` type,
+            // similar to the ones in `ethers`.
+            const butterRouter = await deployer.deploy(router_artifact,[wallet.address,config.wToken])
+
+            console.log("ButterRouter plus deployed on :",butterRouter.address);
+
+            //3 - setFee
+            let ButterRouterV2 = await ethers.getContractFactory("ButterRouterPlus");
+            let router = ButterRouterV2.attach(butterRouter.address);
+            let result = await (await router.setFee(config.fee.receiver, config.fee.feeRate, config.fee.fixedFee)).wait();
+            if (result.status == 1) {
+                console.log(`Router ${router.address} setFee rate(${config.fee.feeRate}), fixed(${config.fee.fixedFee}), receiver(${config.fee.receiver}) succeed`);
+            } else {
+                console.log('setFee failed');
+            }
+            //4 - setAuthorization
+            config.excutors.push(adapt.address);
+            result = await (await router.setAuthorization(config.excutors,true)).wait();
+            if (result.status == 1) {
+                console.log(`Router ${router.address} setAuthorization ${config.excutors} succeed`);
+            } else {
+                console.log('setAuthorization failed');
+            }
+
+           console.log("<----------------------------- deployAndSetUp ... done ----------------------->");
+        } else {
+            console.log("config not set ...");
+        }
+    })
+
+
     task("deployAndSetUpZk",
     "deployAndSetUp"
          )
