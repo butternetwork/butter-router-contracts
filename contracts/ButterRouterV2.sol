@@ -7,73 +7,51 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@butternetwork/bridge/contracts/interface/IButterMosV2.sol";
-import "./lib/Helper.sol";
 import "./lib/ErrorMessage.sol";
-import "./interface/IButterRouterV2.sol";
+import "./abstract/Router.sol";
+import "./lib/Helper.sol";
 
-contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
+contract ButterRouterV2 is Router,ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Address for address;
 
-    uint256 private constant FEE_DENOMINATOR = 1000000;
-
-    address private immutable wToken;
-
     address public mosAddress;
 
-    address public feeReceiver;
-
-    uint256 public feeRate;
-
-    uint256 public fixedFee;
-
-    mapping(address => bool) public approved;
-
-    modifier transferIn(address token, uint256 amount, bytes memory permitData) {
-        require(amount > 0,ErrorMessage.ZERO_IN);
-
-        if (permitData.length > 0) {
-            Helper._permit(permitData);
-        }
-        if (Helper._isNative(token)) {
-            require(msg.value >= amount, ErrorMessage.FEE_MISMATCH);
-        } else {
-            SafeERC20.safeTransferFrom(
-                IERC20(token),
-                msg.sender,
-                address(this),
-                amount
-            );
-        }
-        _;
-    }
-
-    // use to solve deep stack
-    struct SwapTemp {
-        address srcToken;
-        address swapToken;
-        uint256 srcAmount;
-        uint256 swapAmount;
-        bytes32 transferId;
-        address receiver;
-        address target;
-        uint256 callAmount;
-        uint256 fromChain;
+    struct BridgeParam {
         uint256 toChain;
-        bytes from;
+        bytes receiver;
+        bytes data;
     }
 
-
-    event CollectFee(address indexed token, address indexed receiver, uint256 indexed amount,FeeType feeType);
-    event Approve(address indexed executor, bool indexed flag);
     event SetMos(address indexed mos);
-    event SetFee(address indexed receiver, uint256 indexed rate, uint256 indexed fixedf);
+   
+    event SwapAndBridge(
+        bytes32 indexed orderId,
+        address indexed from,
+        address indexed originToken,
+        address bridgeToken,
+        uint256 originAmount,
+        uint256 bridgeAmount,
+        uint256 fromChain,
+        uint256 toChain,
+        bytes to
+    );
 
-    constructor(address _mosAddress, address _owner,address _wToken) payable {
-        require(_owner != Helper.ZERO_ADDRESS, ErrorMessage.ZERO_ADDR);
-        require(_wToken.isContract(),ErrorMessage.NOT_CONTRACT);
-        wToken = _wToken;
-        _transferOwnership(_owner);
+    event RemoteSwapAndCall(
+        bytes32 indexed orderId,
+        address indexed receiver,
+        address indexed target,
+        address originToken,
+        address swapToken,
+        uint256 originAmount,
+        uint256 swapAmount,
+        uint256 callAmount,
+        uint256 fromChain,
+        uint256 toChain,
+        bytes from
+    );
+
+    constructor(address _mosAddress, address _owner,address _wToken) Router(_owner,_wToken) payable {
         _setMosAddress(_mosAddress);
     }
 
@@ -83,33 +61,38 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
         bytes calldata _swapData,
         bytes calldata _bridgeData,
         bytes calldata _permitData
-    ) external payable override nonReentrant transferIn(_srcToken, _amount, _permitData) {
-        require(_bridgeData.length > 0, ErrorMessage.BRIDGE_REQUIRE);
-
+    ) external payable  nonReentrant transferIn(_srcToken, _amount, _permitData) {
+        require (_swapData.length + _bridgeData.length > 0, ErrorMessage.DATA_EMPTY);
         SwapTemp memory swapTemp;
         swapTemp.srcToken = _srcToken;
         swapTemp.srcAmount = _amount;
         swapTemp.swapToken = _srcToken;
         swapTemp.swapAmount = _amount;
-
+        bytes memory receiver;
         if (_swapData.length > 0) {
-            SwapParam memory swap = abi.decode(_swapData, (SwapParam));
+            Helper.SwapParam memory swap = abi.decode(_swapData, (Helper.SwapParam));
             bool result;
             (result, swapTemp.swapToken, swapTemp.swapAmount) = _makeSwap(swapTemp.srcAmount, swapTemp.srcToken, swap);
             require(result, ErrorMessage.SWAP_FAIL);
             require(swapTemp.swapAmount >= swap.minReturnAmount,ErrorMessage.RECEIVE_LOW);
+            if(_bridgeData.length == 0 && swapTemp.swapAmount > 0){
+                receiver = abi.encodePacked(swap.receiver);
+                Helper._transfer(swapTemp.swapToken,swap.receiver,swapTemp.swapAmount);
+            }
+        } 
+        bytes32 orderId;
+        if(_bridgeData.length > 0){
+           BridgeParam memory bridge = abi.decode(_bridgeData, (BridgeParam));
+           swapTemp.toChain = bridge.toChain;
+           receiver = bridge.receiver;
+           orderId = _doBridge(msg.sender, swapTemp.swapToken, swapTemp.swapAmount, bridge); 
         }
-
-        BridgeParam memory bridge = abi.decode(_bridgeData, (BridgeParam));
-        bytes32 orderId = _doBridge(msg.sender, swapTemp.swapToken, swapTemp.swapAmount, bridge);
-
-        emit SwapAndBridge(orderId, msg.sender, swapTemp.srcToken, swapTemp.swapToken, swapTemp.srcAmount, swapTemp.swapAmount, block.chainid, bridge.toChain, bridge.receiver);
+        emit SwapAndBridge(orderId,msg.sender,swapTemp.srcToken, swapTemp.swapToken,swapTemp.srcAmount, swapTemp.swapAmount,block.chainid,swapTemp.toChain,receiver);
     }
 
     function swapAndCall(bytes32 _transferId, address _srcToken, uint256 _amount, FeeType _feeType, bytes calldata _swapData, bytes calldata _callbackData, bytes calldata _permitData)
     external 
     payable
-    override
     nonReentrant
     transferIn(_srcToken, _amount, _permitData)
     {
@@ -120,12 +103,13 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
         swapTemp.swapToken = _srcToken;
         swapTemp.swapAmount = _amount;
         swapTemp.transferId = _transferId;
+        swapTemp.feeType = _feeType;
         uint256 _nativeBalanceBeforeExec = address(this).balance - msg.value;
         require (_swapData.length + _callbackData.length > 0, ErrorMessage.DATA_EMPTY);
-        (, swapTemp.swapAmount) = _collectFee(swapTemp.srcToken, swapTemp.srcAmount, _feeType);
+        (, swapTemp.swapAmount) = _collectFee(swapTemp.srcToken, swapTemp.srcAmount,swapTemp.transferId,swapTemp.feeType);
 
         if (_swapData.length > 0) {
-            SwapParam memory swap = abi.decode(_swapData, (SwapParam));
+            Helper.SwapParam memory swap = abi.decode(_swapData, (Helper.SwapParam));
             // in srcToken srcAmount out outToken outAmount 
             //swapTemp.swapAmount in --> srcTokenAmount out ->  outTokenAmount
             (result, swapTemp.swapToken, swapTemp.swapAmount)= _makeSwap(swapTemp.swapAmount, swapTemp.srcToken, swap);
@@ -136,7 +120,7 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
         }
 
         if (_callbackData.length > 0) {
-            (CallbackParam memory callParam) = abi.decode(_callbackData, (CallbackParam));
+            (Helper.CallbackParam memory callParam) = abi.decode(_callbackData, (Helper.CallbackParam));
             require(swapTemp.swapAmount >= callParam.amount, ErrorMessage.CALL_AMOUNT_INVALID);
             (result, swapTemp.callAmount) = _callBack(swapTemp.swapToken, callParam, _nativeBalanceBeforeExec);
             require(result,ErrorMessage.CALL_FAIL);
@@ -152,10 +136,9 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
     }
 
     // _srcToken must erc20 Token or wToken
-    function remoteSwapAndCall(bytes32 _orderId, address _srcToken,  uint256 _amount, uint256 _fromChain, bytes calldata _from, bytes calldata _swapAndCall)
+    function remoteSwapAndCall(bytes32 _orderId, address _srcToken, uint256 _amount, uint256 _fromChain, bytes calldata _from, bytes calldata _swapAndCall)
     external
     payable
-    override
     nonReentrant
     {
         bool result;
@@ -175,7 +158,7 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
         require (_swapData.length + _callbackData.length > 0, ErrorMessage.DATA_EMPTY);
 
         if(_swapData.length > 0) {
-            SwapParam memory swap = abi.decode(_swapData, (SwapParam));
+            Helper.SwapParam memory swap = abi.decode(_swapData, (Helper.SwapParam));
             if(_srcToken == wToken && Helper._isNative(swap.dstToken)){
                 result = Helper._safeWithdraw(wToken, swapTemp.srcAmount);
                 if(result) swapTemp.swapToken = Helper.NATIVE_ADDRESS;
@@ -196,7 +179,7 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
         }
         
         if(_callbackData.length > 0){
-            CallbackParam memory callParam = abi.decode(_callbackData, (CallbackParam));
+            Helper.CallbackParam memory callParam = abi.decode(_callbackData, (Helper.CallbackParam));
             if (swapTemp.swapAmount >= callParam.amount) {
                 (result, swapTemp.callAmount) = _callBack(swapTemp.swapToken, callParam,_nativeBalanceBeforeExec);
                 if(result){
@@ -210,88 +193,6 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
             Helper._transfer(swapTemp.swapToken, swapTemp.receiver, (swapTemp.swapAmount - swapTemp.callAmount));
         }
         emit RemoteSwapAndCall(_orderId,swapTemp.receiver,swapTemp.target, swapTemp.srcToken, swapTemp.swapToken, swapTemp.srcAmount, swapTemp.swapAmount, swapTemp.callAmount, swapTemp.fromChain, swapTemp.toChain, swapTemp.from);
-    }
-
-    function setFee(address _feeReceiver, uint256 _feeRate,uint256 _fixedFee) external onlyOwner {
-        require(_feeReceiver != Helper.ZERO_ADDRESS, ErrorMessage.ZERO_ADDR);
-
-        require(_feeRate < FEE_DENOMINATOR);
-
-        feeReceiver = _feeReceiver;
-
-        feeRate = _feeRate;
-
-        fixedFee = _fixedFee;
-
-        emit SetFee(_feeReceiver,_feeRate,fixedFee);
-    }
-
-   function _collectFee(address _token, uint256 _amount, FeeType _feeType) internal returns(uint256 _fee, uint256 _remain){
-        if(feeReceiver == Helper.ZERO_ADDRESS) {
-            _remain = _amount;
-            return(_fee,_remain);
-        }
-        if(_feeType == FeeType.FIXED){
-            _fee = fixedFee;
-            if(Helper._isNative(_token)){
-               require(msg.value > fixedFee, ErrorMessage.FEE_LOWER);
-               _remain = _amount - _fee;
-            } else {
-               require(msg.value >= fixedFee,ErrorMessage.FEE_MISMATCH);
-               _remain = _amount;
-            }
-            _token = Helper.NATIVE_ADDRESS;
-        } else {
-            _fee = _amount * feeRate / FEE_DENOMINATOR;
-            _remain = _amount - _fee;
-        }
-        if(_fee > 0) {
-            Helper._transfer(_token,feeReceiver,_fee);
-           emit CollectFee(_token,feeReceiver,_fee,_feeType);
-        }
-       
-   }
-
-    function _makeSwap(uint256 _amount, address _srcToken, SwapParam memory _swap) internal returns(bool _result, address _dstToken, uint256 _returnAmount){
-        require(approved[_swap.executor],ErrorMessage.NO_APPROVE);
-        _dstToken = _swap.dstToken;
-        uint256 nativeValue = 0;
-        bool isNative = Helper._isNative(_srcToken);
-        if (isNative) {
-            nativeValue = _amount;
-        } else {
-            IERC20(_srcToken).safeApprove(_swap.approveTo, 0);
-            IERC20(_srcToken).safeApprove(_swap.approveTo, _amount);
-        }
-        _returnAmount = Helper._getBalance(_dstToken, address(this));
-
-        (_result,) = _swap.executor.call{value:nativeValue}(_swap.data);
-
-        _returnAmount = Helper._getBalance(_dstToken, address(this)) - _returnAmount;
-        
-        if (!isNative ) {
-            IERC20(_srcToken).safeApprove(_swap.approveTo, 0);
-        }
-    }
-
-    function _callBack(address _token, CallbackParam memory _callParam,uint256 _nativeBalanceBeforeExec) internal returns (bool _result, uint256 _callAmount) {
-        require(approved[_callParam.target], ErrorMessage.NO_APPROVE);
-
-        _callAmount = Helper._getBalance(_token, address(this));
-
-        if (Helper._isNative(_token)) {
-            (_result, )  = _callParam.target.call{value: _callParam.amount}(_callParam.data);
-        } else {          
-            //if native value not enough return
-            if(address(this).balance < (_nativeBalanceBeforeExec + _callParam.extraNativeAmount)){
-                return(false,0);
-            }
-            IERC20(_token).safeIncreaseAllowance(_callParam.approveTo, _callParam.amount);
-            // this contract not save money make sure send value can cover this
-            (_result, )  = _callParam.target.call{value:_callParam.extraNativeAmount}(_callParam.data);
-            IERC20(_token).safeApprove(_callParam.approveTo, 0);
-        }
-        _callAmount = _callAmount - Helper._getBalance(_token, address(this));
     }
 
     function _doBridge(address _sender, address _token, uint256 _value, BridgeParam memory _bridge) internal returns (bytes32 _orderId) {
@@ -315,54 +216,12 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
         }
     }
 
-
-    function getFee(uint256 _amount,address _token,FeeType _feeType) external view override returns(address _feeReceiver,address _feeToken,uint256 _fee,uint256 _feeAfter){
-        if(feeReceiver == Helper.ZERO_ADDRESS) {
-            return(Helper.ZERO_ADDRESS, Helper.ZERO_ADDRESS, 0, _amount);
-        }
-        if(_feeType == FeeType.FIXED){
-            _feeToken = Helper.ZERO_ADDRESS;
-            _fee = fixedFee;
-            if(!Helper._isNative(_token)){
-               _feeAfter = _amount;
-            } else {
-                _feeAfter = _amount - _fee;
-            }
-        } else {
-            _feeToken = _token;
-            _fee = _amount * feeRate / FEE_DENOMINATOR;
-            _feeAfter = _amount - _fee;
-        }
-        _feeReceiver = feeReceiver;
-    }
-
-    function getInputBeforeFee(uint256 _amountAfterFee,address _token, FeeType _feeType) external view override returns(uint256 _input,address _feeReceiver,address _feeToken,uint256 _fee){
-        if(feeReceiver == Helper.ZERO_ADDRESS) {
-            return(_amountAfterFee,Helper.ZERO_ADDRESS, Helper.ZERO_ADDRESS, 0);
-        }
-       if(_feeType == FeeType.FIXED){
-            _feeToken = Helper.ZERO_ADDRESS;
-            _fee = fixedFee;
-            if(!Helper._isNative(_token)){
-               _input = _amountAfterFee;
-            } else {
-                _input = _amountAfterFee + _fee;
-            }
-        } else {
-            _feeToken = _token;
-            _input = _amountAfterFee * FEE_DENOMINATOR / (FEE_DENOMINATOR - feeRate) + 1;
-            _fee = _input - _amountAfterFee;
-        }
-        _feeReceiver = feeReceiver;
-    }
-
     function setMosAddress(
         address _mosAddress
     ) public onlyOwner returns (bool) {
         _setMosAddress(_mosAddress);
         return true;
     }
-
     function _setMosAddress(address _mosAddress) internal returns (bool) {
         require(
             _mosAddress.isContract(),
@@ -371,19 +230,6 @@ contract ButterRouterV2 is IButterRouterV2, Ownable2Step, ReentrancyGuard {
         mosAddress = _mosAddress;
         emit SetMos(_mosAddress);
         return true;
-    }
-
-    function setAuthorization(address[] calldata _excutors, bool _flag) external onlyOwner {
-        require(_excutors.length > 0, ErrorMessage.DATA_EMPTY);
-        for (uint i = 0; i < _excutors.length; i++) {
-            require(_excutors[i].isContract(), ErrorMessage.NOT_CONTRACT);
-            approved[_excutors[i]] = _flag;
-            emit Approve(_excutors[i], _flag);
-        }
-    }
-
-    function rescueFunds(address _token, uint256 _amount) external onlyOwner {
-        Helper._transfer(_token, msg.sender, _amount);
     }
 
     receive() external payable {}

@@ -9,10 +9,28 @@ import "@openzeppelin/contracts/token/ERC20/extensions/draft-IERC20Permit.sol";
 library Helper {
     using SafeERC20 for IERC20;
     address internal constant ZERO_ADDRESS = address(0);
-    uint256 private constant MAX_UINT = type(uint256).max;
-
     address internal constant NATIVE_ADDRESS =
         0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+
+    
+    struct CallbackParam {
+        address target;
+        address approveTo; 
+        uint256 amount;
+        uint256 extraNativeAmount;
+        address receiver;
+        bytes data;
+    }
+
+    struct SwapParam {
+        uint8 dexType;
+        address executor;
+        address approveTo; 
+        address receiver;
+        address dstToken;
+        uint256 minReturnAmount;
+        bytes data;
+    }
 
     function _isNative(address token) internal pure returns (bool) {
         return (token == ZERO_ADDRESS || token == NATIVE_ADDRESS);
@@ -42,20 +60,6 @@ library Helper {
         return (success && (data.length == 0 || abi.decode(data, (bool))));
     }
 
-    function _maxApproveERC20(
-        IERC20 assetId,
-        address spender,
-        uint256 amount
-    ) internal {
-        if (_isNative(address(assetId))) return;
-        uint256 allowance = assetId.allowance(address(this), spender);
-        if (allowance < amount)
-            SafeERC20.safeIncreaseAllowance(
-                IERC20(assetId),
-                spender,
-                MAX_UINT - allowance
-            );
-    }
 
     function _getFirst4Bytes(
         bytes memory data
@@ -63,10 +67,49 @@ library Helper {
         if (data.length == 0) {
             return 0x0;
         }
-
         assembly {
             outBytes4 := mload(add(data, 32))
         }
+    }
+
+        function _makeSwap(uint256 _amount, address _srcToken, SwapParam memory _swap) internal returns(bool _result, address _dstToken, uint256 _returnAmount){
+            _dstToken = _swap.dstToken;
+            uint256 nativeValue = 0;
+            bool isNative = Helper._isNative(_srcToken);
+            if (isNative) {
+                nativeValue = _amount;
+            } else {
+                IERC20(_srcToken).safeApprove(_swap.approveTo, 0);
+                IERC20(_srcToken).safeApprove(_swap.approveTo, _amount);
+            }
+            _returnAmount = Helper._getBalance(_dstToken, address(this));
+
+            (_result,) = _swap.executor.call{value:nativeValue}(_swap.data);
+
+            _returnAmount = Helper._getBalance(_dstToken, address(this)) - _returnAmount;
+            
+            if (!isNative ) {
+                IERC20(_srcToken).safeApprove(_swap.approveTo, 0);
+            }
+    }
+
+    function _callBack(address _token, CallbackParam memory _callParam,uint256 _nativeBalanceBeforeExec) internal returns (bool _result, uint256 _callAmount) {
+
+        _callAmount = Helper._getBalance(_token, address(this));
+
+        if (Helper._isNative(_token)) {
+            (_result, )  = _callParam.target.call{value: _callParam.amount}(_callParam.data);
+        } else {          
+            //if native value not enough return
+            if(address(this).balance < (_nativeBalanceBeforeExec + _callParam.extraNativeAmount)){
+                return(false,0);
+            }
+            IERC20(_token).safeIncreaseAllowance(_callParam.approveTo, _callParam.amount);
+            // this contract not save money make sure send value can cover this
+            (_result, )  = _callParam.target.call{value:_callParam.extraNativeAmount}(_callParam.data);
+            IERC20(_token).safeApprove(_callParam.approveTo, 0);
+        }
+        _callAmount = _callAmount - Helper._getBalance(_token, address(this));
     }
 
     

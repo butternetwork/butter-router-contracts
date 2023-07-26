@@ -5,9 +5,8 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable2Step.sol";
 import "./interface/IMessageReceiverApp.sol";
-import "./interface/IButterRouterV2.sol";
-import "./lib/Helper.sol";
 import "./lib/ErrorMessage.sol";
+import "./lib/Helper.sol";
 
 // Stargate deploy address https://stargateprotocol.gitbook.io/stargate/developers/contract-addresses/mainnet   -- router
 // connext(Amarok) deploy address  https://docs.connext.network/resources/deployments  -- connext
@@ -20,7 +19,6 @@ interface IAuthorization {
 contract Receiver is ReentrancyGuard,Ownable2Step{
    using SafeERC20 for IERC20;
    using Address for address;
-
 
    address public authorization;
    uint256 public recoverGas;
@@ -235,14 +233,6 @@ contract Receiver is ReentrancyGuard,Ownable2Step{
         _swapAndCall(_transactionId,_srcToken,_amount,_receiver,_swapData,_callbackData,false);
     }
 
-    // function swapAndCall(bytes32 _transactionId,address _srcToken,uint256 _amount,address _receiver,bytes calldata _swapData,bytes calldata _callbackData)
-    // external 
-    // payable
-    // nonReentrant
-    // {   
-    //     _swapAndCall(_transactionId,_srcToken,_amount,_receiver,_swapData,_callbackData);
-    // }
-
     function _swapAndCall(bytes32 _transactionId,address _srcToken, uint256 _amount,address _receiver,bytes memory _swapData,bytes memory _callbackData,bool reserveRecoverGas)
     internal
     {
@@ -270,7 +260,7 @@ contract Receiver is ReentrancyGuard,Ownable2Step{
 
         uint256 srcTokenBalanceBefore = balance - _amount;
         if(_swapData.length > 0) {
-            IButterRouterV2.SwapParam memory swap = abi.decode(_swapData, (IButterRouterV2.SwapParam));
+            Helper.SwapParam memory swap = abi.decode(_swapData, (Helper.SwapParam));
             (result,temp.swapToken, temp.swapAmount)= _makeSwap(temp.srcAmount, _srcToken, swap);
             if(!result){
                 Helper._transfer(_srcToken,temp.receiver,_amount);
@@ -281,7 +271,7 @@ contract Receiver is ReentrancyGuard,Ownable2Step{
             temp.target = swap.executor;
         }
         if(_callbackData.length > 0){
-            (IButterRouterV2.CallbackParam memory callParam) = abi.decode(_callbackData, (IButterRouterV2.CallbackParam));
+            (Helper.CallbackParam memory callParam) = abi.decode(_callbackData, (Helper.CallbackParam));
             if(temp.swapAmount >= callParam.amount) {
                 (result, temp.callAmount) = _callBack(temp.swapToken,callParam);
                 if(!result){
@@ -304,46 +294,14 @@ contract Receiver is ReentrancyGuard,Ownable2Step{
     }
 
 
-    function _makeSwap(uint256 _amount, address _srcToken, IButterRouterV2.SwapParam memory _swap) internal returns(bool _result, address _dstToken, uint256 _returnAmount){
+    function _makeSwap(uint256 _amount, address _srcToken, Helper.SwapParam memory _swap) internal returns(bool _result, address _dstToken, uint256 _returnAmount){
         require(_approved(_swap.executor),ErrorMessage.NO_APPROVE);
-        _dstToken = _swap.dstToken;
-        uint256 nativeValue = 0;
-        bool isNative = Helper._isNative(_srcToken);
-        if (isNative) {
-            nativeValue = _amount;
-        } else {
-            IERC20(_srcToken).safeApprove(_swap.approveTo,0);
-            IERC20(_srcToken).safeApprove(_swap.approveTo, _amount);
-        }
-        _returnAmount = Helper._getBalance(_dstToken, address(this));
-
-        (_result,) = _swap.executor.call{value:nativeValue}(_swap.data);
-
-        _returnAmount = Helper._getBalance(_dstToken, address(this)) - _returnAmount;
-        
-        if (!isNative ) {
-            IERC20(_srcToken).safeApprove(_swap.approveTo,0);
-        }
+        (_result,_dstToken,_returnAmount) = Helper._makeSwap(_amount,_srcToken,_swap);
     }
 
-    function _callBack(address _token, IButterRouterV2.CallbackParam memory _callParam) internal returns (bool _result, uint256 _callAmount) {
+    function _callBack(address _token, Helper.CallbackParam memory _callParam) internal returns (bool _result, uint256 _callAmount) {
         require(_approved(_callParam.target), ErrorMessage.NO_APPROVE);
-
-        _callAmount = Helper._getBalance(_token, address(this));
-
-        if (Helper._isNative(_token)) {
-            (_result, )  = _callParam.target.call{value: _callParam.amount}(_callParam.data);
-        } else {          
-            //if native value not enough return
-            if(address(this).balance < _callParam.extraNativeAmount){
-                return(false,0);
-            }
-            IERC20(_token).safeIncreaseAllowance(_callParam.approveTo, _callParam.amount);
-            // this contract not save money make sure send value can cover this
-            (_result, )  = _callParam.target.call{value:_callParam.extraNativeAmount}(_callParam.data);
-            IERC20(_token).safeApprove(_callParam.approveTo,0);
-        }
-        _callAmount = _callAmount - Helper._getBalance(_token, address(this));
+       (_result,_callAmount) =  Helper._callBack(_token,_callParam,0);
     }
 
     function _approved(address _callTo) internal view returns (bool) {

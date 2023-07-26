@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
-import "./Helper.sol";
+import "./LibAsset.sol";
 contract Validatable {
 
     struct BridgeData {
@@ -28,7 +28,7 @@ contract Validatable {
     }
 
     modifier noNativeAsset(BridgeData memory _bridgeData) {
-        require(!Helper._isNative(_bridgeData.sendingAssetId),"E04");
+        require(!LibAsset._isNative(_bridgeData.sendingAssetId),"E04");
         _;
     }
 

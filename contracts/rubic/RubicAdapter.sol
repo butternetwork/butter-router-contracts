@@ -9,7 +9,7 @@ import "./interface/IStargateRouter.sol";
 import "./interface/IXSwapper.sol";
 import "./interface/ISymbiosisMetaRouter.sol";
 import "./lib/Swapper.sol";
-import "./lib/Helper.sol";
+import "./lib/LibAsset.sol";
 import "./lib/Validatable.sol";
 // import "hardhat/console.sol";
 
@@ -112,7 +112,7 @@ contract RubicAdapter is ReentrancyGuard,Ownable2Step,Swapper,Validatable{
             _receiver
         );
         address receivingAssetId = _swapData[_swapData.length - 1].receivingAssetId;
-        Helper._transfer(receivingAssetId, _receiver, postSwapBalance);
+        LibAsset._transfer(receivingAssetId, _receiver, postSwapBalance);
         emit SwappedGeneric(
             _transactionId,
             _integrator,
@@ -220,13 +220,13 @@ contract RubicAdapter is ReentrancyGuard,Ownable2Step,Swapper,Validatable{
         BridgeData memory _bridgeData,
         GenericCrossChainData memory _genericData
     ) internal {
-        bool isNative = Helper._isNative(_bridgeData.sendingAssetId);
+        bool isNative = LibAsset._isNative(_bridgeData.sendingAssetId);
         uint256 nativeAssetAmount;
 
         if (isNative) {
             nativeAssetAmount = _bridgeData.minAmount;
         } else {
-            Helper._maxApproveERC20(
+            LibAsset._maxApproveERC20(
                 IERC20(_bridgeData.sendingAssetId),
                 _genericData.router,
                 _bridgeData.minAmount
@@ -337,13 +337,13 @@ contract RubicAdapter is ReentrancyGuard,Ownable2Step,Swapper,Validatable{
         SymbiosisData calldata _symbiosisData
     ) internal {
         require(address(symbiosisMetaRouter) != address(0),"E23");
-        bool isNative = Helper._isNative(_bridgeData.sendingAssetId);
+        bool isNative = LibAsset._isNative(_bridgeData.sendingAssetId);
         uint256 nativeAssetAmount;
 
         if (isNative) {
             nativeAssetAmount = _bridgeData.minAmount;
         } else {
-            Helper._maxApproveERC20(
+            LibAsset._maxApproveERC20(
                 IERC20(_bridgeData.sendingAssetId),
                 symbiosisGateway,
                 _bridgeData.minAmount
@@ -434,14 +434,14 @@ contract RubicAdapter is ReentrancyGuard,Ownable2Step,Swapper,Validatable{
         XYData calldata _xyData
     ) internal {
         require(address(xRouter) != address(0),"E24");
-        bool isNative = Helper._isNative(_bridgeData.sendingAssetId);
+        bool isNative = LibAsset._isNative(_bridgeData.sendingAssetId);
         uint256 nativeAssetAmount;
 
         if (isNative) {
             nativeAssetAmount = _bridgeData.minAmount;
-            _bridgeData.sendingAssetId = Helper.NATIVE_ADDRESS;
+            _bridgeData.sendingAssetId = LibAsset.NATIVE_ADDRESS;
         } else {
-            Helper._maxApproveERC20(
+            LibAsset._maxApproveERC20(
                 IERC20(_bridgeData.sendingAssetId),
                 address(xRouter),
                 _bridgeData.minAmount
@@ -449,8 +449,8 @@ contract RubicAdapter is ReentrancyGuard,Ownable2Step,Swapper,Validatable{
         }
 
         address toChainToken = _xyData.toChainToken;
-        if (Helper._isNative(toChainToken))
-            toChainToken = Helper.NATIVE_ADDRESS;
+        if (LibAsset._isNative(toChainToken))
+            toChainToken = LibAsset.NATIVE_ADDRESS;
 
         xRouter.swap{ value: nativeAssetAmount }(
             address(0),
@@ -581,7 +581,7 @@ contract RubicAdapter is ReentrancyGuard,Ownable2Step,Swapper,Validatable{
         StargateData calldata _stargateData
     ) private noNativeAsset(_bridgeData) {
         require(address(stargateRouter) != address(0),"E25");
-        Helper._maxApproveERC20(
+        LibAsset._maxApproveERC20(
             IERC20(_bridgeData.sendingAssetId),
             address(stargateRouter),
             _bridgeData.minAmount
@@ -690,6 +690,6 @@ contract RubicAdapter is ReentrancyGuard,Ownable2Step,Swapper,Validatable{
     }
 
     function rescueFunds(address _token, uint256 _amount) external onlyOwner {
-        Helper._transfer(_token,msg.sender,_amount);
+        LibAsset._transfer(_token,msg.sender,_amount);
     }
 }
