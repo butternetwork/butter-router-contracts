@@ -83,13 +83,17 @@ npm install
 ### create an .env file and fill following in the contents
 
 ```
+
 PRIVATE_KEY=
 ALCHEMY_KEY = 
 DEPLOY_FACTORY = 0x6258e4d2950757A749a4d4683A7342261ce12471;
 //bytes32 deploy ButterRouterV2 salt
 ROUTER_DEPLOY_SALT = 
+PLUS_DEPLOY_SALT =
 AGG_DEPLOY_SALT = 
 RECEIVER_DEPLOY_SALT = 
+RUBIC_ADAPTER_SALT = 
+FEE_RECEIVER_SAlT = 
 ```
 
 ### Compiling contracts
@@ -189,18 +193,16 @@ npx hardhat setV2Mos --router <router address> --mos  <mos address> --network <n
 
 4. set authorization
 
-
 ```
 npx hardhat setAuthorization --router <router address> --executors <excutors address array> --flag <flag> --network <network>
 ```
 
 **NOTE**
-* approve flag `true`  indicates that it can be called by router)
 
+* approve flag `true`  indicates that it can be called by router)
 * multi executors separation by ',', like `0xd73bF6a58481715B5A3B72E9ca214A44C7Ba4533,0xd73bF6a58481715B5A3B72E9ca214A44C7Ba4533`
 
-
- 5. setFee  (feeRate - the denominator is 1000000, fixed fee is in wei)
+5. setFee  (feeRate - the denominator is 1000000, fixed fee is in wei)
 
 ```
 npx hardhat setFee --router <router address> --feereceiver <feeReceiver address> --feerate <feeRate> --fixedfee <fixedFee> --network <network>
@@ -209,47 +211,74 @@ npx hardhat setFee --router <router address> --feereceiver <feeReceiver address>
 6. deployAndSetUp
 
 before run this task, set task/config.js
+
 ```
 npx hardhat deployAndSetUp  --network <network>
 ```
 
-7. deployAndSetUpZk
+7. deployRouterPlus
+
+   ```shell
+   npx hardhat deployRouterPlus--network <network>
+   ```
+8. deployFeeReceiver
+
+   ```
+   npx hardhat deployFeeReceiver --payees <addressA,addressB> --shares <share1,share2> --network <network>
+   ```
+9. deployAndSetUpZk
 
 **before run this task, compile the contracts**
 
-```
+```shell
 npx hardhat compile --network  `<zkSync or zkSyncTest>`
 ```
 
-```
+```shell
 npx hardhat deployAndSetUpZk --network <zkSync or zkSyncTest>
 ```
 
-8. deployReceiver
+  10.deployRouterPlusZk
+
+```shell
+npx hardhat deployRouterPlusZk --network <zkSync or zkSyncTest>
+```
+
+11. deployRubicAdapter
+
+    ```shell
+    npx hardhat deployRubicAdapter --network <network>
+    ```
+12. deployFeeReceiverZk
+
+    ```
+    npx hardhat deployFeeReceiverZk --payees <addressA,addressB> --shares <share1,share2> --network <zkSync or zkSyncTest>
+    ```
+13. deployReceiver
 
 ```shell
 npx hardhat deployReceiver --router <butter router address> --network <network>
 ```
 
-9. setStargateRouter
+14.setStargateRouter
 
 ```shell
 npx hardhat setStargateRouter --receiver <receiver address> --stargate <stargate router address> --network <network>
 ```
 
-10. setAmarokRouter
+15.setAmarokRouter
 
 ```shell
 npx hardhat setAmarokRouter --receiver <receiver address> --amarok <amarok router address> --network <network>
 ```
 
-11. setCBridgeMessageBus
+16.setCBridgeMessageBus
 
 ```shell
 npx hardhat setCBridgeMessageBus --receiver <receiver address> --cbridge <cbridge messageBus address> --network <network>
 ```
 
-12. setButter
+17.setButter
 
 ```shell
 npx hardhat setButter --receiver <receiver address> --butter <butter router address> --network <network>

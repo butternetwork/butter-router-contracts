@@ -300,7 +300,7 @@ task("setFee",
 
             // 1 - deploy router v2
             let ButterRouterV2 = await ethers.getContractFactory("ButterRouterV2");
-            let param = ethers.utils.defaultAbiCoder.encode(['address', 'address', 'address'], [config.mos, deployer, config.wToken])
+            let param = ethers.utils.defaultAbiCoder.encode(['address', 'address', 'address'], [config.v2.mos, deployer, config.wToken])
             let create_code = ethers.utils.solidityPack(['bytes', 'bytes'], [ButterRouterV2.bytecode, param]);
             let create = await (await factory.deploy(salt_hash, create_code, 0)).wait();
             if (create.status == 1) {
@@ -329,18 +329,18 @@ task("setFee",
 
             //3 - setFee
             let router = ButterRouterV2.attach(router_addr);
-            result = await (await router.setFee(config.fee.receiver, config.fee.feeRate, config.fee.fixedFee)).wait();
+            result = await (await router.setFee(config.v2.fee.receiver, config.v2.fee.feeRate, config.v2.fee.fixedFee)).wait();
             if (result.status == 1) {
-                console.log(`Router ${router.address} setFee rate(${config.fee.feeRate}), fixed(${config.fee.fixedFee}), receiver(${config.fee.receiver}) succeed`);
+                console.log(`Router ${router.address} setFee rate(${config.v2.fee.feeRate}), fixed(${config.v2.fee.fixedFee}), receiver(${config.v2.fee.receiver}) succeed`);
             } else {
                 console.log('setFee failed');
             }
 
             //4 - setAuthorization
-            config.excutors.push(executor_addr);
-            result = await (await router.setAuthorization(config.excutors,true)).wait();
+            config.v2.excutors.push(executor_addr);
+            result = await (await router.setAuthorization(config.v2.excutors,true)).wait();
             if (result.status == 1) {
-                console.log(`Router ${router.address} setAuthorization ${config.excutors} succeed`);
+                console.log(`Router ${router.address} setAuthorization ${config.v2.excutors} succeed`);
             } else {
                 console.log('setAuthorization failed');
             }
@@ -372,11 +372,10 @@ task("setFee",
             ]
             let factory_addr = process.env.DEPLOY_FACTORY;
             let factory = await ethers.getContractAt(IDeployFactory_abi, factory_addr, wallet);
-            let salt = process.env.ROUTER_DEPLOY_SALT;
+            let salt = process.env.PLUS_DEPLOY_SALT;
             let salt_hash = await ethers.utils.keccak256(await ethers.utils.toUtf8Bytes(salt));
-            salt_hash =  await ethers.utils.keccak256(await ethers.utils.toUtf8Bytes(salt_hash));
             console.log("factory :", factory.address);
-            console.log("router salt:", salt);
+            console.log("router plus salt:", salt);
             let router_addr = await factory.getAddress(salt_hash);
             let code = await ethers.provider.getCode(router_addr);
 
@@ -400,17 +399,17 @@ task("setFee",
 
             //2 - setFee
             let router = ButterRouterV2.attach(router_addr);
-            result = await (await router.setFee(config.fee.receiver, config.fee.feeRate, config.fee.fixedFee)).wait();
+            result = await (await router.setFee(config.plus.fee.receiver, config.plus.fee.feeRate, config.plus.fee.fixedFee)).wait();
             if (result.status == 1) {
-                console.log(`Router ${router.address} setFee rate(${config.fee.feeRate}), fixed(${config.fee.fixedFee}), receiver(${config.fee.receiver}) succeed`);
+                console.log(`Router ${router.address} setFee rate(${config.plus.fee.feeRate}), fixed(${config.plus.fee.fixedFee}), receiver(${config.plus.fee.receiver}) succeed`);
             } else {
                 console.log('setFee failed');
             }
 
             //4 - setAuthorization
-            result = await (await router.setAuthorization(config.excutors,true)).wait();
+            result = await (await router.setAuthorization(config.plus.excutors,true)).wait();
             if (result.status == 1) {
-                console.log(`Router ${router.address} setAuthorization ${config.excutors} succeed`);
+                console.log(`Router ${router.address} setAuthorization ${config.plus.excutors} succeed`);
             } else {
                 console.log('setAuthorization failed');
             }
@@ -449,17 +448,17 @@ task("setFee",
             //3 - setFee
             let ButterRouterV2 = await ethers.getContractFactory("ButterRouterPlus");
             let router = ButterRouterV2.attach(butterRouter.address);
-            let result = await (await router.setFee(config.fee.receiver, config.fee.feeRate, config.fee.fixedFee)).wait();
+            let result = await (await router.setFee(config.plus.fee.receiver, config.plus.fee.feeRate, config.plus.fee.fixedFee)).wait();
             if (result.status == 1) {
-                console.log(`Router ${router.address} setFee rate(${config.fee.feeRate}), fixed(${config.fee.fixedFee}), receiver(${config.fee.receiver}) succeed`);
+                console.log(`Router ${router.address} setFee rate(${config.plus.fee.feeRate}), fixed(${config.plus.fee.fixedFee}), receiver(${config.plus.fee.receiver}) succeed`);
             } else {
                 console.log('setFee failed');
             }
             //4 - setAuthorization
-            config.excutors.push(adapt.address);
-            result = await (await router.setAuthorization(config.excutors,true)).wait();
+            config.plus.excutors.push(adapt.address);
+            result = await (await router.setAuthorization(config.plus.excutors,true)).wait();
             if (result.status == 1) {
-                console.log(`Router ${router.address} setAuthorization ${config.excutors} succeed`);
+                console.log(`Router ${router.address} setAuthorization ${config.plus.excutors} succeed`);
             } else {
                 console.log('setAuthorization failed');
             }
@@ -492,7 +491,7 @@ task("setFee",
             const router_artifact = await deployer.loadArtifact('ButterRouterV2')
             // Deploy this contract. The returned object will be of a `Contract` type,
             // similar to the ones in `ethers`.
-            const butterRouter = await deployer.deploy(router_artifact,[config.mos,wallet.address,config.wToken])
+            const butterRouter = await deployer.deploy(router_artifact,[config.v2.mos,wallet.address,config.wToken])
 
             console.log("ButterRouter deployed on :",butterRouter.address);
 
@@ -507,18 +506,18 @@ task("setFee",
             //3 - setFee
             let ButterRouterV2 = await ethers.getContractFactory("ButterRouterV2");
             let router = ButterRouterV2.attach(butterRouter.address);
-            let result = await (await router.setFee(config.fee.receiver, config.fee.feeRate, config.fee.fixedFee)).wait();
+            let result = await (await router.setFee(config.v2.fee.receiver, config.v2.fee.feeRate, config.v2.fee.fixedFee)).wait();
             if (result.status == 1) {
-                console.log(`Router ${router.address} setFee rate(${config.fee.feeRate}), fixed(${config.fee.fixedFee}), receiver(${config.fee.receiver}) succeed`);
+                console.log(`Router ${router.address} setFee rate(${config.v2.fee.feeRate}), fixed(${config.v2.fee.fixedFee}), receiver(${config.v2.fee.receiver}) succeed`);
             } else {
                 console.log('setFee failed');
             }
 
             //4 - setAuthorization
-            config.excutors.push(adapt.address);
-            result = await (await router.setAuthorization(config.excutors,true)).wait();
+            config.v2.excutors.push(adapt.address);
+            result = await (await router.setAuthorization(config.v2.excutors,true)).wait();
             if (result.status == 1) {
-                console.log(`Router ${router.address} setAuthorization ${config.excutors} succeed`);
+                console.log(`Router ${router.address} setAuthorization ${config.v2.excutors} succeed`);
             } else {
                 console.log('setAuthorization failed');
             }
@@ -527,6 +526,74 @@ task("setFee",
         } else {
             console.log("config not set ...");
         }
+    })
+
+    task("deployFeeReceiverZk",
+    "deployFeeReceiver"
+         )
+    .addParam("payees", "payees address array")
+    .addParam("shares", "shares array")
+    .setAction(async (taskArgs, hre) => {
+           const wallet = new Wallet(process.env.PRIVATE_KEY)
+            // Create deployer object and load the artifact of the contract we want to deploy.
+            const deployer = new Deployer(hre, wallet)
+            let payees = taskArgs.payees.split(',');
+            let shares = taskArgs.shares.split(',')
+            // 1 - deploy router v2
+            const fee_receiver_artifact = await deployer.loadArtifact('FeeReceiver')
+            // Deploy this contract. The returned object will be of a `Contract` type,
+            // similar to the ones in `ethers`.
+            const fee_receiver = await deployer.deploy(fee_receiver_artifact,[payees,shares])
+
+            console.log("fee_receiver deployed on :",fee_receiver.address);
+
+    })
+
+    task("deployFeeReceiver",
+    "deployFeeReceiver"
+         )
+    .addParam("payees", "payees address array")
+    .addParam("shares", "shares array")
+    .setAction(async (taskArgs, hre) => {
+        const { deployments, getNamedAccounts, ethers,network} = hre;
+        const { deploy } = deployments;
+        const { deployer } = await getNamedAccounts();
+        console.log("deployer :", deployer);
+       
+            let [wallet] = await ethers.getSigners();
+            let IDeployFactory_abi = [
+                "function deploy(bytes32 salt, bytes memory creationCode, uint256 value) external",
+                "function getAddress(bytes32 salt) external view returns (address)"
+            ]
+            let factory_addr = process.env.DEPLOY_FACTORY;
+            let factory = await ethers.getContractAt(IDeployFactory_abi, factory_addr, wallet);
+            let salt = process.env.FEE_RECEIVER_SAlT;
+            let salt_hash = await ethers.utils.keccak256(await ethers.utils.toUtf8Bytes(salt));
+            console.log("factory :", factory.address);
+            console.log("feeReceiver salt:", salt);
+            let fee_receiver_addr = await factory.getAddress(salt_hash);
+            let code = await ethers.provider.getCode(fee_receiver_addr);
+
+            if(code !== '0x'){
+                console.log("already deployed feeReceiver address is :", fee_receiver_addr);
+                return;
+            }
+
+            let payees = taskArgs.payees.split(',');
+            console.log("payees",payees);
+            let shares = taskArgs.shares.split(',')
+            console.log("shares",shares);
+            let FeeReceiver = await ethers.getContractFactory("FeeReceiver");
+            let param = ethers.utils.defaultAbiCoder.encode(['address[]', 'uint256[]'], [payees,shares])
+            let create_code = ethers.utils.solidityPack(['bytes', 'bytes'], [FeeReceiver.bytecode, param]);
+            let create = await (await factory.deploy(salt_hash, create_code, 0)).wait();
+            if (create.status == 1) {
+                console.log("feeReceiver deployed to :", fee_receiver_addr);
+            } else {
+                console.log("feeReceiver deploy fail");
+                return;
+            }
+
     })
     // <--------------------------------------------------rubic adapt------------------------------------------------------------->
 
