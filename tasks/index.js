@@ -543,7 +543,7 @@ task("setFee",
             const fee_receiver_artifact = await deployer.loadArtifact('FeeReceiver')
             // Deploy this contract. The returned object will be of a `Contract` type,
             // similar to the ones in `ethers`.
-            const fee_receiver = await deployer.deploy(fee_receiver_artifact,[payees,shares])
+            const fee_receiver = await deployer.deploy(fee_receiver_artifact,[payees,shares,wallet.address])
 
             console.log("fee_receiver deployed on :",fee_receiver.address);
 
@@ -584,7 +584,7 @@ task("setFee",
             let shares = taskArgs.shares.split(',')
             console.log("shares",shares);
             let FeeReceiver = await ethers.getContractFactory("FeeReceiver");
-            let param = ethers.utils.defaultAbiCoder.encode(['address[]', 'uint256[]'], [payees,shares])
+            let param = ethers.utils.defaultAbiCoder.encode(['address[]', 'uint256[]','address'], [payees,shares,wallet.address])
             let create_code = ethers.utils.solidityPack(['bytes', 'bytes'], [FeeReceiver.bytecode, param]);
             let create = await (await factory.deploy(salt_hash, create_code, 0)).wait();
             if (create.status == 1) {
