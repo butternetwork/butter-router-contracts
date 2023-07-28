@@ -117,19 +117,11 @@ task("deployRouterV2",
         } else {
             console.log("already deploy. address is :", addr);
         }
-        // let result = await deploy('ButterRouterV2', {
-        //     from: deployer,
-        //     args: [taskArgs.mos, deployer,taskArgs.wtoken],
-        //     log: true,
-        //     contract: 'ButterRouterV2'
-        // });
-
-        // console.log("ButterRouterV2 deployed to :", result.address);
 
     })
 
-task("deployAggregationAdapter",
-    "deploy AggregationAdapter"
+task("deploySwapAdapter",
+    "deploy SwapAdapter"
 )
     .setAction(async (taskArgs, hre) => {
         const { deployments, getNamedAccounts, ethers } = hre;
@@ -153,13 +145,13 @@ task("deployAggregationAdapter",
         let addr = await factory.getAddress(salt_hash);
         let code = await ethers.provider.getCode(addr);
         if (code === '0x') {
-            let AggregationAdapter = await ethers.getContractFactory("AggregationAdapter");
+            let SwapAdapter = await ethers.getContractFactory("SwapAdapter");
             let param = ethers.utils.defaultAbiCoder.encode(['address'], [wallet.address])
-            let create_code = ethers.utils.solidityPack(['bytes', 'bytes'], [AggregationAdapter.bytecode, param]);
+            let create_code = ethers.utils.solidityPack(['bytes', 'bytes'], [SwapAdapter.bytecode, param]);
             let create = await (await factory.deploy(salt_hash, create_code, 0)).wait();
 
             if (create.status == 1) {
-                console.log("AggregationAdapter deployed to :", addr);
+                console.log("SwapAdapter deployed to :", addr);
             } else {
                 console.log("deploy fail");
             }
@@ -265,8 +257,8 @@ task("setFee",
     })
 
 
-    task("deployAndSetUp",
-    "deployAndSetUp"
+    task("deployAndSetup",
+    "deploy router v2 and setup"
          )
     .setAction(async (taskArgs, hre) => {
         const { deployments, getNamedAccounts, ethers,network} = hre;
@@ -276,7 +268,7 @@ task("setFee",
         let config = getConfig(network.name);
         if(config){
 
-            console.log("<------------------------ deployAndSetUp begin ---------------------------->")
+            console.log("<------------------------ deployAndSetup begin ---------------------------->")
 
             let [wallet] = await ethers.getSigners();
             let IDeployFactory_abi = [
@@ -292,14 +284,15 @@ task("setFee",
             let router_addr = await factory.getAddress(salt_hash);
             let code = await ethers.provider.getCode(router_addr);
 
+            let ButterRouterV2 = await ethers.getContractFactory("ButterRouterV2");
+
             if(code !== '0x'){
                 console.log("already deployed router address is :", router_addr);
                 return;
             }
 
-
             // 1 - deploy router v2
-            let ButterRouterV2 = await ethers.getContractFactory("ButterRouterV2");
+
             let param = ethers.utils.defaultAbiCoder.encode(['address', 'address', 'address'], [config.v2.mos, deployer, config.wToken])
             let create_code = ethers.utils.solidityPack(['bytes', 'bytes'], [ButterRouterV2.bytecode, param]);
             let create = await (await factory.deploy(salt_hash, create_code, 0)).wait();
@@ -310,22 +303,20 @@ task("setFee",
                 return;
             }
 
-
-            // 2 - deploy AggregationAdapter
-            let AggregationAdapter = await ethers.getContractFactory("AggregationAdapter");
-            console.log("agg salt:", process.env.AGG_DEPLOY_SALT);
+            // 2 - deploy SwapAdapter
+            let SwapAdapter = await ethers.getContractFactory("SwapAdapter");
+            console.log("SwapAdapter salt:", process.env.AGG_DEPLOY_SALT);
             let executor_salt_hash = await ethers.utils.keccak256(await ethers.utils.toUtf8Bytes(process.env.AGG_DEPLOY_SALT));
             param = ethers.utils.defaultAbiCoder.encode(['address'], [wallet.address])
-            let executor_create_code = ethers.utils.solidityPack(['bytes', 'bytes'], [AggregationAdapter.bytecode, param]);;
+            let executor_create_code = ethers.utils.solidityPack(['bytes', 'bytes'], [SwapAdapter.bytecode, param]);;
             let executor_create = await (await factory.deploy(executor_salt_hash, executor_create_code, 0)).wait();
             let executor_addr = await factory.getAddress(executor_salt_hash);
             if (executor_create.status == 1) {
-                console.log("AggregationAdapter deployed to :", executor_addr);
+                console.log("SwapAdapter deployed to :", executor_addr);
             } else {
-                console.log("AggregationAdapter deploy fail");
+                console.log("SwapAdapter deploy fail");
                 return;
             }
-
 
             //3 - setFee
             let router = ButterRouterV2.attach(router_addr);
@@ -353,7 +344,7 @@ task("setFee",
 
 
     task("deployRouterPlus",
-    "deployRouterPlus"
+    "deploy router+ and setup"
          )
     .setAction(async (taskArgs, hre) => {
         const { deployments, getNamedAccounts, ethers,network} = hre;
@@ -361,7 +352,7 @@ task("setFee",
         const { deployer } = await getNamedAccounts();
         console.log("deployer :", deployer);
         let config = getConfig(network.name);
-        if(config){
+        if (config) {
 
             console.log("<------------------------ deployRouterPlus begin ---------------------------->")
 
@@ -421,7 +412,7 @@ task("setFee",
     })
 
     task("deployRouterPlusZk",
-    "deployRouterPlus"
+    "deploy Router+ and setup for zksync"
          )
     .setAction(async (taskArgs, hre) => {
         const { deployments, getNamedAccounts, ethers,network} = hre;
@@ -431,7 +422,7 @@ task("setFee",
         let config = getConfig(network.name);
         if(config){
 
-            console.log("<------------------------ deployAndSetUp begin ---------------------------->")
+            console.log("<------------------------ deployPlusAndSetUp zk begin ---------------------------->")
 
             const wallet = new Wallet(process.env.PRIVATE_KEY)
             // Create deployer object and load the artifact of the contract we want to deploy.
@@ -455,7 +446,7 @@ task("setFee",
                 console.log('setFee failed');
             }
             //4 - setAuthorization
-            config.plus.excutors.push(adapt.address);
+            //config.plus.excutors.push(adapt.address);
             result = await (await router.setAuthorization(config.plus.excutors,true)).wait();
             if (result.status == 1) {
                 console.log(`Router ${router.address} setAuthorization ${config.plus.excutors} succeed`);
@@ -470,8 +461,8 @@ task("setFee",
     })
 
 
-    task("deployAndSetUpZk",
-    "deployAndSetUp"
+    task("deployAndSetupZk",
+    "deploy router and setup for zksync"
          )
     .setAction(async (taskArgs, hre) => {
         const { deployments, getNamedAccounts, ethers,network} = hre;
@@ -481,7 +472,7 @@ task("setFee",
         let config = getConfig(network.name);
         if(config){
 
-            console.log("<------------------------ deployAndSetUp begin ---------------------------->")
+            console.log("<------------------------ deployAndSetup zk begin ---------------------------->")
 
             const wallet = new Wallet(process.env.PRIVATE_KEY)
             // Create deployer object and load the artifact of the contract we want to deploy.
@@ -495,13 +486,13 @@ task("setFee",
 
             console.log("ButterRouter deployed on :",butterRouter.address);
 
-            // 2 - deploy AggregationAdapter
-            const adapt_artifact = await deployer.loadArtifact('AggregationAdapter')
+            // 2 - deploy SwapAdapter
+            const adapt_artifact = await deployer.loadArtifact('SwapAdapter')
             // Deploy this contract. The returned object will be of a `Contract` type,
             // similar to the ones in `ethers`.
             const adapt = await deployer.deploy(adapt_artifact,[wallet.address])
 
-            console.log("AggregationAdapter deployed on :",adapt.address);
+            console.log("SwapAdapter deployed on :",adapt.address);
 
             //3 - setFee
             let ButterRouterV2 = await ethers.getContractFactory("ButterRouterV2");

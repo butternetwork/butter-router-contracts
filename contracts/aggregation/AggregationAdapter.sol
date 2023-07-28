@@ -21,7 +21,7 @@ interface  IRubicFee {
 // Be careful this contract contains unsafe call !.
 // Do not approve token or just approve the right amount before call it.
 // Clear approve in the same transaction if calling failed.
-contract RubicAdapter is ReentrancyGuard,Ownable2Step,Swapper,Validatable{
+contract AggregationAdaptor is ReentrancyGuard,Ownable2Step,Swapper,Validatable{
 
     address  rubicProxy = 0x6AA981bFF95eDfea36Bdae98C26B274FfcafE8d3;
     ISymbiosisMetaRouter public  symbiosisMetaRouter;

@@ -4,7 +4,7 @@ let config = new Map(
         ["Eth",{
             wToken:"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
             v2:{
-                mos:"0x630105189c7114667a7179Aa57f07647a5f42B7F",
+                mos:"0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee:{
                 receiver:"0x4A53841B9b16182f996a65aAb407e7622CBCf966",
                 feeRate:"7000",//denominator is 1000000
@@ -25,7 +25,7 @@ let config = new Map(
                 ]
             },
             plus:{
-                mos:"0x630105189c7114667a7179Aa57f07647a5f42B7F",
+                mos:"0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee:{
                 receiver:"0x4A53841B9b16182f996a65aAb407e7622CBCf966",
                 feeRate:"7000",//denominator is 1000000
@@ -90,7 +90,7 @@ let config = new Map(
         ["Bsc",{
             wToken:"0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
             v2:{
-                mos:"0x630105189c7114667a7179Aa57f07647a5f42B7F",
+                mos:"0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee:{
                 receiver:"0x4A53841B9b16182f996a65aAb407e7622CBCf966",
                 feeRate:"7000",//denominator is 1000000
@@ -106,7 +106,7 @@ let config = new Map(
                 ]
             },
             plus:{
-                mos:"0x630105189c7114667a7179Aa57f07647a5f42B7F",
+                mos:"0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee:{
                 receiver:"0x4A53841B9b16182f996a65aAb407e7622CBCf966",
                 feeRate:"7000",//denominator is 1000000
@@ -126,7 +126,7 @@ let config = new Map(
         ["Matic",{
             wToken:"0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
             v2:{
-                mos:"0x630105189c7114667a7179Aa57f07647a5f42B7F",
+                mos:"0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee:{
                 receiver:"0x4A53841B9b16182f996a65aAb407e7622CBCf966",
                 feeRate:"7000",//denominator is 1000000
@@ -145,7 +145,7 @@ let config = new Map(
                 ]
             },
             plus:{
-                mos:"0x630105189c7114667a7179Aa57f07647a5f42B7F",
+                mos:"0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee:{
                 receiver:"0x4A53841B9b16182f996a65aAb407e7622CBCf966",
                 feeRate:"7000",//denominator is 1000000
@@ -399,7 +399,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"2000000000000000000000"
                     },
-                excutors:[	
+                excutors:[
                     "0x3335733c454805df6a77f825f266e136FB4a3333",//rubic
                     "0x6c3A0E2E78848274B7E3346b8Ef8a4cBB2fEE2a9",//cro-swap  
                     "0xeC0A7a0C2439E8Cb67b992b12ecd020Ea943c7Be",//crodex
@@ -849,7 +849,7 @@ let config = new Map(
         ["Map",{
             wToken:"0x13cb04d4a5dfb6398fc5ab005a6c84337256ee23",
             v2:{
-                mos:"0x630105189c7114667a7179Aa57f07647a5f42B7F",
+                mos:"0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee:{
                 receiver:"0x4A53841B9b16182f996a65aAb407e7622CBCf966",
                 feeRate:"7000",//denominator is 1000000
@@ -860,7 +860,7 @@ let config = new Map(
                 ]
             },
             plus:{
-                mos:"0x630105189c7114667a7179Aa57f07647a5f42B7F",
+                mos:"0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee:{
                 receiver:"0x4A53841B9b16182f996a65aAb407e7622CBCf966",
                 feeRate:"7000",//denominator is 1000000
@@ -868,6 +868,31 @@ let config = new Map(
                     },
                 excutors:[
                 "0x0bce9e0ebd4fd4d6562495af45c4aaa0c1f7f3d7",//hiveswap
+                ]
+            }
+        }],
+        ["Fuse",{
+            wToken:"0x0BE9e53fd7EDaC9F859882AfdDa116645287C629",
+            v2: {
+                mos: "0x0BE9e53fd7EDaC9F859882AfdDa116645287C629",
+                fee: {
+                    receiver: "0x4A53841B9b16182f996a65aAb407e7622CBCf966",
+                    feeRate: "7000",//denominator is 1000000
+                    fixedFee: "1000000000000000000000"
+                },
+                excutors: [
+                    "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",//sushiswap
+                ]
+            },
+            plus: {
+                mos: "0x0BE9e53fd7EDaC9F859882AfdDa116645287C629",
+                fee: {
+                    receiver: "0x4A53841B9b16182f996a65aAb407e7622CBCf966",
+                    feeRate: "7000",//denominator is 1000000
+                    fixedFee: "1000000000000000000000"
+                },
+                excutors: [
+                    "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",//sushiswap
                 ]
             }
         }],

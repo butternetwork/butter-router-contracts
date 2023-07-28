@@ -7,7 +7,7 @@ ButterRouter.sol is  the old version of the main contract.
 ButterRouter V2 consists of three main contracts.
 
 * ButterRouterV2.sol  is new version contract.
-* AggregationAdapter.sol  is the swap aggregation adapter contract of the new version contract ,called by ButterRouterV2  to complete swap.
+* SwapAdapter.sol  is the swap aggregation adapter contract of the new version contract ,called by ButterRouterV2  to complete swap.
 * Receiver.sol is impls for bridges. called by bridges to complete swap or others on target chain.
 
 ## Main interfaces explanation(v2)
@@ -179,10 +179,10 @@ npx hardhat setMos --router <router address> --mos  <mos address> --network <net
 npx hardhat deployRouterV2 --mos <mos address>  --wtoken <wtoken address> --network <network>
 ```
 
-2. deployAggregationAdapter
+2. deploySwapAdapter
 
 ```
-npx hardhat deployAggregationAdapter --network <network>
+npx hardhat deploySwapAdapter --network <network>
 ```
 
 3. set mos
@@ -208,12 +208,12 @@ npx hardhat setAuthorization --router <router address> --executors <excutors add
 npx hardhat setFee --router <router address> --feereceiver <feeReceiver address> --feerate <feeRate> --fixedfee <fixedFee> --network <network>
 ```
 
-6. deployAndSetUp
+6. deployAndSetup
 
 before run this task, set task/config.js
 
 ```
-npx hardhat deployAndSetUp  --network <network>
+npx hardhat deployAndSetup  --network <network>
 ```
 
 7. deployRouterPlus
@@ -226,7 +226,7 @@ npx hardhat deployAndSetUp  --network <network>
    ```
    npx hardhat deployFeeReceiver --payees <addressA,addressB> --shares <share1,share2> --network <network>
    ```
-9. deployAndSetUpZk
+9. deployAndSetupZk
 
 **before run this task, compile the contracts**
 
@@ -235,7 +235,7 @@ npx hardhat compile --network  `<zkSync or zkSyncTest>`
 ```
 
 ```shell
-npx hardhat deployAndSetUpZk --network <zkSync or zkSyncTest>
+npx hardhat deployAndSetupZk --network <zkSync or zkSyncTest>
 ```
 
   10.deployRouterPlusZk
@@ -249,11 +249,14 @@ npx hardhat deployRouterPlusZk --network <zkSync or zkSyncTest>
     ```shell
     npx hardhat deployRubicAdapter --network <network>
     ```
+    
 12. deployFeeReceiverZk
 
     ```
     npx hardhat deployFeeReceiverZk --payees <addressA,addressB> --shares <share1,share2> --network <zkSync or zkSyncTest>
     ```
+    
+
 13. deployReceiver
 
 ```shell

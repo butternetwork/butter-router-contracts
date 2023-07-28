@@ -59,7 +59,7 @@ contract FeeReceiver is Ownable2Step {
     }
 
 
-    function editConverter(address converter,bool flag)external onlyOwner {
+    function editConverter(address converter,bool flag) external onlyOwner {
         converters[converter] = flag;
         emit EditConverter(converter,flag);
     }

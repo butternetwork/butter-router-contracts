@@ -76,6 +76,19 @@ module.exports = {
       zksync: false,
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
+    zkSync: {
+      url: `https://mainnet.era.zksync.io`,
+      chainId : 324,
+      zksync: true,
+      ethNetwork: 'Eth',
+      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    Optimism: {
+      url: `https://1rpc.io/op`,
+      chainId : 10,
+      zksync: false,
+      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
     Fantom: {
       url: `https://1rpc.io/ftm`,
       chainId : 250,
@@ -173,7 +186,7 @@ module.exports = {
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     Telos: {
-      url: `https://rpc1.eu.telos.net/evm`,
+      url: `https://mainnet.telos.net/evm`,
       chainId : 40,
       zksync: false,
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
@@ -184,22 +197,12 @@ module.exports = {
       zksync: false,
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
-    zkSync: {
-      url: `https://mainnet.era.zksync.io`,
-      chainId : 324,
-      zksync: true,
-      ethNetwork: 'Eth',
-      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-    },
-    Optimism: {
-      url: `https://1rpc.io/op`,
-      chainId : 10,
+    Fuse: {
+      url: `https://rpc.fuse.io/`,
+      chainId : 122,
       zksync: false,
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
-
-
-    
     MaticTest: {
       url: `https://polygon-mumbai.blockpi.network/v1/rpc/public`,
       chainId : 80001,

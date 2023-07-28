@@ -10,7 +10,7 @@ import "./lib/Helper.sol";
 // Be careful this contract contains unsafe call !.
 // Do not approve token or just approve the right amount before call it.
 // Clear approve in the same transaction if calling failed.
-contract AggregationAdapter is Ownable2Step, ReentrancyGuard {
+contract SwapAdapter is Ownable2Step, ReentrancyGuard {
     using Address for address;
     using SafeERC20 for IERC20;
 

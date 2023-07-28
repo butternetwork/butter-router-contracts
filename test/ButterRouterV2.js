@@ -23,7 +23,7 @@ let ERC1155 = [
 describe("ButterRouterV2", function () {
     let router;
     let mos;
-    let aggregationAdapter;
+    let swapAdapter;
     // beforeEach(async () => {
 
     // });
@@ -33,16 +33,16 @@ describe("ButterRouterV2", function () {
         MosMock = await ethers.getContractFactory("MosMock");
         mos = await MosMock.deploy();
         await mos.deployed();
-        let AggregationAdapter = await ethers.getContractFactory("AggregationAdapter");
-        aggregationAdapter = await AggregationAdapter.deploy(wallet.address);
-        await aggregationAdapter.deployed();
+        let SwapAdapter = await ethers.getContractFactory("SwapAdapter");
+        swapAdapter = await SwapAdapter.deploy(wallet.address);
+        await swapAdapter.deployed();
         ButterRouterV2 = await ethers.getContractFactory("ButterRouterV2");
         if (!_wToken) {
             _wToken = mos.address
         }
         router = await ButterRouterV2.deploy(mos.address, wallet.address, _wToken);
         await router.deployed()
-        await (await router.setAuthorization([aggregationAdapter.address],true)).wait();
+        await (await router.setAuthorization([swapAdapter.address],true)).wait();
     }
 
     it("setFee only owner", async () => {
@@ -443,11 +443,11 @@ describe("ButterRouterV2", function () {
             swaps:swaps
         }
 
-        let AggregationAdapter = await ethers.getContractFactory("AggregationAdapter");
+        let SwapAdapter = await ethers.getContractFactory("SwapAdapter");
 
-        let data = AggregationAdapter.interface.encodeFunctionData("swap",[param])
+        let data = SwapAdapter.interface.encodeFunctionData("swap",[param])
 
-        swap =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,address,uint256,bytes)'], [[0,aggregationAdapter.address,aggregationAdapter.address,user.address,dstToken,0,data]]);
+        swap =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,address,uint256,bytes)'], [[0, swapAdapter.address, swapAdapter.address,user.address,dstToken,0,data]]);
         
         let swapAndCall = ethers.utils.defaultAbiCoder.encode(['bytes','bytes'],[swap,"0x"]);
         let token = await ethers.getContractAt(ERC20, dstToken, user); 
@@ -515,11 +515,11 @@ describe("ButterRouterV2", function () {
             minAmount:0,
             swaps:swaps
         }
-        let AggregationAdapter = await ethers.getContractFactory("AggregationAdapter");
+        let SwapAdapter = await ethers.getContractFactory("SwapAdapter");
 
-        let data = AggregationAdapter.interface.encodeFunctionData("swap",[param])
+        let data = SwapAdapter.interface.encodeFunctionData("swap",[param])
 
-        swap =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,address,uint256,bytes)'], [[0,aggregationAdapter.address,aggregationAdapter.address,user.address,dstToken,0,data]]);
+        swap =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,address,uint256,bytes)'], [[0, swapAdapter.address, swapAdapter.address,user.address,dstToken,0,data]]);
         
 
         let pay_fuc_encode = PayMock.interface.encodeFunctionData("payFor",[user.address]);
@@ -593,11 +593,11 @@ describe("ButterRouterV2", function () {
             minAmount:0,
             swaps:swaps
         }
-        let AggregationAdapter = await ethers.getContractFactory("AggregationAdapter");
+        let SwapAdapter = await ethers.getContractFactory("SwapAdapter");
 
-        let data = AggregationAdapter.interface.encodeFunctionData("swap",[param])
+        let data = SwapAdapter.interface.encodeFunctionData("swap",[param])
 
-        swap =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,address,uint256,bytes)'], [[0,aggregationAdapter.address,aggregationAdapter.address,user.address,dstToken,0,data]]);
+        swap =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,address,uint256,bytes)'], [[0, swapAdapter.address, swapAdapter.address,user.address,dstToken,0,data]]);
         
         let swapAndCall = ethers.utils.defaultAbiCoder.encode(['bytes','bytes'],[swap,"0x"]);
         let token = await ethers.getContractAt(ERC20, _srcToken, user); 
@@ -665,11 +665,11 @@ describe("ButterRouterV2", function () {
             minAmount:0,
             swaps:swaps
         }
-        let AggregationAdapter = await ethers.getContractFactory("AggregationAdapter");
+        let SwapAdapter = await ethers.getContractFactory("SwapAdapter");
 
-        let data = AggregationAdapter.interface.encodeFunctionData("swap",[param])
+        let data = SwapAdapter.interface.encodeFunctionData("swap",[param])
 
-        swap =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,address,uint256,bytes)'], [[0,aggregationAdapter.address,aggregationAdapter.address,user.address,dstToken,0,data]]);
+        swap =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,address,uint256,bytes)'], [[0, swapAdapter.address, swapAdapter.address,user.address,dstToken,0,data]]);
         
         let swapAndCall = ethers.utils.defaultAbiCoder.encode(['bytes','bytes'],[swap,"0x"]);
         let token = await ethers.getContractAt(ERC20, _srcToken, user); 
@@ -736,11 +736,11 @@ describe("ButterRouterV2", function () {
             minAmount:0,
             swaps:swaps
         }
-        let AggregationAdapter = await ethers.getContractFactory("AggregationAdapter");
+        let SwapAdapter = await ethers.getContractFactory("SwapAdapter");
 
-        let data = AggregationAdapter.interface.encodeFunctionData("swap",[param])
+        let data = SwapAdapter.interface.encodeFunctionData("swap",[param])
 
-        swap =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,address,uint256,bytes)'], [[0,aggregationAdapter.address,aggregationAdapter.address,user.address,dstToken,0,data]]);
+        swap =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,address,uint256,bytes)'], [[0, swapAdapter.address, swapAdapter.address,user.address,dstToken,0,data]]);
         
         let swapAndCall = ethers.utils.defaultAbiCoder.encode(['bytes','bytes',],[swap,"0x"]);
         let token = await ethers.getContractAt(ERC20, _srcToken, user); 
@@ -808,11 +808,11 @@ describe("ButterRouterV2", function () {
             minAmount:0,
             swaps:swaps
         }
-        let AggregationAdapter = await ethers.getContractFactory("AggregationAdapter");
+        let SwapAdapter = await ethers.getContractFactory("SwapAdapter");
 
-        let data = AggregationAdapter.interface.encodeFunctionData("swap",[param])
+        let data = SwapAdapter.interface.encodeFunctionData("swap",[param])
 
-        swap =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,address,uint256,bytes)'], [[0,aggregationAdapter.address,aggregationAdapter.address,user.address,dstToken,0,data]]);
+        swap =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,address,uint256,bytes)'], [[0, swapAdapter.address, swapAdapter.address,user.address,dstToken,0,data]]);
 
         let swapAndCall = ethers.utils.defaultAbiCoder.encode(['bytes','bytes',],[swap,"0x"]);
         let token = await ethers.getContractAt(ERC20, dstToken, user); 
@@ -882,11 +882,11 @@ describe("ButterRouterV2", function () {
             minAmount:0,
             swaps:swaps
         }
-        let AggregationAdapter = await ethers.getContractFactory("AggregationAdapter");
+        let SwapAdapter = await ethers.getContractFactory("SwapAdapter");
 
-        let data = AggregationAdapter.interface.encodeFunctionData("swap",[param])
+        let data = SwapAdapter.interface.encodeFunctionData("swap",[param])
 
-        swap =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,address,uint256,bytes)'], [[0,aggregationAdapter.address,aggregationAdapter.address,user.address,dstToken,0,data]]);
+        swap =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,address,uint256,bytes)'], [[0, swapAdapter.address, swapAdapter.address,user.address,dstToken,0,data]]);
 
         let swapAndCall = ethers.utils.defaultAbiCoder.encode(['bytes', 'bytes'], [swap, "0x"]);
         let token = await ethers.getContractAt(ERC20, _srcToken, user);
