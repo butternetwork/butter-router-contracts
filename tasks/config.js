@@ -135,7 +135,7 @@ let config = new Map(
                 excutors:[
                     "0x45A01E4e04F14f7A4a6702c74187c5F6222033cd",//stargate
                     "0x3335733c454805df6a77f825f266e136fb4a3333",//rubic
-                    "0xAaaCfe8F51B8baA4286ea97ddF145e946d5e7f46",//algebra	
+                    "0x89D6B81A1Ef25894620D05ba843d83B0A296239e",//algebra
                     "0x1111111254eeb25477b68fb85ed929f73a960582",//1inch
                     "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff",//quick 
                     "0xf5b509bB0909a69B1c207E495f687a596C168E12",//quickv3 
@@ -154,7 +154,7 @@ let config = new Map(
                 excutors:[
                     "0x45A01E4e04F14f7A4a6702c74187c5F6222033cd",//stargate
                     "0x3335733c454805df6a77f825f266e136fb4a3333",//rubic
-                    "0xAaaCfe8F51B8baA4286ea97ddF145e946d5e7f46",//algebra	
+                    "0x89D6B81A1Ef25894620D05ba843d83B0A296239e",//algebra
                     "0x1111111254eeb25477b68fb85ed929f73a960582",//1inch
                     "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff",//quick 
                     "0xf5b509bB0909a69B1c207E495f687a596C168E12",//quickv3 
@@ -583,7 +583,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"150000000000000000000"
                     },
-                excutors:[	
+                excutors:[
                     "0x0000000022D53366457F9d5E68Ec105046FC4383",//curve 
                     "0x7a2c1D96C76B6EB62241df4d2fAEb9F0D3D59E10",//elk  
                     "0xEa3CB4Ba9d1fD6fb19Df1380958d5649bD3e7C50",//jupiter 
