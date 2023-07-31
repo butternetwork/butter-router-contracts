@@ -283,3 +283,9 @@ npx hardhat setCBridgeMessageBus --receiver <receiver address> --cbridge <cbridg
 ```shell
 npx hardhat setButter --receiver <receiver address> --butter <butter router address> --network <network>
 ```
+
+18.deployTransferProxy
+
+```
+npx hardhat deployTransferProxy --network <network>
+```

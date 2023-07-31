@@ -595,6 +595,44 @@ task("setFee",
             }
 
     })
+
+    task("deployTransferProxy",
+    "deployTransferProxy")
+    .setAction(async (taskArgs, hre) => {
+        const { deployments, getNamedAccounts, ethers,network} = hre;
+        const { deploy } = deployments;
+        const { deployer } = await getNamedAccounts();
+        console.log("deployer :", deployer);
+       
+            let [wallet] = await ethers.getSigners();
+            let IDeployFactory_abi = [
+                "function deploy(bytes32 salt, bytes memory creationCode, uint256 value) external",
+                "function getAddress(bytes32 salt) external view returns (address)"
+            ]
+            let factory_addr = process.env.DEPLOY_FACTORY;
+            let factory = await ethers.getContractAt(IDeployFactory_abi, factory_addr, wallet);
+            let salt = process.env.TRANSFER_PROXY_SALT;
+            let salt_hash = await ethers.utils.keccak256(await ethers.utils.toUtf8Bytes(salt));
+            console.log("factory :", factory.address);
+            let transfer_proxy_addr = await factory.getAddress(salt_hash);
+            let code = await ethers.provider.getCode(transfer_proxy_addr);
+
+            if(code !== '0x'){
+                console.log("already deployed transferProxy address is :", transfer_proxy_addr);
+                return;
+            }
+            let TransferProxy = await ethers.getContractFactory("TransferProxy");
+            let create = await (await factory.deploy(salt_hash, TransferProxy.bytecode, 0)).wait();
+            if (create.status == 1) {
+                console.log("transferProxy deployed to :", transfer_proxy_addr);
+            } else {
+                console.log("transferProxy deploy fail");
+                return;
+            }
+
+    })
+
+
     // <--------------------------------------------------rubic adapt------------------------------------------------------------->
 
     task("deployRubicAdapter",
