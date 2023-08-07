@@ -83,17 +83,16 @@ npm install
 ### create an .env file and fill following in the contents
 
 ```
-
-PRIVATE_KEY=
+PRIVATE_KEY =  
 ALCHEMY_KEY = 
-DEPLOY_FACTORY = 0x6258e4d2950757A749a4d4683A7342261ce12471;
-//bytes32 deploy ButterRouterV2 salt
+DEPLOY_FACTORY = 
 ROUTER_DEPLOY_SALT = 
-PLUS_DEPLOY_SALT =
-AGG_DEPLOY_SALT = 
+PLUS_DEPLOY_SALT = 
+SWAP_ADAPTER_DEPLOY_SALT = 
 RECEIVER_DEPLOY_SALT = 
-RUBIC_ADAPTER_SALT = 
+AGG_ADAPTER_SALT = 
 FEE_RECEIVER_SAlT = 
+TRANSFER_PROXY_SALT = 
 ```
 
 ### Compiling contracts
@@ -154,7 +153,7 @@ The deploy script is located in deploy folder . We can run the following command
 1. deploy
 
 ```
-npx hardhat deployRouter --mos <mos address> --core <core address> --network <network>
+npx hardhat deployRouterV1 --mos <mos address> --core <core address> --network <network>
 ```
 
 2. set core
@@ -173,122 +172,88 @@ npx hardhat setMos --router <router address> --mos  <mos address> --network <net
 
 #### v2
 
-1. deploy router
+NOTE
+
+if deploy chain is zksync or zksyncTestnet,please compile this contract use
+
+```
+npx hardhat compile --network  `<zkSync or zkSyncTest>`
+```
+
+1.deploy deployRouterV2
 
 ```
 npx hardhat deployRouterV2 --mos <mos address>  --wtoken <wtoken address> --network <network>
 ```
 
-2. deploySwapAdapter
+2.deployRouterPlus
+
+```
+npx hardhat deployRouterPlus --wtoken <wtoken address> --network <network>
+```
+
+3.deploySwapAdapter
 
 ```
 npx hardhat deploySwapAdapter --network <network>
 ```
 
-3. set mos
+4.deployFeeReceiver
 
 ```
-npx hardhat setV2Mos --router <router address> --mos  <mos address> --network <network>
+npx hardhat deployFeeReceiver --payees <addr1,addr2,..> --shares <share1,share2,..> --network <network>
 ```
 
-4. set authorization
-
-```
-npx hardhat setAuthorization --router <router address> --executors <excutors address array> --flag <flag> --network <network>
-```
-
-**NOTE**
-
-* approve flag `true`  indicates that it can be called by router)
-* multi executors separation by ',', like `0xd73bF6a58481715B5A3B72E9ca214A44C7Ba4533,0xd73bF6a58481715B5A3B72E9ca214A44C7Ba4533`
-
-5. setFee  (feeRate - the denominator is 1000000, fixed fee is in wei)
-
-```
-npx hardhat setFee --router <router address> --feereceiver <feeReceiver address> --feerate <feeRate> --fixedfee <fixedFee> --network <network>
-```
-
-6. deployAndSetup
-
-before run this task, set task/config.js
-
-```
-npx hardhat deployAndSetup  --network <network>
-```
-
-7. deployRouterPlus
-
-   ```shell
-   npx hardhat deployRouterPlus--network <network>
-   ```
-8. deployFeeReceiver
-
-   ```
-   npx hardhat deployFeeReceiver --payees <addressA,addressB> --shares <share1,share2> --network <network>
-   ```
-9. deployAndSetupZk
-
-**before run this task, compile the contracts**
-
-```shell
-npx hardhat compile --network  `<zkSync or zkSyncTest>`
-```
-
-```shell
-npx hardhat deployAndSetupZk --network <zkSync or zkSyncTest>
-```
-
-  10.deployRouterPlusZk
-
-```shell
-npx hardhat deployRouterPlusZk --network <zkSync or zkSyncTest>
-```
-
-11. deployRubicAdapter
-
-    ```shell
-    npx hardhat deployRubicAdapter --network <network>
-    ```
-    
-12. deployFeeReceiverZk
-
-    ```
-    npx hardhat deployFeeReceiverZk --payees <addressA,addressB> --shares <share1,share2> --network <zkSync or zkSyncTest>
-    ```
-    
-
-13. deployReceiver
-
-```shell
-npx hardhat deployReceiver --router <butter router address> --network <network>
-```
-
-14.setStargateRouter
-
-```shell
-npx hardhat setStargateRouter --receiver <receiver address> --stargate <stargate router address> --network <network>
-```
-
-15.setAmarokRouter
-
-```shell
-npx hardhat setAmarokRouter --receiver <receiver address> --amarok <amarok router address> --network <network>
-```
-
-16.setCBridgeMessageBus
-
-```shell
-npx hardhat setCBridgeMessageBus --receiver <receiver address> --cbridge <cbridge messageBus address> --network <network>
-```
-
-17.setButter
-
-```shell
-npx hardhat setButter --receiver <receiver address> --butter <butter router address> --network <network>
-```
-
-18.deployTransferProxy
+5.deployTransferProxy
 
 ```
 npx hardhat deployTransferProxy --network <network>
 ```
+
+6.setAuthorization
+
+```
+npx hardhat setAuthorization --router <router address> --executors <excutor1,excutor2,..> --flag <flag> --network <network>
+```
+
+7.setFee (feeRate - the denominator is 1000000, fixed fee is in wei)
+
+```
+npx hardhat setFee --router <router address> --feereceiver <receiver address> --feerate <rate> --fixedfee <fixedfee> --network <network>
+```
+
+8.deployAndSetup before run this task, set task/config.js
+
+```
+npx hardhat deployAndSetup  --routertype <v2 for butterRouterV2, plus for butterRouterPlus> --network <network>
+```
+
+9.deployAggregationAdaptor
+
+```
+npx hardhat deployAggregationAdaptor --network <network>
+```
+
+10.deployReceiver
+
+```
+npx hardhat deployReceiver --router <router address> --network <network>
+```
+
+11.receiverSetUp
+
+```
+npx hardhat receiverSetUp --receiver <receiver address> --name <name> --router <router> --network <network>
+```
+
+name:
+
+cbridge -> setCBridgeMessageBus
+
+amarok -> setAmarokRouter
+
+stargate -> setStargateRouter
+
+butter -> setAuthorization
+
+router is this address for the bridge router

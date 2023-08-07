@@ -3,11 +3,10 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/access/Ownable2Step.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-// import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 import "./lib/Helper.sol";
 
 contract FeeReceiver is Ownable2Step {
-    mapping (address => bool) converters;
+    mapping (address => bool) public converters;
     uint256 private _totalShares;
     address[] private _payees;
     mapping(address => uint256) public shares;
@@ -20,6 +19,7 @@ contract FeeReceiver is Ownable2Step {
     event AddStablecoin(address indexed stablecoin);
     event PaymentReceived(address from, uint256 amount);
     event EditConverter(address converter,bool flag);
+    event ConvertTo(address token,uint256 amount);
     event PaymentReleased(address indexed token, address to, uint256 amount);
 
     struct Convert {
@@ -29,8 +29,8 @@ contract FeeReceiver is Ownable2Step {
         bytes playload;
     }
     constructor(address[] memory payees, uint256[] memory shares_,address _owner){
-        require(payees.length == shares_.length, "PaymentSplitter: payees and shares length mismatch");
-        require(payees.length > 0, "PaymentSplitter: no payees");
+        require(payees.length == shares_.length, "payees and shares length mismatch");
+        require(payees.length > 0, "no payees");
 
         for (uint256 i = 0; i < payees.length; i++) {
             _addPayee(payees[i], shares_[i]);
@@ -51,10 +51,11 @@ contract FeeReceiver is Ownable2Step {
             if(Helper._isNative(converts[i].token)){
                (result,) = converts[i].callTo.call{value:balance}(converts[i].playload);
             } else {
-                SafeERC20.safeIncreaseAllowance(IERC20(converts[i].token),converts[i].approveTo, balance);
-                (result,) = converts[i].callTo.call{value:balance}(converts[i].playload);
+                SafeERC20.safeIncreaseAllowance(IERC20(converts[i].token),converts[i].approveTo,balance);
+                (result,) = converts[i].callTo.call(converts[i].playload);
             }
             require(result,"convert fail");
+            emit ConvertTo(converts[i].token,balance);
         }
     }
 
@@ -72,10 +73,10 @@ contract FeeReceiver is Ownable2Step {
 
 
     function release(address token, address account) public virtual {
-        require(shares[account] > 0, "PaymentSplitter: account has no shares");
+        require(shares[account] > 0, "account has no shares");
         require(stablecoins[token],"unsuport release token");
         uint256 payment = releasable(token, account);
-        require(payment != 0, "PaymentSplitter: account is not due payment");
+        require(payment != 0, "account is not due payment");
 
         totalReleased[token] += payment;
         unchecked {
@@ -110,9 +111,9 @@ contract FeeReceiver is Ownable2Step {
     }
 
     function _addPayee(address account, uint256 shares_) private {
-        require(account != address(0), "PaymentSplitter: account is the zero address");
-        require(shares_ > 0, "PaymentSplitter: shares are 0");
-        require(shares[account] == 0, "PaymentSplitter: account already has shares");
+        require(account != address(0), "account is the zero address");
+        require(shares_ > 0, "shares are 0");
+        require(shares[account] == 0, "account already has shares");
 
         _payees.push(account);
         shares[account] = shares_;
