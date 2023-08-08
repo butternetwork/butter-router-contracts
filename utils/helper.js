@@ -6,7 +6,7 @@ let symbiosis = require("../configs/symbiosis.json");
 
 exports.updateSelectorInfo = async function (rubicAdapter_addr,network) {
       console.log("updateSelectorInfo ........start");
-      const RubicAdapter = await hre.ethers.getContractFactory("RubicAdapter");
+      const RubicAdapter = await hre.ethers.getContractFactory("AggregationAdaptor");
       const adapter =  RubicAdapter.attach(rubicAdapter_addr);
       let config = offsets[network];
 
@@ -41,7 +41,7 @@ exports.updateSelectorInfo = async function (rubicAdapter_addr,network) {
 
 exports.setRouters = async function(rubicAdapter_addr,network) {
     console.log("setRouters ........start");
-    const RubicAdapter = await hre.ethers.getContractFactory("RubicAdapter");
+    const RubicAdapter = await hre.ethers.getContractFactory("AggregationAdaptor");
     const adapter =  RubicAdapter.attach(rubicAdapter_addr);
     let stargateRouter = stargate.routers[network] ? stargate.routers[network] : "0x0000000000000000000000000000000000000000"
     let xRouter = xy.config[network].XSwapper ? xy.config[network].XSwapper : "0x0000000000000000000000000000000000000000"
@@ -64,7 +64,7 @@ exports.setRouters = async function(rubicAdapter_addr,network) {
 
 exports.setStargatePoolId = async function(rubicAdapter_addr,network){
     console.log("setStargatePoolId ........start");
-    const RubicAdapter = await hre.ethers.getContractFactory("RubicAdapter");
+    const RubicAdapter = await hre.ethers.getContractFactory("AggregationAdaptor");
     const adapter =  RubicAdapter.attach(rubicAdapter_addr);
     let _poolIds = stargate.pools[network];
     if(!_poolIds) {
@@ -95,7 +95,7 @@ exports.setStargatePoolId = async function(rubicAdapter_addr,network){
 
 exports.setLayerZeroChainId = async function(rubicAdapter_addr,network){
     console.log("setLayerZeroChainId ........start");
-    const RubicAdapter = await hre.ethers.getContractFactory("RubicAdapter");
+    const RubicAdapter = await hre.ethers.getContractFactory("AggregationAdaptor");
     const adapter =  RubicAdapter.attach(rubicAdapter_addr);
     if(!stargate.chains){
         console.log("unsupport network ....");

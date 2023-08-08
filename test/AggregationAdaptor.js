@@ -18,12 +18,12 @@ let ERC1155 = [
     'function balanceOf(address account, uint256 id) external view returns (uint256)'
 ]
 //// fork mainnet
-describe("RubicAdapter", function () {
+describe("AggregationAdaptor", function () {
     let adapter;
     async function deployFixture() {
         let [wallet] = await ethers.getSigners();
-        let RubicAdapter = await ethers.getContractFactory("RubicAdapter");
-        adapter = await RubicAdapter.deploy(wallet.address);
+        let AggregationAdaptor = await ethers.getContractFactory("AggregationAdaptor");
+        adapter = await AggregationAdaptor.deploy(wallet.address);
         await adapter.deployed();
         await updateSelectorInfo(adapter.address,"Eth");
         await setRouters(adapter.address,"Eth");
