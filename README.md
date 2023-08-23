@@ -146,31 +146,31 @@ Compiled 6 Solidity files successfully
 
 ### Deploy and setup
 
-The deploy script is located in deploy folder . We can run the following command to deploy.
+The deploy script is located in tasks folder . We can run the following command to deploy.
 
 #### v1
 
-1. deploy
+deploy and set up
 
 ```
-npx hardhat deployRouterV1 --mos <mos address> --core <core address> --network <network>
+npx hardhat routerV1 --mos <mos address> --core <core address> --network <network>
 ```
 
-2. set core
+ subtasks
+
+1.set core
 
 ```
 npx hardhat setCore --router <router address> --core  <core address > --network <network>
 ```
 
-3. set mos
+2.set mos
 
 ```
 npx hardhat setMos --router <router address> --mos  <mos address> --network <network>
 ```
 
 ---
-
-#### v2
 
 NOTE
 
@@ -180,70 +180,100 @@ if deploy chain is zksync or zksyncTestnet,please compile this contract use
 npx hardhat compile --network  `<zkSync or zkSyncTest>`
 ```
 
-1.deploy deployRouterV2
+#### v2
+
+1.deploy and set up before run this task, set task/config.js
 
 ```
-npx hardhat deployRouterV2 --mos <mos address>  --wtoken <wtoken address> --network <network>
+npx hardhat routerV2 --network <network>
 ```
 
-2.deployRouterPlus
+subtasks
+
+1.routerV2:deploy
 
 ```
-npx hardhat deployRouterPlus --wtoken <wtoken address> --network <network>
+npx hardhat routerV2:deploy --mos <mos address> --wtoken <wtoken address> --network <network>
 ```
 
-3.deploySwapAdapter
+2.routerV2:deploySwapAdapter
 
 ```
-npx hardhat deploySwapAdapter --network <network>
+npx hardhat routerV2:deploySwapAdapter --network <network>
 ```
 
-4.deployFeeReceiver
+3.routerV2:setAuthorization
+
+```
+npx hardhat routerV2:setAuthorization --router <router address> --executors <excutor1,excutor2,..> --flag <flag> --network <network>
+```
+
+4.routerV2:setFee
+
+```
+npx hardhat routerV2:setFee --router <router address> --feereceiver <receiver address> --feerate <rate> --fixedfee <fixedfee> --network <network>
+```
+
+#### plus
+
+1.deploy and set up before run this task, set task/config.js
+
+```
+npx hardhat routerPlus --network <network>
+```
+
+subtasks
+
+1.routerPlus:deploy
+
+```
+npx hardhat routerV2:deploy  --wtoken <wtoken address> --network <network>
+```
+
+2.routerPlus:deployTransferProxy
+
+```
+npx hardhat routerPlus:deployTransferProxy  --network <network>
+```
+
+3.routerPlus:setAuthorization
+
+```
+npx hardhat routerPlus:setAuthorization --router <router address> --executors <excutor1,excutor2,..> --flag <flag> --network <network>
+```
+
+4.routerPlus:setFee
+
+```
+npx hardhat routerPlus:setFee --router <router address> --feereceiver <receiver address> --feerate <rate> --fixedfee <fixedfee> --network <network>
+```
+
+#### deployFeeReceiver
 
 ```
 npx hardhat deployFeeReceiver --payees <addr1,addr2,..> --shares <share1,share2,..> --network <network>
 ```
 
-5.deployTransferProxy
-
-```
-npx hardhat deployTransferProxy --network <network>
-```
-
-6.setAuthorization
-
-```
-npx hardhat setAuthorization --router <router address> --executors <excutor1,excutor2,..> --flag <flag> --network <network>
-```
-
-7.setFee (feeRate - the denominator is 1000000, fixed fee is in wei)
-
-```
-npx hardhat setFee --router <router address> --feereceiver <receiver address> --feerate <rate> --fixedfee <fixedfee> --network <network>
-```
-
-8.deployAndSetup before run this task, set task/config.js
-
-```
-npx hardhat deployAndSetup  --routertype <v2 for butterRouterV2, plus for butterRouterPlus> --network <network>
-```
-
-9.deployAggregationAdaptor
+#### deployAggregationAdaptor
 
 ```
 npx hardhat deployAggregationAdaptor --network <network>
 ```
 
-10.deployReceiver
+#### receiver
+
+subtasks
+
+1.deploy receiver
 
 ```
-npx hardhat deployReceiver --router <router address> --network <network>
+npx hardhat receiver --router <router address> --network <network>
 ```
 
-11.receiverSetUp
+2.receiver:setRouter
 
 ```
-npx hardhat receiverSetUp --receiver <receiver address> --name <name> --router <router> --network <network>
+npx hardhat receiver:setRouter --receiver <receiver address> --name <name> --router <router> --network <network>
 ```
 
 name:
