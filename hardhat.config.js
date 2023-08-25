@@ -203,6 +203,60 @@ module.exports = {
       zksync: false,
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
+
+    PolygonZkEVM: {
+      url: `https://zkevm-rpc.com`,
+      chainId : 1101,
+      zksync: false,
+      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+
+    Linea: {
+      url: `https://linea.blockpi.network/v1/rpc/public`,
+      chainId : 59144,
+      zksync: false,
+      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+
+    Base: {
+      url: `https://base.blockpi.network/v1/rpc/public`,
+      chainId : 8453,
+      zksync: false,
+      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+
+    Filecoin: {
+      url: `https://rpc.ankr.com/filecoin`,
+      chainId : 314,
+      zksync: false,
+      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+
+    Kcc: {
+      url: `https://kcc-rpc.com`,
+      chainId : 321,
+      zksync: false,
+      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+
+    Numbers: {
+      url: `https://mainnetrpc.num.network`,
+      chainId : 10507,
+      zksync: false,
+      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+
+    Thunder: {
+      url: `https://mainnet-rpc.thundertoken.net`,
+      chainId : 108,
+      zksync: false,
+      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+
+
+
+
+
     MaticTest: {
       url: `https://polygon-mumbai.blockpi.network/v1/rpc/public`,
       chainId : 80001,
