@@ -449,7 +449,8 @@ let config = new Map(
                     "0x3335733c454805df6a77f825f266e136FB4a3333",//rubic
                     "0x6c3A0E2E78848274B7E3346b8Ef8a4cBB2fEE2a9",//cro-swap  
                     "0xeC0A7a0C2439E8Cb67b992b12ecd020Ea943c7Be",//crodex
-                    "0xcd7d16fb918511bf7269ec4f48d61d79fb26f918",//crona-swap 
+                    "0xcd7d16fb918511bf7269ec4f48d61d79fb26f918",//crona-swap
+                    "0xF103b5B479d2A629F422C42bb35E7eEceE1ad55E",//xy
                 ]
             },
             plus:{
@@ -463,7 +464,8 @@ let config = new Map(
                     "0x3335733c454805df6a77f825f266e136FB4a3333",//rubic
                     "0x6c3A0E2E78848274B7E3346b8Ef8a4cBB2fEE2a9",//cro-swap  
                     "0xeC0A7a0C2439E8Cb67b992b12ecd020Ea943c7Be",//crodex
-                    "0xcd7d16fb918511bf7269ec4f48d61d79fb26f918",//crona-swap 
+                    "0xcd7d16fb918511bf7269ec4f48d61d79fb26f918",//crona-swap
+                    "0xF103b5B479d2A629F422C42bb35E7eEceE1ad55E",//xy
                 ]
             }
         }],

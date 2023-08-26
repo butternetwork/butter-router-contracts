@@ -63,6 +63,12 @@
 		},
 		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
 	},
+	"Cronos": {
+		"ButterRouterPlus": {
+			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
+		},
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+	},
 	"Fantom": {
 		"ButterRouterPlus": {
 			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
