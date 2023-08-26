@@ -24,9 +24,9 @@ module.exports = async (taskArgs,hre) => {
 
         let adapt_addr = deploy_json[network.name]["SwapAdapter"]
 
-        config.v2.excutors.push(adapt_addr)
+        config.v2.executors.push(adapt_addr)
 
-        let executors_s = config.v2.excutors.join(",");
+        let executors_s = config.v2.executors.join(",");
 
         await hre.run("routerV2:setAuthorization",{router:router_addr,executors:executors_s})
 
@@ -47,7 +47,7 @@ task("routerV2:deploy", "deploy butterRouterV2")
         console.log("deployer :", deployer);
         let chainId = await hre.network.config.chainId;
         let v2;
-        if(chainId === 324 || chainId === 280){
+        if(chainId === 324 || chainId === 280) {
             v2 = await createZk("ButterRouterV2",[taskArgs.mos, deployer, taskArgs.wtoken],hre);
         } else {
             let salt = process.env.ROUTER_DEPLOY_SALT;
@@ -59,7 +59,7 @@ task("routerV2:deploy", "deploy butterRouterV2")
         console.log("router v2 address :",v2);
         let deploy = await readFromFile(network.name);
 
-        if(!deploy[network.name]["ButterRouterV2"]){
+        if (!deploy[network.name]["ButterRouterV2"]) {
             deploy[network.name]["ButterRouterV2"] = {}
         }
        

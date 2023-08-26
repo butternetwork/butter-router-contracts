@@ -182,12 +182,12 @@ abstract contract Router is Ownable2Step {
         (_result,_dstToken,_returnAmount) = Helper._makeSwap(_amount,_srcToken,_swap);
     }
 
-    function setAuthorization(address[] calldata _excutors, bool _flag) external onlyOwner {
-        require(_excutors.length > 0, ErrorMessage.DATA_EMPTY);
-        for (uint i = 0; i < _excutors.length; i++) {
-            require(_excutors[i].isContract(), ErrorMessage.NOT_CONTRACT);
-            approved[_excutors[i]] = _flag;
-            emit Approve(_excutors[i], _flag);
+    function setAuthorization(address[] calldata _executors, bool _flag) external onlyOwner {
+        require(_executors.length > 0, ErrorMessage.DATA_EMPTY);
+        for (uint i = 0; i < _executors.length; i++) {
+            require(_executors[i].isContract(), ErrorMessage.NOT_CONTRACT);
+            approved[_executors[i]] = _flag;
+            emit Approve(_executors[i], _flag);
         }
     }
 

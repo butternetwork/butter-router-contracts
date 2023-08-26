@@ -63,7 +63,7 @@ async function readFromFile(network) {
 async function writeToFile(deploy){
     let p = path.join(__dirname, "../deployments/deploy.json")
     await folder("../deployments/");
-    fs.writeFileSync(p,JSON.stringify(deploy));
+    fs.writeFileSync(p, JSON.stringify(deploy, null, "\t"));
 }
 
 const folder = async (reaPath) => {

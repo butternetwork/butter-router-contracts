@@ -204,7 +204,7 @@ module.exports = {
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
 
-    PolygonZkEVM: {
+    zkEvm: {
       url: `https://zkevm-rpc.com`,
       chainId : 1101,
       zksync: false,
@@ -212,7 +212,7 @@ module.exports = {
     },
 
     Linea: {
-      url: `https://linea.blockpi.network/v1/rpc/public`,
+      url: `https://rpc.linea.build`,
       chainId : 59144,
       zksync: false,
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
@@ -239,22 +239,12 @@ module.exports = {
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
 
-    Numbers: {
-      url: `https://mainnetrpc.num.network`,
-      chainId : 10507,
-      zksync: false,
-      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-    },
-
     Thunder: {
       url: `https://mainnet-rpc.thundertoken.net`,
       chainId : 108,
       zksync: false,
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
-
-
-
 
 
     MaticTest: {

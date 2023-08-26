@@ -1,0 +1,191 @@
+{
+	"Eth": {
+		"ButterRouterPlus": {
+			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
+		},
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+	},
+	"Avalanche": {
+		"ButterRouterPlus": {
+			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
+		}
+	},
+	"Bsc": {
+		"ButterRouterPlus": {
+			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
+		},
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+	},
+	"Matic": {
+		"ButterRouterPlus": {
+			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
+		},
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+	},
+	"Arbitrum": {
+		"ButterRouterPlus": {
+			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
+		},
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+	},
+	"Optimism": {
+		"ButterRouterPlus": {
+			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
+		},
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+	},
+	"zkSync": {
+		"ButterRouterPlus": {
+			"addr": "0x12964f48a2102A890936Cb94F1F3f8674a8e286c"
+		}
+	},
+	"Aurora": {
+		"ButterRouterPlus": {
+			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
+		},
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+	},
+	"Okt": {
+		"ButterRouterPlus": {
+			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
+		},
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+	},
+	"Boba": {
+		"ButterRouterPlus": {
+			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
+		},
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+	},
+	"Celo": {
+		"ButterRouterPlus": {
+			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
+		},
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+	},
+	"Fantom": {
+		"ButterRouterPlus": {
+			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
+		},
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+	},
+	"Gnosis": {
+		"ButterRouterPlus": {
+			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
+		},
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+	},
+	"Harmony": {
+		"ButterRouterPlus": {
+			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
+		},
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+	},
+	"Kava": {
+		"ButterRouterPlus": {
+			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
+		},
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+	},
+	"Klaytn": {
+		"ButterRouterPlus": {
+			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
+		},
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+	},
+	"Metis": {
+		"ButterRouterPlus": {
+			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
+		},
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+	},
+	"Moonbeam": {
+		"ButterRouterPlus": {
+			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
+		},
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+	},
+	"Moonriver": {
+		"ButterRouterPlus": {
+			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
+		},
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+	},
+	"Oasis": {
+		"ButterRouterPlus": {
+			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
+		},
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+	},
+	"Syscoin": {
+		"ButterRouterPlus": {
+			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
+		},
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+	},
+	"Telos": {
+		"ButterRouterPlus": {
+			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
+		},
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+	},
+	"Velas": {
+		"ButterRouterPlus": {
+			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
+		},
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+	},
+	"Astar": {
+		"ButterRouterPlus": {
+			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
+		},
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+	},
+	"Map": {
+		"ButterRouterPlus": {
+			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
+		},
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+	},
+	"Fuse": {
+		"ButterRouterPlus": {
+			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
+		},
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+	},
+	"zkEvm": {
+		"ButterRouterPlus": {
+			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
+		},
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+	},
+	"Base": {
+		"ButterRouterPlus": {
+			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
+		},
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+	},
+	"Kcc": {
+		"ButterRouterPlus": {
+			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
+		},
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+	},
+	"Thunder": {
+		"ButterRouterPlus": {
+			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
+		},
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+	},
+	"Filecoin": {
+		"ButterRouterPlus": {
+			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
+		}
+	},
+	"Linea": {
+		"ButterRouterPlus": {
+			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
+		},
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+	}
+}

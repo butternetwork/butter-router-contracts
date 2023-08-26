@@ -19,11 +19,11 @@ exports.setMos = async function (router_addr,mos) {
 
 
 
-exports.setAuthorization = async function (router_addr,executors_s,flag) {
+exports.setAuthorization = async function (router_addr, executors_s, flag) {
 
     let executors = executors_s.split(',');
 
-    if(executors.length < 1){
+    if (executors.length < 1){
         console.log("executors is empty ...");
         return;
     }
@@ -32,7 +32,7 @@ exports.setAuthorization = async function (router_addr,executors_s,flag) {
 
     let router = Router.attach(router_addr);
 
-    let result = await (await router.setAuthorization(executors,flag)).wait();
+    let result = await (await router.setAuthorization(executors, flag)).wait();
 
     if (result.status == 1) {
         console.log(`Router ${router.address} setAuthorization ${executors} succeed`);

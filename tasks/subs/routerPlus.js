@@ -7,12 +7,12 @@ module.exports = async (taskArgs,hre) => {
         const {getNamedAccounts, network } = hre;
         const { deployer } = await getNamedAccounts();
 
-        console.log("deployer :", deployer)
+        console.log("\ndeployer :", deployer)
         let config = getConfig(network.name);
-        if(!config){
+        if (!config){
             throw("config not set");
         }
-        await hre.run("routerPlus:deploy",{mos:config.v2.mos,wtoken:config.wToken});
+        await hre.run("routerPlus:deploy",{mos:config.v2.mos, wtoken:config.wToken});
 
         let deploy_json = await readFromFile(network.name)
 
@@ -24,9 +24,9 @@ module.exports = async (taskArgs,hre) => {
 
         let proxy_addr =  deploy_json[network.name]["TransferProxy"]
 
-        config.plus.excutors.push(proxy_addr);
+        config.plus.executors.push(proxy_addr);
 
-        let executors_s = config.plus.excutors.join(",");
+        let executors_s = config.plus.executors.join(",");
 
         await hre.run("routerPlus:setAuthorization",{router:router_addr,executors:executors_s})
 
@@ -38,12 +38,13 @@ module.exports = async (taskArgs,hre) => {
         })
 }
 
-task("routerPlus:deploy", "deploy ButterRouterPlus")
+task("routerPlus:deploy", "deploy butter router plus")
     .addParam("wtoken", "wtoken address")
     .setAction(async (taskArgs,hre) => {
         const {getNamedAccounts, ethers } = hre;
         const { deployer } = await getNamedAccounts();
-        console.log("deployer :", deployer);
+
+        console.log("\ndeploy butter router plus deployer :", deployer);
         let chainId = await hre.network.config.chainId;
         let plus;
         if(chainId === 324 || chainId === 280){
@@ -67,11 +68,12 @@ task("routerPlus:deploy", "deploy ButterRouterPlus")
         await writeToFile(deploy);
 });
 
-task("routerPlus:deployTransferProxy", "deploy transferProxy")
+task("routerPlus:deployTransferProxy", "deploy transfer proxy")
     .setAction(async (taskArgs,hre) => {
         const {getNamedAccounts, ethers } = hre;
         const { deployer } = await getNamedAccounts();
-        console.log("deployer :", deployer);
+
+        console.log("\ndeploy transfer proxy deployer :", deployer);
         let chainId = await hre.network.config.chainId;
         let proxy;
         if(chainId === 324 || chainId === 280){
@@ -101,13 +103,13 @@ task("routerPlus:setAuthorization", "set Authorization")
         const { deploy } = deployments;
         const { deployer } = await getNamedAccounts();
 
-        console.log("deployer :", deployer);
+        console.log("\nset authorization deployer :", deployer);
 
-        await setAuthorization(taskArgs.router,taskArgs.executors,taskArgs.flag);
+        await setAuthorization(taskArgs.router, taskArgs.executors, taskArgs.flag);
 });
 
 
-task("routerPlus:setFee", "set fee")
+task("routerPlus:setFee", "set fee ")
     .addParam("router", "router address")
     .addParam("feereceiver", "feeReceiver address")
     .addParam("feerate", "feeRate")
@@ -117,7 +119,62 @@ task("routerPlus:setFee", "set fee")
         const { deploy } = deployments;
         const { deployer } = await getNamedAccounts();
 
-        console.log("deployer :", deployer);
+        console.log("set fee deployer :", deployer);
 
         await setFee(taskArgs.router,taskArgs.feereceiver,taskArgs.feerate,taskArgs.fixedfee);
 });
+
+task("routerPlus:setAuthFromConfig", "set Authorization from config file")
+    .addOptionalParam("router", "router address", "router", types.string)
+    .setAction(async (taskArgs,hre) => {
+        const { deployments, getNamedAccounts, ethers } = hre;
+        const { deploy } = deployments;
+        const { deployer } = await getNamedAccounts();
+
+        console.log("\nset Authorization from config file deployer :", deployer);
+
+        let config = getConfig(network.name);
+        if (!config) {
+            throw("config not set");
+        }
+
+        let deploy_json = await readFromFile(network.name)
+
+        let router_addr = taskArgs.router;
+        if (router_addr === "router") {
+            if ( deploy_json[network.name]["ButterRouterPlus"] === undefined) {
+                throw("can not get router address");
+            }
+            router_addr = deploy_json[network.name]["ButterRouterPlus"]["addr"]
+
+        }
+        console.log("router: ", router_addr);
+
+        let proxy_addr =  deploy_json[network.name]["TransferProxy"]
+        if (proxy_addr != undefined) {
+            console.log("proxy: ", proxy_addr);
+            config.plus.executors.push(proxy_addr);
+        }
+
+        let Router = await ethers.getContractFactory("ButterRouterPlus");
+        let router = Router.attach(router_addr);
+
+        let executors = [];
+        for (let i = 0; i < config.plus.executors.length; i++) {
+            let result = await (await router.approved(config.plus.executors[i]));
+
+            if (result === false || result === undefined) {
+                executors.push(config.plus.executors[i]);
+            }
+        }
+
+        if (executors.length > 0) {
+            let executors_s = executors.join(",");
+
+            console.log("routers to set :", executors_s);
+
+            await setAuthorization(router_addr, executors_s, true);
+        }
+
+        console.log("RouterPlus sync authorization from config file.");
+    });

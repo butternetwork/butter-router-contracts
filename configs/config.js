@@ -1,4 +1,4 @@
-//wToken,mos,and excutors make sure these addresses must be contract;
+//wToken,mos,and executors make sure these addresses must be contract;
 let config = new Map(
     [
         ["Eth",{
@@ -10,7 +10,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"100000000000000000"
                     },
-                excutors:[
+                executors:[
                     "0x8731d54E9D02c286767d56ac03e8037C07e01e98",//stargate
                     "0x150f94B44927F078737562f0fcF3C95c01Cc2376",//stargate eth
                     "0xb1b2eeF380f21747944f46d28f683cD1FBB4d03c",//stargate eth
@@ -34,7 +34,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"100000000000000000"
                     },
-                excutors:[
+                executors:[
                     "0x8731d54E9D02c286767d56ac03e8037C07e01e98",//stargate
                     "0x150f94B44927F078737562f0fcF3C95c01Cc2376",//stargate eth
                     "0xb1b2eeF380f21747944f46d28f683cD1FBB4d03c",//stargate eth
@@ -62,7 +62,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"12000000000000000000"
                     },
-                excutors:[
+                executors:[
                     "0x45A01E4e04F14f7A4a6702c74187c5F6222033cd",//stargate
                     "0x3335733c454805df6a77f825f266e136FB4a3333",//rubic
                     "0x0000000022D53366457F9d5E68Ec105046FC4383",//curve 
@@ -83,7 +83,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"12000000000000000000"
                     },
-                excutors:[
+                executors:[
                     "0x45A01E4e04F14f7A4a6702c74187c5F6222033cd",//stargate
                     "0x3335733c454805df6a77f825f266e136FB4a3333",//rubic
                     "0x0000000022D53366457F9d5E68Ec105046FC4383",//curve 
@@ -108,7 +108,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"600000000000000000"
                     },
-                excutors:[
+                executors:[
                     "0x4a364f8c717cAAD9A442737Eb7b8A55cc6cf18D8",//stargate
                     "0x3335733c454805df6a77f825f266e136fb4a3333",//rubic
                     "0x1111111254eeb25477b68fb85ed929f73a960582",//1inch
@@ -127,7 +127,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"600000000000000000"
                     },
-                excutors:[
+                executors:[
                     "0x4a364f8c717cAAD9A442737Eb7b8A55cc6cf18D8",//stargate
                     "0x3335733c454805df6a77f825f266e136fb4a3333",//rubic
                     "0x1111111254eeb25477b68fb85ed929f73a960582",//1inch
@@ -150,7 +150,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"200000000000000000000"
                     },
-                excutors:[
+                executors:[
                     "0x45A01E4e04F14f7A4a6702c74187c5F6222033cd",//stargate
                     "0x3335733c454805df6a77f825f266e136fb4a3333",//rubic
                     "0x89D6B81A1Ef25894620D05ba843d83B0A296239e",//algebra
@@ -172,7 +172,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"200000000000000000000"
                     },
-                excutors:[
+                executors:[
                     "0x45A01E4e04F14f7A4a6702c74187c5F6222033cd",//stargate
                     "0x3335733c454805df6a77f825f266e136fb4a3333",//rubic
                     "0x89D6B81A1Ef25894620D05ba843d83B0A296239e",//algebra
@@ -198,7 +198,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"100000000000000000"
                     },
-                excutors:[
+                executors:[
                     "0x53Bf833A5d6c4ddA888F69c22C88C9f356a41614",//stargate
                     "0xbf22f0f184bCcbeA268dF387a49fF5238dD23E40",//stargate eth
                     "0xb1b2eeF380f21747944f46d28f683cD1FBB4d03c",//stargate eth
@@ -220,7 +220,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"100000000000000000"
                     },
-                excutors:[
+                executors:[
                     "0x53Bf833A5d6c4ddA888F69c22C88C9f356a41614",//stargate
                     "0xbf22f0f184bCcbeA268dF387a49fF5238dD23E40",//stargate eth
                     "0xb1b2eeF380f21747944f46d28f683cD1FBB4d03c",//stargate eth
@@ -246,7 +246,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"100000000000000000"
                     },
-                excutors:[
+                executors:[
                     "0xB0D502E938ed5f4df2E681fE6E419ff29631d62b",//stargate
                     "0xB49c4e680174E331CB0A7fF3Ab58afC9738d5F8b",//stargate eth
                     "0xb1b2eeF380f21747944f46d28f683cD1FBB4d03c",//stargate eth
@@ -266,7 +266,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"100000000000000000"
                     },
-                excutors:[
+                executors:[
                     "0xB0D502E938ed5f4df2E681fE6E419ff29631d62b",//stargate
                     "0xB49c4e680174E331CB0A7fF3Ab58afC9738d5F8b",//stargate eth
                     "0xb1b2eeF380f21747944f46d28f683cD1FBB4d03c",//stargate eth
@@ -290,7 +290,7 @@ let config = new Map(
             feeRate:"7000",//denominator is 1000000
             fixedFee:"100000000000000000"
                 },
-            excutors:[
+            executors:[
                 "0x8E70e517057e7380587Ea6990dAe81cB1Ba405ce",//rubic
                 "0x8B791913eB07C32779a16750e3868aA8495F5964",//mute 	
                 "0x6e2B76966cbD9cF4cC2Fa0D76d24d5241E0ABC2F",//1inch
@@ -306,7 +306,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"100000000000000000"
                     },
-                excutors:[
+                executors:[
                     "0x8E70e517057e7380587Ea6990dAe81cB1Ba405ce",//rubic
                     "0x8B791913eB07C32779a16750e3868aA8495F5964",//mute 	
                     "0x6e2B76966cbD9cF4cC2Fa0D76d24d5241E0ABC2F",//1inch
@@ -327,7 +327,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"100000000000000000"
                     },
-                excutors:[	
+                executors:[	
                     "0x3335733c454805df6a77f825f266e136FB4a3333",//rubic
                     "0x1111111254eeb25477b68fb85ed929f73a960582",//1inch
                     "0x2CB45Edb4517d5947aFdE3BEAbF95A582506858B",//trisolaris 
@@ -342,7 +342,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"100000000000000000"
                     },
-                excutors:[	
+                executors:[	
                     "0x3335733c454805df6a77f825f266e136FB4a3333",//rubic
                     "0x1111111254eeb25477b68fb85ed929f73a960582",//1inch
                     "0x2CB45Edb4517d5947aFdE3BEAbF95A582506858B",//trisolaris 
@@ -361,7 +361,7 @@ let config = new Map(
                     feeRate:"7000",//denominator is 1000000
                     fixedFee:"5000000000000000000"
                 },
-                excutors:[
+                executors:[
                     "0xc0006Be82337585481044a7d11941c0828FFD2D4", // openocean
                     "0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE",// lifi
                 ]
@@ -373,7 +373,7 @@ let config = new Map(
                     feeRate:"7000",//denominator is 1000000
                     fixedFee:"5000000000000000000"
                 },
-                excutors:[
+                executors:[
                     "0xc0006Be82337585481044a7d11941c0828FFD2D4", // openocean
                     "0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE",// lifi
                 ]
@@ -389,7 +389,7 @@ let config = new Map(
                     feeRate:"7000",//denominator is 1000000
                     fixedFee:"100000000000000000"
                         },
-                    excutors:[	
+                    executors:[	
                         "0x17C83E2B96ACfb5190d63F5E46d93c107eC0b514",//oolong 
                     ]
             },
@@ -400,7 +400,7 @@ let config = new Map(
                     feeRate:"7000",//denominator is 1000000
                     fixedFee:"100000000000000000"
                         },
-                    excutors:[	
+                    executors:[	
                         "0x17C83E2B96ACfb5190d63F5E46d93c107eC0b514",//oolong 
                     ]
             }
@@ -415,11 +415,10 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"300000000000000000000"
                     },
-                excutors:[	
+                executors:[	
                     "0x0000000022D53366457F9d5E68Ec105046FC4383",//curve 
                     "0xce16F69375520ab01377ce7B88f5BA8C48F8D666",//SQUID 
                     "0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE",// lifi
-                    "0xce16F69375520ab01377ce7B88f5BA8C48F8D666",//squid
                 ]
             },
             plus:{
@@ -429,11 +428,10 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"300000000000000000000"
                     },
-                excutors:[	
+                executors:[	
                     "0x0000000022D53366457F9d5E68Ec105046FC4383",//curve  
                     "0xce16F69375520ab01377ce7B88f5BA8C48F8D666",//SQUID
                     "0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE",// lifi
-                    "0xce16F69375520ab01377ce7B88f5BA8C48F8D666",//squid
                 ]
             }
         }],
@@ -447,7 +445,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"2000000000000000000000"
                     },
-                excutors:[
+                executors:[
                     "0x3335733c454805df6a77f825f266e136FB4a3333",//rubic
                     "0x6c3A0E2E78848274B7E3346b8Ef8a4cBB2fEE2a9",//cro-swap  
                     "0xeC0A7a0C2439E8Cb67b992b12ecd020Ea943c7Be",//crodex
@@ -461,7 +459,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"2000000000000000000000"
                     },
-                excutors:[	
+                executors:[	
                     "0x3335733c454805df6a77f825f266e136FB4a3333",//rubic
                     "0x6c3A0E2E78848274B7E3346b8Ef8a4cBB2fEE2a9",//cro-swap  
                     "0xeC0A7a0C2439E8Cb67b992b12ecd020Ea943c7Be",//crodex
@@ -479,7 +477,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"70000000000000000000"
                     },
-                excutors:[	
+                executors:[	
                     "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F",//sushi 
                     "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",//univ2 
                     "0xE592427A0AEce92De3Edee1F18E0157C05861564",//univ3 
@@ -492,7 +490,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"70000000000000000000"
                     },
-                excutors:[	
+                executors:[	
                     "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F",//sushi 
                     "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",//univ2 
                     "0xE592427A0AEce92De3Edee1F18E0157C05861564",//univ3 
@@ -509,7 +507,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"500000000000000000000"
                     },
-                excutors:[	
+                executors:[	
                     "0xAf5191B0De278C7286d6C7CC6ab6BB8A73bA2Cd6",//stargate
                     "0x3335733c454805df6a77f825f266e136FB4a3333",//rubic
                     "0x0000000022D53366457F9d5E68Ec105046FC4383",//curve 
@@ -531,7 +529,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"500000000000000000000"
                     },
-                excutors:[	
+                executors:[	
                     "0xAf5191B0De278C7286d6C7CC6ab6BB8A73bA2Cd6",//stargate
                     "0x3335733c454805df6a77f825f266e136FB4a3333",//rubic
                     "0x0000000022D53366457F9d5E68Ec105046FC4383",//curve 
@@ -557,13 +555,12 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"150000000000000000000"
                     },
-                excutors:[	
+                executors:[	
                     "0x0000000022D53366457F9d5E68Ec105046FC4383",//curve
                     "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",//sushi 
                     "0x1C232F01118CB8B424793ae03F870aa7D0ac7f77",//Honeyswap
                     "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64", // openocean
                     "0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE",// lifi
-                    "0xF103b5B479d2A629F422C42bb35E7eEceE1ad55E",//xy
                 ]
             },
             plus:{
@@ -573,13 +570,12 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"150000000000000000000"
                     },
-                excutors:[	
+                executors:[	
                     "0x0000000022D53366457F9d5E68Ec105046FC4383",//curve
                     "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",//sushi 
                     "0x1C232F01118CB8B424793ae03F870aa7D0ac7f77",//Honeyswap
                     "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64", // openocean
                     "0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE",// lifi
-                    "0xF103b5B479d2A629F422C42bb35E7eEceE1ad55E",//xy
                 ]
             }
         }],
@@ -594,7 +590,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"10000000000000000000000"
                     },
-                excutors:[	
+                executors:[	
                     "0x24ad62502d1C652Cc7684081169D04896aC20f30",//trader 
                     "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",//sushi 
                     "0xf012702a5f0e54015362cBCA26a26fc90AA832a3",//viper
@@ -609,7 +605,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"10000000000000000000000"
                     },
-                excutors:[	
+                executors:[	
                     "0x24ad62502d1C652Cc7684081169D04896aC20f30",//trader 
                     "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",//sushi 
                     "0xf012702a5f0e54015362cBCA26a26fc90AA832a3",//viper
@@ -628,7 +624,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"150000000000000000000"
                     },
-                excutors:[	
+                executors:[	
                     "0x0000000022D53366457F9d5E68Ec105046FC4383",//curve 
                     "0x7a2c1D96C76B6EB62241df4d2fAEb9F0D3D59E10",//elk  
                     "0xEa3CB4Ba9d1fD6fb19Df1380958d5649bD3e7C50",//jupiter 
@@ -644,7 +640,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"150000000000000000000"
                     },
-                excutors:[
+                executors:[
                     "0x0000000022D53366457F9d5E68Ec105046FC4383",//curve 
                     "0x7a2c1D96C76B6EB62241df4d2fAEb9F0D3D59E10",//elk  
                     "0xEa3CB4Ba9d1fD6fb19Df1380958d5649bD3e7C50",//jupiter 
@@ -664,7 +660,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"1000000000000000000000"
                     },
-                excutors:[	
+                executors:[	
                     "0xEf71750C100f7918d6Ded239Ff1CF09E81dEA92D",//claim 
                     "0x52075Fd1fF67f03beABCb5AcdA9679b02d98cA37",//xy
                 ]
@@ -676,7 +672,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"1000000000000000000000"
                     },
-                excutors:[	
+                executors:[	
                     "0xEf71750C100f7918d6Ded239Ff1CF09E81dEA92D",//claim 
                     "0x52075Fd1fF67f03beABCb5AcdA9679b02d98cA37",//xy
                 ]
@@ -692,7 +688,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"7000000000000000000"
                     },
-                excutors:[	
+                executors:[	
                     "0x2F6F07CDcf3588944Bf4C42aC74ff24bF56e7590",//stargate
                     "0x1E876cCe41B7b844FDe09E38Fa1cf00f213bFf56",//net-swap 
                 ]
@@ -704,7 +700,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"7000000000000000000"
                     },
-                excutors:[	
+                executors:[	
                     "0x2F6F07CDcf3588944Bf4C42aC74ff24bF56e7590",//stargate
                     "0x1E876cCe41B7b844FDe09E38Fa1cf00f213bFf56",//net-swap 
                 ]
@@ -720,7 +716,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"600000000000000000000"
                     },
-                excutors:[	
+                executors:[	
                     "0x0000000022D53366457F9d5E68Ec105046FC4383",//curve 
                     "0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE",// lifi
                     "0xce16F69375520ab01377ce7B88f5BA8C48F8D666",//squid
@@ -734,7 +730,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"600000000000000000000"
                     },
-                excutors:[	
+                executors:[	
                     "0x0000000022D53366457F9d5E68Ec105046FC4383",//curve  
                     "0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE",// lifi
                     "0xce16F69375520ab01377ce7B88f5BA8C48F8D666",//squid
@@ -751,7 +747,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"30000000000000000000"
                     },
-                excutors:[	
+                executors:[	
                     "0x3335733c454805df6a77f825f266e136FB4a3333",//rubic
                     "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",//sushi   
                     "0xAA30eF758139ae4a7f798112902Bf6d65612045f",//solarbeam  
@@ -766,7 +762,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"30000000000000000000"
                     },
-                excutors:[	
+                executors:[	
                     "0x3335733c454805df6a77f825f266e136FB4a3333",//rubic
                     "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",//sushi   
                     "0xAA30eF758139ae4a7f798112902Bf6d65612045f",//solarbeam  
@@ -786,7 +782,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"3000000000000000000000"
                     },
-                excutors:[	
+                executors:[	
                     "0x250d48C5E78f1E85F7AB07FEC61E93ba703aE668",//yuzu-swap   
                 ]
             },
@@ -797,7 +793,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"3000000000000000000000"
                     },
-                excutors:[	
+                executors:[	
                     "0x250d48C5E78f1E85F7AB07FEC61E93ba703aE668",//yuzu-swap   
                 ]
             }
@@ -812,7 +808,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"1000000000000000000000"
                     },
-                excutors:[	
+                executors:[	
                     "0x017dAd2578372CAEE5c6CddfE35eEDB3728544C4",//pegasys    
                 ]
             },
@@ -823,7 +819,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"1000000000000000000000"
                     },
-                excutors:[	
+                executors:[	
                     "0x017dAd2578372CAEE5c6CddfE35eEDB3728544C4",//pegasys    
                 ]
             }
@@ -838,7 +834,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"1000000000000000000000"
                     },
-                excutors:[	
+                executors:[	
                     "0x3335733c454805df6a77f825f266e136FB4a3333",//rubic
                     "0xb9667cf9a495a123b0c43b924f6c2244f42817be",//ape-swap    
                     "0xF9678db1CE83f6f51E5df348E2Cc842Ca51EfEc1",//omnidex	
@@ -853,7 +849,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"1000000000000000000000"
                     },
-                excutors:[	
+                executors:[	
                     "0x3335733c454805df6a77f825f266e136FB4a3333",//rubic
                     "0xb9667cf9a495a123b0c43b924f6c2244f42817be",//ape-swap    
                     "0xF9678db1CE83f6f51E5df348E2Cc842Ca51EfEc1",//omnidex	
@@ -872,7 +868,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"10000000000000000000000"
                     },
-                excutors:[	
+                executors:[	
                     "0x3328cd3a9A295cd00fBb1d71Bf097e002B4614ad",//astro     
                     "0x3D1c58B6d4501E34DF37Cf0f664A58059a188F00",//wagyu 	
                 ]
@@ -884,7 +880,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"10000000000000000000000"
                     },
-                excutors:[	
+                executors:[	
                     "0x3328cd3a9A295cd00fBb1d71Bf097e002B4614ad",//astro     
                     "0x3D1c58B6d4501E34DF37Cf0f664A58059a188F00",//wagyu 	
                 ]
@@ -900,7 +896,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"3000000000000000000000"
                     },
-                excutors:[  
+                executors:[  
                 "0x3335733c454805df6a77f825f266e136FB4a3333",//rubic
                  "0xE915D2393a08a00c5A463053edD31bAe2199b9e7",//arts-swap
                  "0x5C6C12Fd8b1f7E60E5B60512712cFbE0192E795E", //xy 
@@ -913,7 +909,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"3000000000000000000000"
                     },
-                excutors:[  
+                executors:[  
                 "0x3335733c454805df6a77f825f266e136FB4a3333",//rubic
                  "0xE915D2393a08a00c5A463053edD31bAe2199b9e7",//arts-swap
                  "0x5C6C12Fd8b1f7E60E5B60512712cFbE0192E795E", //xy 
@@ -930,7 +926,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"10000000000000000000000"
                     },
-                excutors:[
+                executors:[
                 "0x0bce9e0ebd4fd4d6562495af45c4aaa0c1f7f3d7",//hiveswap
                 ]
             },
@@ -941,7 +937,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"10000000000000000000000"
                     },
-                excutors:[
+                executors:[
                 "0x0bce9e0ebd4fd4d6562495af45c4aaa0c1f7f3d7",//hiveswap
                 ]
             }
@@ -955,7 +951,7 @@ let config = new Map(
                     feeRate: "7000",//denominator is 1000000
                     fixedFee: "1000000000000000000000"
                 },
-                excutors: [
+                executors: [
                     "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",//sushiswap
                     "0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE",// lifi
                 ]
@@ -967,14 +963,14 @@ let config = new Map(
                     feeRate: "7000",//denominator is 1000000
                     fixedFee: "1000000000000000000000"
                 },
-                excutors: [
+                executors: [
                     "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",//sushiswap
                     "0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE",// lifi
                 ]
             }
         }],
 
-        ["PolygonZkEVM",{
+        ["zkEvm",{
             wToken:"0x4F9A0e7FD2Bf6067db6994CF12E4495Df938E6e9",
             v2: {
                 mos: "0x4F9A0e7FD2Bf6067db6994CF12E4495Df938E6e9",
@@ -983,7 +979,7 @@ let config = new Map(
                     feeRate: "7000",//denominator is 1000000
                     fixedFee: "1000000000000000000000"
                 },
-                excutors: [
+                executors: [
                     "0x3335733c454805df6a77f825f266e136FB4a3333",//rubic
                     "0x3689D3B912d4D73FfcAad3a80861e7caF2d4F049",//xy
                 ]
@@ -995,7 +991,7 @@ let config = new Map(
                     feeRate: "7000",//denominator is 1000000
                     fixedFee: "1000000000000000000000"
                 },
-                excutors: [
+                executors: [
                     "0x3335733c454805df6a77f825f266e136FB4a3333",//rubic
                     "0x3689D3B912d4D73FfcAad3a80861e7caF2d4F049",//xy
                 ]
@@ -1011,7 +1007,7 @@ let config = new Map(
                     feeRate: "7000",//denominator is 1000000
                     fixedFee: "1000000000000000000000"
                 },
-                excutors: [
+                executors: [
                     "0x73Ce60416035B8D7019f6399778c14ccf5C9c7A1",//xy router
                     "0xce16F69375520ab01377ce7B88f5BA8C48F8D666",//SQUID
                 ]
@@ -1023,7 +1019,7 @@ let config = new Map(
                     feeRate: "7000",//denominator is 1000000
                     fixedFee: "1000000000000000000000"
                 },
-                excutors: [
+                executors: [
                     "0x73Ce60416035B8D7019f6399778c14ccf5C9c7A1",//xy router
                     "0xce16F69375520ab01377ce7B88f5BA8C48F8D666",//SQUID
                 ]
@@ -1039,7 +1035,7 @@ let config = new Map(
                     feeRate: "7000",//denominator is 1000000
                     fixedFee: "1000000000000000000000"
                 },
-                excutors: [
+                executors: [
                     "0xce16F69375520ab01377ce7B88f5BA8C48F8D666",//SQUID
                 ]
             },
@@ -1050,7 +1046,7 @@ let config = new Map(
                     feeRate: "7000",//denominator is 1000000
                     fixedFee: "1000000000000000000000"
                 },
-                excutors: [
+                executors: [
                     "0xce16F69375520ab01377ce7B88f5BA8C48F8D666",//SQUID
                 ]
             }
@@ -1065,7 +1061,7 @@ let config = new Map(
                     feeRate: "7000",//denominator is 1000000
                     fixedFee: "1000000000000000000000"
                 },
-                excutors: [
+                executors: [
                     "0xce16F69375520ab01377ce7B88f5BA8C48F8D666",//SQUID
                 ]
             },
@@ -1076,7 +1072,7 @@ let config = new Map(
                     feeRate: "7000",//denominator is 1000000
                     fixedFee: "1000000000000000000000"
                 },
-                excutors: [
+                executors: [
                     "0xce16F69375520ab01377ce7B88f5BA8C48F8D666",//SQUID
                 ]
             }
@@ -1091,7 +1087,7 @@ let config = new Map(
                     feeRate: "7000",//denominator is 1000000
                     fixedFee: "1000000000000000000000"
                 },
-                excutors: [
+                executors: [
                     "0x7e803b54295Cd113Bf48E7f069f0531575DA1139",//xy router
                 ]
             },
@@ -1102,7 +1098,7 @@ let config = new Map(
                     feeRate: "7000",//denominator is 1000000
                     fixedFee: "1000000000000000000000"
                 },
-                excutors: [
+                executors: [
                     "0x7e803b54295Cd113Bf48E7f069f0531575DA1139",//xy router
                 ]
             }
@@ -1117,7 +1113,7 @@ let config = new Map(
                     feeRate: "7000",//denominator is 1000000
                     fixedFee: "1000000000000000000000"
                 },
-                excutors: [
+                executors: [
                     "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",//sushiswap
                 ]
             },
@@ -1128,7 +1124,7 @@ let config = new Map(
                     feeRate: "7000",//denominator is 1000000
                     fixedFee: "1000000000000000000000"
                 },
-                excutors: [
+                executors: [
                     "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",//sushiswap
                 ]
             }
@@ -1143,7 +1139,7 @@ let config = new Map(
                     feeRate: "7000",//denominator is 1000000
                     fixedFee: "1000000000000000000000"
                 },
-                excutors: [
+                executors: [
                     "0xF103b5B479d2A629F422C42bb35E7eEceE1ad55E",//xy router
                 ]
             },
@@ -1154,7 +1150,7 @@ let config = new Map(
                     feeRate: "7000",//denominator is 1000000
                     fixedFee: "1000000000000000000000"
                 },
-                excutors: [
+                executors: [
                     "0xF103b5B479d2A629F422C42bb35E7eEceE1ad55E",//xy router
                 ]
             }
@@ -1173,7 +1169,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"100000000"
                     },
-                excutors:[
+                executors:[
                     "0xD99D1c33F9fC3444f8101754aBC46c52416550D1",	
                     "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",
                     "0x6710b000cc6728e068C095B66535E1A8b552e816"
@@ -1186,7 +1182,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"100000000"
                     },
-                excutors:[
+                executors:[
                     "0xD99D1c33F9fC3444f8101754aBC46c52416550D1",	
                     "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",
                     "0x6710b000cc6728e068C095B66535E1A8b552e816"
@@ -1203,7 +1199,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"100000000"
                     },
-                excutors:[
+                executors:[
                     "0xf479BD49E55cf47474056Ef168B0E0709DDF1830"
                 ]
             },
@@ -1214,7 +1210,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"100000000"
                     },
-                excutors:[
+                executors:[
                     "0xf479BD49E55cf47474056Ef168B0E0709DDF1830"
                 ]
             }
@@ -1229,7 +1225,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"100000000"
                     },
-                excutors:[
+                executors:[
                     "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
                     "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",
                     "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45",
@@ -1243,7 +1239,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"100000000"
                     },
-                excutors:[
+                executors:[
                     "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
                     "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",
                     "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45",
@@ -1261,7 +1257,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"1000000000000000000"
                     },
-                excutors:[
+                executors:[
                     "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff",
                     "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",
                     "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45",
@@ -1275,7 +1271,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"1000000000000000000"
                     },
-                excutors:[
+                executors:[
                     "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff",
                     "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",
                     "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45",
@@ -1293,7 +1289,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"1000000000000000000"
                     },
-                excutors:[
+                executors:[
                     "0x3dBe031355BDdECD4D70673A80b708a73D157814"
                 ]
             },
@@ -1304,7 +1300,7 @@ let config = new Map(
                 feeRate:"7000",//denominator is 1000000
                 fixedFee:"1000000000000000000"
                     },
-                excutors:[
+                executors:[
                     "0x3dBe031355BDdECD4D70673A80b708a73D157814"
                 ]
             }
