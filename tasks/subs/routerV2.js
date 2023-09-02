@@ -9,10 +9,10 @@ module.exports = async (taskArgs,hre) => {
 
         console.log("deployer :", deployer)
         let config = getConfig(network.name);
-        if(!config){
+        if (!config) {
             throw("config not set");
         }
-        await hre.run("routerV2:deploy",{mos:config.v2.mos,wtoken:config.wToken});
+        await hre.run("routerV2:deploy",{mos:config.v2.mos, wtoken:config.wToken});
 
         let deploy_json = await readFromFile(network.name)
 
@@ -28,7 +28,7 @@ module.exports = async (taskArgs,hre) => {
 
         let executors_s = config.v2.executors.join(",");
 
-        await hre.run("routerV2:setAuthorization",{router:router_addr,executors:executors_s})
+        await hre.run("routerV2:setAuthorization",{router:router_addr, executors:executors_s})
 
         await hre.run("routerV2:setFee",{
             router:router_addr,
@@ -76,7 +76,7 @@ task("routerV2:deploySwapAdapter", "deploy SwapAdapter")
         let chainId = await hre.network.config.chainId;
 
         let swapAdapter;
-        if(chainId === 324 || chainId === 280){
+        if(chainId === 324 || chainId === 280) {
             swapAdapter = await createZk("SwapAdapter",[deployer],hre);
         } else {
             let salt = process.env.SWAP_ADAPTER_DEPLOY_SALT;

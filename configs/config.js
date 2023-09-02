@@ -654,21 +654,21 @@ let config = new Map(
         }],
 
         ["Klaytn",{
-            wToken:"0xe4f05A66Ec68B54A58B17c22107b02e0232cC817",
+            wToken:"0x19aac5f612f524b754ca7e7c41cbfa2e981a4432",
             v2:{
-                mos:"0xe4f05A66Ec68B54A58B17c22107b02e0232cC817",
+                mos:"0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee:{
                 receiver:"0x4A53841B9b16182f996a65aAb407e7622CBCf966",
-                feeRate:"7000",//denominator is 1000000
-                fixedFee:"1000000000000000000000"
+                feeRate:"1000",//denominator is 1000000
+                fixedFee:"10000000000000000000"
                     },
-                executors:[	
+                executors:[
                     "0xEf71750C100f7918d6Ded239Ff1CF09E81dEA92D",//claim 
                     "0x52075Fd1fF67f03beABCb5AcdA9679b02d98cA37",//xy
                 ]
             },
             plus:{
-                mos:"0xe4f05A66Ec68B54A58B17c22107b02e0232cC817",
+                mos:"0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee:{
                 receiver:"0x4A53841B9b16182f996a65aAb407e7622CBCf966",
                 feeRate:"7000",//denominator is 1000000
