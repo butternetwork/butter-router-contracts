@@ -751,6 +751,83 @@ describe("ButterRouterV2", function () {
         let balanceAfter = await dstTokenContract.balanceOf(user.address);
         expect(balanceAfter).gt(balanceBefore);
     })
+
+    it("remoteSwapAndCall _makeAggFill -> ", async () => {
+
+        let uniV2router = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
+        let _srcToken = "0x1A963Df363D01EEBB2816b366d61C917F20e1EbE"
+        let user;
+        // 0x1252eb0912559a206dd3600f283f2a48dca24196
+        this.timeout(0)
+        await network.provider.request({
+            method: 'hardhat_reset',
+            params: [
+                {
+                    forking: {
+                        jsonRpcUrl: "https://eth-mainnet.alchemyapi.io/v2/" + process.env.ALCHEMY_KEY,
+                        blockNumber: 17085533,
+                    },
+                },
+            ],
+        })
+        await network.provider.request({
+            method: 'hardhat_impersonateAccount',
+            params: ['0x2ad88998e0becaf557f8df2fd71fc3ff9a9e6eb0'],
+        })
+        user = await ethers.getSigner('0x2ad88998e0becaf557f8df2fd71fc3ff9a9e6eb0')
+        PayMock = await ethers.getContractFactory("PayMock");
+        let pay = await PayMock.deploy();
+        await pay.deployed();
+        await deployFixture(wToken);
+        await(await router.setAuthorization([uniV2router],true)).wait()
+        await(await router.setAuthorization([pay.address],true)).wait()
+
+        let path = ["0x1A963Df363D01EEBB2816b366d61C917F20e1EbE","0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"]
+
+        let amount = "20544470704991381589196369";
+
+        let amountOutMin = "432915815816296645";
+
+        let dstToken = wToken;
+        
+        let interface = new ethers.utils.Interface([
+        "function swapExactTokensForTokens(uint amountIn,uint amountOutMin,address[] calldata path,address to,uint deadline) external"
+        ])
+        let swap = interface.encodeFunctionData("swapExactTokensForTokens",[0,amountOutMin,path,swapAdapter.address,"2324876578"]);
+        swap = ethers.utils.defaultAbiCoder.encode(['uint256','bytes'],[36,swap]);
+        // let swap = ethers.utils.defaultAbiCoder.encode(["uint256","address[]"],[amountOutMin,path]); 
+        let SwapData = {
+            dexType:4,
+            callTo:uniV2router,
+            approveTo:uniV2router,
+            fromAmount:amount,
+            callData:swap
+        }
+        let swaps = [SwapData];
+
+        let param = {
+            srcToken:_srcToken,
+            dstToken:dstToken,
+            receiver:router.address,
+            leftReceiver:user.address,
+            minAmount:0,
+            swaps:swaps
+        }
+        let SwapAdapter = await ethers.getContractFactory("SwapAdapter");
+
+        let data = SwapAdapter.interface.encodeFunctionData("swap",[param])
+
+        swap =  ethers.utils.defaultAbiCoder.encode(['tuple(uint8,address,address,address,address,uint256,bytes)'], [[0, swapAdapter.address, swapAdapter.address,user.address,dstToken,0,data]]);
+        
+        let swapAndCall = ethers.utils.defaultAbiCoder.encode(['bytes','bytes',],[swap,"0x"]);
+        let token = await ethers.getContractAt(ERC20, _srcToken, user); 
+        let dstTokenContract = await ethers.getContractAt(ERC20, dstToken, user); 
+        await(await token.approve(mos.address,amount)).wait();  
+        let balanceBefore = await dstTokenContract.balanceOf(user.address);
+        await expect(mos.connect(user).mockRemoteSwapAndCall(router.address,_srcToken,amount,swapAndCall)).to.be.emit(router,"RemoteSwapAndCall");
+        let balanceAfter = await dstTokenContract.balanceOf(user.address);
+        expect(balanceAfter).gt(balanceBefore);
+    })
     //  //tx https://etherscan.io/tx/0x78083d1e4b6d074e2a21814eb9eb39462b231d881fa2a3147bf5a7bb3215dfc8
     it("remoteSwapAndCall _makeUniV2Swap -> swapExactETHForTokens", async () => {
 
