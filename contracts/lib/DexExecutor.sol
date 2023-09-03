@@ -13,7 +13,8 @@ library DexExecutor {
         AGG,
         UNIV2,
         UNIV3,
-        CURVE
+        CURVE,
+        FILL
     }
 
     function execute(
@@ -35,7 +36,9 @@ library DexExecutor {
             (_result) = _makeUniV3Swap(_router, _dstToken, _amount, _isNative, _swap);
         } else if (dexType == DexType.CURVE) {
             (_result) = _makeCurveSwap(_router, _amount, _isNative, _swap);
-        } else {
+        } else if(dexType == DexType.FILL){
+            (_result) = _makeAggFill(_router, _amount, _isNative, _swap);
+        }else {
            require(false,"DexExecutor: unsupported dex type");
         }
         require(_result, "DexExecutor: swap fail");
@@ -51,6 +54,23 @@ library DexExecutor {
             (_result, ) = _router.call{value: _amount}(_swap);
         } else {
             (_result, ) = _router.call(_swap);
+        }
+    }
+
+    function _makeAggFill(
+        address _router,
+        uint256 _amount,
+        bool _isNative,
+        bytes memory _swap
+    ) internal returns (bool _result) {
+        (uint256 offset,bytes memory callDatas) = abi.decode(_swap,(uint256,bytes));
+        assembly {
+            mstore(add(callDatas, offset), _amount)
+        }
+        if (_isNative) {
+            (_result, ) = _router.call{value: _amount}(callDatas);
+        } else {
+            (_result, ) = _router.call(callDatas);
         }
     }
 
