@@ -156,6 +156,12 @@ task("routerPlus:setAuthFromConfig", "set Authorization from config file")
             config.plus.executors.push(proxy_addr);
         }
 
+        if ( deploy_json[network.name]["ButterRouterV2"] != undefined) {
+            let butter_addr =  deploy_json[network.name]["ButterRouterV2"]["addr"];
+            console.log("ButterRouterV2: ", butter_addr);
+            config.plus.executors.push(butter_addr);
+        }
+
         let Router = await ethers.getContractFactory("ButterRouterPlus");
         let router = Router.attach(router_addr);
 

@@ -123,3 +123,57 @@ task("routerV2:setFee", "set setFee")
 
         await setFee(taskArgs.router,taskArgs.feereceiver,taskArgs.feerate,taskArgs.fixedfee);
 });
+
+task("routerV2:setAuthFromConfig", "set Authorization from config file")
+    .addOptionalParam("router", "router address", "router", types.string)
+    .setAction(async (taskArgs, hre) => {
+        const { deployments, getNamedAccounts, ethers } = hre;
+        const { deploy } = deployments;
+        const { deployer } = await getNamedAccounts();
+
+        console.log("\nset Authorization from config file deployer :", deployer);
+
+        let config = getConfig(network.name);
+        if (!config) {
+            throw("config not set");
+        }
+
+        let deploy_json = await readFromFile(network.name)
+
+        let router_addr = taskArgs.router;
+        if (router_addr === "router") {
+            if ( deploy_json[network.name]["ButterRouterV2"] === undefined) {
+                throw("can not get router address");
+            }
+            router_addr = deploy_json[network.name]["ButterRouterV2"]["addr"]
+        }
+        console.log("router: ", router_addr);
+
+        let adapter_address =  deploy_json[network.name]["SwapAdapter"]
+        if (adapter_address != undefined) {
+            console.log("SwapAdapter: ", adapter_address);
+            config.v2.executors.push(adapter_address);
+        }
+
+        let Router = await ethers.getContractFactory("ButterRouterV2");
+        let router = Router.attach(router_addr);
+
+        let executors = [];
+        for (let i = 0; i < config.v2.executors.length; i++) {
+            let result = await (await router.approved(config.v2.executors[i]));
+
+            if (result === false || result === undefined) {
+                executors.push(config.v2.executors[i]);
+            }
+        }
+
+        if (executors.length > 0) {
+            let executors_s = executors.join(",");
+
+            console.log("routers to set :", executors_s);
+
+            await setAuthorization(router_addr, executors_s, true);
+        }
+
+        console.log("RouterV2 sync authorization from config file.");
+    });

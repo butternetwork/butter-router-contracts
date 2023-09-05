@@ -663,8 +663,9 @@ let config = new Map(
                 fixedFee:"10000000000000000000"
                     },
                 executors:[
-                    "0xEf71750C100f7918d6Ded239Ff1CF09E81dEA92D",//claim 
+                    "0xEf71750C100f7918d6Ded239Ff1CF09E81dEA92D",//claimswap
                     "0x52075Fd1fF67f03beABCb5AcdA9679b02d98cA37",//xy
+                    "0xe0fbB27D0E7F3a397A67a9d4864D4f4DD7cF8cB9", // klayswap
                 ]
             },
             plus:{
@@ -675,8 +676,9 @@ let config = new Map(
                 fixedFee:"1000000000000000000000"
                     },
                 executors:[	
-                    "0xEf71750C100f7918d6Ded239Ff1CF09E81dEA92D",//claim 
+                    "0xEf71750C100f7918d6Ded239Ff1CF09E81dEA92D",//claimswap
                     "0x52075Fd1fF67f03beABCb5AcdA9679b02d98cA37",//xy
+                    "0xe0fbB27D0E7F3a397A67a9d4864D4f4DD7cF8cB9", // klayswap
                 ]
             }
         }],
