@@ -34,4 +34,6 @@ library ErrorMessage {
 
     string internal constant NO_APPROVE = "ButterRouterV2:not approved";
 
+    string internal constant NATIVE_VAULE_OVERSPEND = "ButterRouterV2: native value overspend";
+
 }

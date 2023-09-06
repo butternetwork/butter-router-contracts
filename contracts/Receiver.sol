@@ -25,7 +25,7 @@ contract Receiver is ReentrancyGuard,Ownable2Step{
    address public amarokRouter;
    address public sgRouter;
    address public cBridgeMessageBus;
-
+   uint256 internal nativeBalanceBeforeExec;
 
     event StargateRouterSet(address indexed _router);
     event CBridgeMessageBusSet(address indexed _router);
@@ -58,6 +58,7 @@ contract Receiver is ReentrancyGuard,Ownable2Step{
 
     modifier transferIn(address token,uint256 amount) {
         require(amount > 0,ErrorMessage.ZERO_IN);
+        nativeBalanceBeforeExec = address(this).balance - msg.value;
         if (Helper._isNative(token)) {
             require(msg.value >= amount,ErrorMessage.FEE_MISMATCH);
         } else {
@@ -69,6 +70,8 @@ contract Receiver is ReentrancyGuard,Ownable2Step{
             );
         }
         _;
+
+        nativeBalanceBeforeExec = 0;
     }
 
    constructor(address _authorization,address _owner) {
@@ -185,7 +188,7 @@ contract Receiver is ReentrancyGuard,Ownable2Step{
             bytes memory _swapData,
             bytes memory _callbackData
         ) = abi.decode(_message,(address,bytes32,bytes,bytes));
-
+        nativeBalanceBeforeExec = address(this).balance - msg.value;
         _swapAndCall(transactionId,_token,_amount,receiver,_swapData,_callbackData,false);
 
         return IMessageReceiverApp.ExecutionStatus.Success;
@@ -217,7 +220,6 @@ contract Receiver is ReentrancyGuard,Ownable2Step{
             ,
             
         ) = abi.decode(_message,(address,bytes32,bytes,bytes));
-
         // return funds to cBridgeData.refundAddress
         Helper._transfer(_token,receiver,_amount);
         return IMessageReceiverApp.ExecutionStatus.Success;
@@ -244,7 +246,7 @@ contract Receiver is ReentrancyGuard,Ownable2Step{
         temp.swapAmount = _amount; 
         temp.receiver = _receiver;
         temp.transactionId = _transactionId;
-
+         
         uint256 balance = Helper._getBalance(_srcToken,address(this));
         if(balance < _amount) {
             Helper._transfer(_srcToken,_receiver,balance);
@@ -302,6 +304,7 @@ contract Receiver is ReentrancyGuard,Ownable2Step{
     function _callBack(address _token, Helper.CallbackParam memory _callParam) internal returns (bool _result, uint256 _callAmount) {
         require(_approved(_callParam.target), ErrorMessage.NO_APPROVE);
        (_result,_callAmount) =  Helper._callBack(_token,_callParam);
+       require(address(this).balance >= nativeBalanceBeforeExec,ErrorMessage.NATIVE_VAULE_OVERSPEND);
     }
 
     function _approved(address _callTo) internal view returns (bool) {
@@ -312,5 +315,7 @@ contract Receiver is ReentrancyGuard,Ownable2Step{
         Helper._transfer(_token,msg.sender,_amount);
     }
 
-    receive() external payable {}
+    receive() external payable {
+        nativeBalanceBeforeExec = address(this).balance - msg.value;
+    }
 }
