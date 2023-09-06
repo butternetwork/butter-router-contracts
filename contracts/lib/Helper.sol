@@ -93,17 +93,13 @@ library Helper {
             }
     }
 
-    function _callBack(address _token, CallbackParam memory _callParam,uint256 _nativeBalanceBeforeExec) internal returns (bool _result, uint256 _callAmount) {
+    function _callBack(address _token, CallbackParam memory _callParam) internal returns (bool _result, uint256 _callAmount) {
 
         _callAmount = Helper._getBalance(_token, address(this));
 
         if (Helper._isNative(_token)) {
             (_result, )  = _callParam.target.call{value: _callParam.amount}(_callParam.data);
         } else {          
-            //if native value not enough return
-            if(address(this).balance < (_nativeBalanceBeforeExec + _callParam.extraNativeAmount)){
-                return(false,0);
-            }
             IERC20(_token).safeIncreaseAllowance(_callParam.approveTo, _callParam.amount);
             // this contract not save money make sure send value can cover this
             (_result, )  = _callParam.target.call{value:_callParam.extraNativeAmount}(_callParam.data);

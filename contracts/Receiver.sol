@@ -301,7 +301,7 @@ contract Receiver is ReentrancyGuard,Ownable2Step{
 
     function _callBack(address _token, Helper.CallbackParam memory _callParam) internal returns (bool _result, uint256 _callAmount) {
         require(_approved(_callParam.target), ErrorMessage.NO_APPROVE);
-       (_result,_callAmount) =  Helper._callBack(_token,_callParam,0);
+       (_result,_callAmount) =  Helper._callBack(_token,_callParam);
     }
 
     function _approved(address _callTo) internal view returns (bool) {

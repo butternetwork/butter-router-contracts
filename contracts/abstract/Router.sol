@@ -17,6 +17,7 @@ abstract contract Router is Ownable2Step {
     uint256 public fixedFee;
     address public feeReceiver;
     address internal immutable wToken;
+    uint256 internal nativeBalanceBeforeExec;
     uint256 private constant FEE_DENOMINATOR = 1000000;
 
     mapping(address => bool) public approved;
@@ -64,6 +65,7 @@ abstract contract Router is Ownable2Step {
         if (permitData.length > 0) {
             Helper._permit(permitData);
         }
+        nativeBalanceBeforeExec = address(this).balance - msg.value;
         if (Helper._isNative(token)) {
             require(msg.value >= amount, ErrorMessage.FEE_MISMATCH);
         } else {
@@ -74,7 +76,10 @@ abstract contract Router is Ownable2Step {
                 amount
             );
         }
+
         _;
+
+        nativeBalanceBeforeExec;
     }
 
     constructor(address _owner,address _wToken) payable {
@@ -165,9 +170,10 @@ abstract contract Router is Ownable2Step {
        
    }
 
-    function _callBack(address _token,Helper.CallbackParam memory _callParam,uint256 _nativeBalanceBeforeExec) internal returns (bool _result, uint256 _callAmount) {
+    function _callBack(address _token,Helper.CallbackParam memory _callParam) internal returns (bool _result, uint256 _callAmount) {
         require(approved[_callParam.target], ErrorMessage.NO_APPROVE);
-        (_result,_callAmount) = Helper._callBack(_token,_callParam,_nativeBalanceBeforeExec);
+        (_result,_callAmount) = Helper._callBack(_token,_callParam);
+        require(address(this).balance >= nativeBalanceBeforeExec,ErrorMessage.CALL_FAIL);
     }
 
     function _makeSwap(uint256 _amount, address _srcToken, Helper.SwapParam memory _swap) internal returns(bool _result, address _dstToken, uint256 _returnAmount){

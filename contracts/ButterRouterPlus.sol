@@ -34,7 +34,6 @@ contract ButterRouterPlus is Router,ReentrancyGuard {
         swapTemp.swapAmount = _amount;
         swapTemp.transferId = _transferId;
         swapTemp.feeType = _feeType;
-        uint256 _nativeBalanceBeforeExec = address(this).balance - msg.value;
         
         require (_swapData.length + _callbackData.length > 0, ErrorMessage.DATA_EMPTY);
         (, swapTemp.swapAmount) = _collectFee(swapTemp.srcToken, swapTemp.srcAmount,swapTemp.transferId,swapTemp.feeType);
@@ -53,7 +52,7 @@ contract ButterRouterPlus is Router,ReentrancyGuard {
         if (_callbackData.length > 0) {
             (Helper.CallbackParam memory callParam) = abi.decode(_callbackData, (Helper.CallbackParam));
             require(swapTemp.swapAmount >= callParam.amount, ErrorMessage.CALL_AMOUNT_INVALID);
-            (result, swapTemp.callAmount) = _callBack(swapTemp.swapToken, callParam, _nativeBalanceBeforeExec);
+            (result, swapTemp.callAmount) = _callBack(swapTemp.swapToken, callParam);
             require(result,ErrorMessage.CALL_FAIL);
             swapTemp.receiver = callParam.receiver;
             swapTemp.target = callParam.target;
