@@ -26,6 +26,7 @@ contract Receiver is ReentrancyGuard,Ownable2Step{
    address public sgRouter;
    address public cBridgeMessageBus;
    uint256 internal nativeBalanceBeforeExec;
+   bool internal callWithExtraNativeAmount;
 
     event StargateRouterSet(address indexed _router);
     event CBridgeMessageBusSet(address indexed _router);
@@ -189,8 +190,10 @@ contract Receiver is ReentrancyGuard,Ownable2Step{
             bytes memory _callbackData
         ) = abi.decode(_message,(address,bytes32,bytes,bytes));
         nativeBalanceBeforeExec = address(this).balance - msg.value;
+        callWithExtraNativeAmount = true;
         _swapAndCall(transactionId,_token,_amount,receiver,_swapData,_callbackData,false);
-
+        nativeBalanceBeforeExec = 0;
+        callWithExtraNativeAmount = false;
         return IMessageReceiverApp.ExecutionStatus.Success;
     }
 
@@ -232,7 +235,9 @@ contract Receiver is ReentrancyGuard,Ownable2Step{
     transferIn(_srcToken,_amount)
     nonReentrant
     {   
+        callWithExtraNativeAmount = true;
         _swapAndCall(_transactionId,_srcToken,_amount,_receiver,_swapData,_callbackData,false);
+        callWithExtraNativeAmount = false;
     }
 
     function _swapAndCall(bytes32 _transactionId,address _srcToken, uint256 _amount,address _receiver,bytes memory _swapData,bytes memory _callbackData,bool reserveRecoverGas)
@@ -303,8 +308,13 @@ contract Receiver is ReentrancyGuard,Ownable2Step{
 
     function _callBack(address _token, Helper.CallbackParam memory _callParam) internal returns (bool _result, uint256 _callAmount) {
         require(_approved(_callParam.target), ErrorMessage.NO_APPROVE);
-       (_result,_callAmount) =  Helper._callBack(_token,_callParam);
-       require(address(this).balance >= nativeBalanceBeforeExec,ErrorMessage.NATIVE_VAULE_OVERSPEND);
+        if(!callWithExtraNativeAmount && _callParam.extraNativeAmount > 0){
+            return (false,0);
+        }
+        (_result,_callAmount) =  Helper._callBack(_token,_callParam);
+        if(_callParam.extraNativeAmount > 0){
+           require(address(this).balance >= nativeBalanceBeforeExec,ErrorMessage.NATIVE_VAULE_OVERSPEND);
+        }
     }
 
     function _approved(address _callTo) internal view returns (bool) {
@@ -315,7 +325,5 @@ contract Receiver is ReentrancyGuard,Ownable2Step{
         Helper._transfer(_token,msg.sender,_amount);
     }
 
-    receive() external payable {
-        nativeBalanceBeforeExec = address(this).balance - msg.value;
-    }
+    receive() external payable {}
 }
