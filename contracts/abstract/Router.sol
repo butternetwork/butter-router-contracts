@@ -79,7 +79,7 @@ abstract contract Router is Ownable2Step {
 
         _;
 
-        nativeBalanceBeforeExec;
+        nativeBalanceBeforeExec = 0;
     }
 
     constructor(address _owner,address _wToken) payable {
@@ -87,6 +87,31 @@ abstract contract Router is Ownable2Step {
         require(_wToken.isContract(),ErrorMessage.NOT_CONTRACT);
         wToken = _wToken;
         _transferOwnership(_owner);
+    }
+
+
+    function doSwapAndCall(bytes memory _swapData,bytes memory _callbackData,address _srcToken,uint256 _amount) external returns(address receiver,address target,address dstToken,uint256 swapOutAmount,uint256 callAmount){
+        require(msg.sender == address(this));
+        bool result;
+        swapOutAmount = _amount;
+        dstToken = _srcToken;
+        if (_swapData.length > 0) {
+            Helper.SwapParam memory swap = abi.decode(_swapData, (Helper.SwapParam));
+            (result, dstToken,swapOutAmount)= _makeSwap(_amount,_srcToken, swap);
+            require(result, ErrorMessage.SWAP_FAIL);
+            require(swapOutAmount >= swap.minReturnAmount,ErrorMessage.RECEIVE_LOW);
+            receiver = swap.receiver;
+            target = swap.executor;
+        }
+
+        if (_callbackData.length > 0) {
+            (Helper.CallbackParam memory callParam) = abi.decode(_callbackData, (Helper.CallbackParam));
+            require(swapOutAmount >= callParam.amount, ErrorMessage.CALL_AMOUNT_INVALID);
+            (result, callAmount) = _callBack(dstToken, callParam);
+            require(result,ErrorMessage.CALL_FAIL);
+            receiver = callParam.receiver;
+            target = callParam.target;
+        }
     }
 
     function setFee(address _feeReceiver, uint256 _feeRate,uint256 _fixedFee) external onlyOwner {

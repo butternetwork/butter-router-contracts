@@ -26,37 +26,15 @@ contract ButterRouterPlus is Router,ReentrancyGuard {
     nonReentrant
     transferIn(_srcToken, _amount, _permitData)
     {
-        bool result;
         SwapTemp memory swapTemp;
         swapTemp.srcToken = _srcToken;
         swapTemp.srcAmount = _amount;
-        swapTemp.swapToken = _srcToken;
-        swapTemp.swapAmount = _amount;
         swapTemp.transferId = _transferId;
         swapTemp.feeType = _feeType;
-        
         require (_swapData.length + _callbackData.length > 0, ErrorMessage.DATA_EMPTY);
         (, swapTemp.swapAmount) = _collectFee(swapTemp.srcToken, swapTemp.srcAmount,swapTemp.transferId,swapTemp.feeType);
 
-        if (_swapData.length > 0) {
-            Helper.SwapParam memory swap = abi.decode(_swapData, (Helper.SwapParam));
-            // in srcToken srcAmount out outToken outAmount 
-            //swapTemp.swapAmount in --> srcTokenAmount out ->  outTokenAmount
-            (result, swapTemp.swapToken, swapTemp.swapAmount)= _makeSwap(swapTemp.swapAmount, swapTemp.srcToken, swap);
-            require(result, ErrorMessage.SWAP_FAIL);
-            require(swapTemp.swapAmount >= swap.minReturnAmount,ErrorMessage.RECEIVE_LOW);
-            swapTemp.receiver = swap.receiver;
-            swapTemp.target = swap.executor;
-        }
-
-        if (_callbackData.length > 0) {
-            (Helper.CallbackParam memory callParam) = abi.decode(_callbackData, (Helper.CallbackParam));
-            require(swapTemp.swapAmount >= callParam.amount, ErrorMessage.CALL_AMOUNT_INVALID);
-            (result, swapTemp.callAmount) = _callBack(swapTemp.swapToken, callParam);
-            require(result,ErrorMessage.CALL_FAIL);
-            swapTemp.receiver = callParam.receiver;
-            swapTemp.target = callParam.target;
-        }
+        (swapTemp.receiver,swapTemp.target,swapTemp.swapToken,swapTemp.swapAmount, swapTemp.callAmount) = this.doSwapAndCall(_swapData,_callbackData,swapTemp.srcToken,swapTemp.swapAmount);
 
         if (swapTemp.swapAmount > swapTemp.callAmount) {
             Helper._transfer(swapTemp.swapToken, swapTemp.receiver, (swapTemp.swapAmount - swapTemp.callAmount));
