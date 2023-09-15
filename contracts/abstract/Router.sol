@@ -90,8 +90,7 @@ abstract contract Router is Ownable2Step {
     }
 
 
-    function doSwapAndCall(bytes memory _swapData,bytes memory _callbackData,address _srcToken,uint256 _amount) external returns(address receiver,address target,address dstToken,uint256 swapOutAmount,uint256 callAmount){
-        require(msg.sender == address(this));
+    function _doSwapAndCall(bytes memory _swapData,bytes memory _callbackData,address _srcToken,uint256 _amount) internal returns(address receiver,address target,address dstToken,uint256 swapOutAmount,uint256 callAmount){
         bool result;
         swapOutAmount = _amount;
         dstToken = _srcToken;

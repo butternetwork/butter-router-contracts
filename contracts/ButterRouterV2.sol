@@ -106,7 +106,7 @@ contract ButterRouterV2 is Router,ReentrancyGuard {
         require (_swapData.length + _callbackData.length > 0, ErrorMessage.DATA_EMPTY);
         (, swapTemp.swapAmount) = _collectFee(swapTemp.srcToken, swapTemp.srcAmount,swapTemp.transferId,swapTemp.feeType);
 
-        (swapTemp.receiver,swapTemp.target,swapTemp.swapToken,swapTemp.swapAmount, swapTemp.callAmount) = this.doSwapAndCall(_swapData,_callbackData,swapTemp.srcToken,swapTemp.swapAmount);
+        (swapTemp.receiver,swapTemp.target,swapTemp.swapToken,swapTemp.swapAmount, swapTemp.callAmount) = _doSwapAndCall(_swapData,_callbackData,swapTemp.srcToken,swapTemp.swapAmount);
 
         if (swapTemp.swapAmount > swapTemp.callAmount) {
             Helper._transfer(swapTemp.swapToken, swapTemp.receiver, (swapTemp.swapAmount - swapTemp.callAmount));
@@ -141,7 +141,7 @@ contract ButterRouterV2 is Router,ReentrancyGuard {
         if(gasleft() < gasForReFund * 4){
             result = false;
         } else {
-            (result,returnData) = address(this).call{gas:gasleft() - gasForReFund}(abi.encodeWithSelector(Router.doSwapAndCall.selector,_swapData,_callbackData,swapTemp.srcToken,swapTemp.srcAmount));
+            (result,returnData) = address(this).call{gas:gasleft() - gasForReFund}(abi.encodeWithSelector(this.doSwapAndCall.selector,_swapData,_callbackData,swapTemp.srcToken,swapTemp.srcAmount));
         }
 
         if(!result){
@@ -156,6 +156,11 @@ contract ButterRouterV2 is Router,ReentrancyGuard {
         }
 
     }
+
+     function doSwapAndCall(bytes memory _swapData,bytes memory _callbackData,address _srcToken,uint256 _amount) external returns(address receiver,address target,address dstToken,uint256 swapOutAmount,uint256 callAmount){
+            require(msg.sender == address(this));
+            return _doSwapAndCall(_swapData,_callbackData,_srcToken,_amount);
+     }
 
 
     function _doBridge(address _sender, address _token, uint256 _value, BridgeParam memory _bridge) internal returns (bytes32 _orderId) {

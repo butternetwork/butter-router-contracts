@@ -34,7 +34,7 @@ contract ButterRouterPlus is Router,ReentrancyGuard {
         require (_swapData.length + _callbackData.length > 0, ErrorMessage.DATA_EMPTY);
         (, swapTemp.swapAmount) = _collectFee(swapTemp.srcToken, swapTemp.srcAmount,swapTemp.transferId,swapTemp.feeType);
 
-        (swapTemp.receiver,swapTemp.target,swapTemp.swapToken,swapTemp.swapAmount, swapTemp.callAmount) = this.doSwapAndCall(_swapData,_callbackData,swapTemp.srcToken,swapTemp.swapAmount);
+        (swapTemp.receiver,swapTemp.target,swapTemp.swapToken,swapTemp.swapAmount, swapTemp.callAmount) = _doSwapAndCall(_swapData,_callbackData,swapTemp.srcToken,swapTemp.swapAmount);
 
         if (swapTemp.swapAmount > swapTemp.callAmount) {
             Helper._transfer(swapTemp.swapToken, swapTemp.receiver, (swapTemp.swapAmount - swapTemp.callAmount));
