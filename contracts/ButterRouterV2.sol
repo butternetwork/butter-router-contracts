@@ -116,7 +116,7 @@ contract ButterRouterV2 is Router,ReentrancyGuard {
     }
 
     // _srcToken must erc20 Token or wToken
-    function remoteSwapAndCall(bytes32 _orderId, address _srcToken, uint256 _amount, uint256 _fromChain, bytes calldata _from, bytes calldata _swapAndCall,address _receiver)
+    function remoteSwapAndCall(bytes32 _orderId, address _srcToken, uint256 _amount, uint256 _fromChain, bytes calldata _from, bytes calldata _swapAndCall)
     external
     payable
     nonReentrant
@@ -129,13 +129,12 @@ contract ButterRouterV2 is Router,ReentrancyGuard {
         swapTemp.fromChain = _fromChain;
         swapTemp.toChain = block.chainid;
         swapTemp.from = _from;
-        swapTemp.receiver = _receiver;
         nativeBalanceBeforeExec = address(this).balance - msg.value;
         require (msg.sender == mosAddress, ErrorMessage.MOS_ONLY);
         require (Helper._getBalance(swapTemp.srcToken, address(this)) >= _amount, ErrorMessage.RECEIVE_LOW);
-
         (bytes memory _swapData, bytes memory _callbackData) = abi.decode(_swapAndCall, (bytes, bytes));
         require (_swapData.length + _callbackData.length > 0, ErrorMessage.DATA_EMPTY);
+        swapTemp.receiver = _getReceiver(_swapData,_callbackData);
         bool result;
         bytes memory returnData;
         if(gasleft() < gasForReFund * 4){
@@ -160,6 +159,17 @@ contract ButterRouterV2 is Router,ReentrancyGuard {
      function doSwapAndCall(bytes memory _swapData,bytes memory _callbackData,address _srcToken,uint256 _amount) external returns(address receiver,address target,address dstToken,uint256 swapOutAmount,uint256 callAmount){
             require(msg.sender == address(this));
             return _doSwapAndCall(_swapData,_callbackData,_srcToken,_amount);
+     }
+
+
+     function _getReceiver(bytes memory _swapData,bytes memory _callbackData)private pure returns(address){
+        if(_swapData.length > 0) {
+           Helper.SwapParam memory swap = abi.decode(_swapData, (Helper.SwapParam));
+           return swap.receiver;
+        } else {
+           (Helper.CallbackParam memory callParam) = abi.decode(_callbackData, (Helper.CallbackParam));
+           return callParam.receiver;
+        }
      }
 
 
