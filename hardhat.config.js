@@ -246,6 +246,13 @@ module.exports = {
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
 
+    Tron: {
+      url: `https://mainnet-rpc.thundertoken.net`,
+      chainId : 108,//728126428,
+      zksync: false,
+      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+
 
     MaticTest: {
       url: `https://polygon-mumbai.blockpi.network/v1/rpc/public`,
@@ -286,5 +293,13 @@ module.exports = {
         'https://zksync2-testnet-explorer.zksync.dev/contract_verification',
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
+
+    TronTest: {
+      url: `https://mainnet-rpc.thundertoken.net`,
+      chainId : 108,
+      zksync: false,
+      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+
   }
 };

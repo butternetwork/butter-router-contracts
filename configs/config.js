@@ -1309,6 +1309,31 @@ let config = new Map(
                 ]
             }
         }],
+        ["TronTest",{
+            wToken:"0xFB3B3134F13CCD2C81F4012E53024E8135D58FEE",
+            v2:{
+                mos:"0xFB3B3134F13CCD2C81F4012E53024E8135D58FEE",
+                fee:{
+                receiver:"0xCBdb1Da4f99276b0c427776BDE93838Bc19386Cc",
+                feeRate:"7000",//denominator is 1000000
+                fixedFee:"1000000000000000000"
+                    },
+                executors:[
+                    "0xFB3B3134F13CCD2C81F4012E53024E8135D58FEE"
+                ]
+            },
+            plus:{
+                mos:"0xFB3B3134F13CCD2C81F4012E53024E8135D58FEE",
+                fee:{
+                receiver:"0xCBdb1Da4f99276b0c427776BDE93838Bc19386Cc",
+                feeRate:"7000",//denominator is 1000000
+                fixedFee:"1000000000000000000"
+                    },
+                executors:[
+                    "0xFB3B3134F13CCD2C81F4012E53024E8135D58FEE"
+                ]
+            }
+        }],
         
     ]
 )
