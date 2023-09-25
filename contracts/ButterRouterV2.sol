@@ -134,44 +134,58 @@ contract ButterRouterV2 is Router,ReentrancyGuard {
         require (Helper._getBalance(swapTemp.srcToken, address(this)) >= _amount, ErrorMessage.RECEIVE_LOW);
         (bytes memory _swapData, bytes memory _callbackData) = abi.decode(_swapAndCall, (bytes, bytes));
         require (_swapData.length + _callbackData.length > 0, ErrorMessage.DATA_EMPTY);
-        swapTemp.receiver = _getReceiver(_swapData,_callbackData);
-        bool result;
-        bytes memory returnData;
-        if(gasleft() < gasForReFund * 4){
-            result = false;
-        } else {
-            (result,returnData) = address(this).call{gas:gasleft() - gasForReFund}(abi.encodeWithSelector(this.doSwapAndCall.selector,_swapData,_callbackData,swapTemp.srcToken,swapTemp.srcAmount));
-        }
-
-        if(!result){
-            Helper._transfer(swapTemp.srcToken, swapTemp.receiver, swapTemp.srcAmount);
-            emit RemoteSwapAndCall(_orderId, swapTemp.receiver, Helper.ZERO_ADDRESS, swapTemp.srcToken, swapTemp.swapToken, swapTemp.srcAmount, swapTemp.swapAmount, 0, swapTemp.fromChain, swapTemp.toChain, swapTemp.from);
-        } else {
-            (swapTemp.receiver,swapTemp.target,swapTemp.swapToken,swapTemp.swapAmount, swapTemp.callAmount) = abi.decode(returnData,(address,address,address,uint256,uint256));
-            if (swapTemp.swapAmount > swapTemp.callAmount) {
-              Helper._transfer(swapTemp.swapToken, swapTemp.receiver, (swapTemp.swapAmount - swapTemp.callAmount));
+        bool result = true;
+        uint256 minExecGas = gasForReFund * 2;
+        if(gasleft() > minExecGas && _swapData.length > 0) {
+            Helper.SwapParam memory swap = abi.decode(_swapData, (Helper.SwapParam));
+            swapTemp.receiver = swap.receiver;
+            try this.doRemoteSwap{gas:gasleft() - gasForReFund}(swap,swapTemp.srcToken,swapTemp.srcAmount) returns (address target,address dstToken,uint256 dstAmount) {
+                swapTemp.swapToken = dstToken;
+                swapTemp.target = target;
+                swapTemp.swapAmount = dstAmount;      
+            } catch  {
+                result = false;    
             }
-            emit RemoteSwapAndCall(_orderId,swapTemp.receiver,swapTemp.target, swapTemp.srcToken, swapTemp.swapToken, swapTemp.srcAmount, swapTemp.swapAmount, swapTemp.callAmount, swapTemp.fromChain, swapTemp.toChain, swapTemp.from);
         }
 
+        if(result && gasleft() > minExecGas && _callbackData.length > 0){
+           Helper.CallbackParam memory callParam = abi.decode(_callbackData, (Helper.CallbackParam));
+           try this.doRemoteCall{gas:gasleft() - gasForReFund}(callParam,swapTemp.swapToken,swapTemp.swapAmount) returns (address target,uint256 callAmount) {
+                swapTemp.target = target;
+                swapTemp.callAmount = callAmount;
+                swapTemp.receiver = callParam.receiver;
+           } catch  {
+                if(swapTemp.receiver == address(0)){
+                    swapTemp.receiver = callParam.receiver;
+                }
+           }
+        }
+
+        if(swapTemp.swapAmount > swapTemp.callAmount){
+            Helper._transfer(swapTemp.swapToken, swapTemp.receiver, (swapTemp.swapAmount - swapTemp.callAmount));
+        }
+
+       emit RemoteSwapAndCall(_orderId,swapTemp.receiver,swapTemp.target,swapTemp.srcToken, swapTemp.swapToken, swapTemp.srcAmount, swapTemp.swapAmount, swapTemp.callAmount, swapTemp.fromChain, swapTemp.toChain, swapTemp.from);
     }
 
-     function doSwapAndCall(bytes memory _swapData,bytes memory _callbackData,address _srcToken,uint256 _amount) external returns(address receiver,address target,address dstToken,uint256 swapOutAmount,uint256 callAmount){
-            require(msg.sender == address(this));
-            return _doSwapAndCall(_swapData,_callbackData,_srcToken,_amount);
-     }
 
+    function doRemoteSwap(Helper.SwapParam memory _swap,address _srcToken,uint256 _amount) external returns(address target,address dstToken,uint256 dstAmount) {
+        require(msg.sender == address(this));
+        bool result;
+        (result, dstToken,dstAmount)= _makeSwap(_amount,_srcToken, _swap);
+        require(result, ErrorMessage.SWAP_FAIL);
+        require(dstAmount >= _swap.minReturnAmount,ErrorMessage.RECEIVE_LOW);
+        target = _swap.executor;
+    }
 
-     function _getReceiver(bytes memory _swapData,bytes memory _callbackData)private pure returns(address){
-        if(_swapData.length > 0) {
-           Helper.SwapParam memory swap = abi.decode(_swapData, (Helper.SwapParam));
-           return swap.receiver;
-        } else {
-           (Helper.CallbackParam memory callParam) = abi.decode(_callbackData, (Helper.CallbackParam));
-           return callParam.receiver;
-        }
-     }
-
+    function doRemoteCall(Helper.CallbackParam memory _callParam,address _callToken,uint256 _amount)external returns(address target,uint256 callAmount){
+        require(msg.sender == address(this));
+        require(_amount >= _callParam.amount, ErrorMessage.CALL_AMOUNT_INVALID);
+        bool result;
+        (result, callAmount) = _callBack(_callToken, _callParam);
+        require(result,ErrorMessage.CALL_FAIL);
+        target = _callParam.target;
+    }
 
     function _doBridge(address _sender, address _token, uint256 _value, BridgeParam memory _bridge) internal returns (bytes32 _orderId) {
         if (Helper._isNative(_token)) {
