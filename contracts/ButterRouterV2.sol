@@ -10,6 +10,7 @@ import "@butternetwork/bridge/contracts/interface/IButterMosV2.sol";
 import "./lib/ErrorMessage.sol";
 import "./abstract/Router.sol";
 import "./lib/Helper.sol";
+import "./interface/IFeeManager.sol";
 
 contract ButterRouterV2 is Router,ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -19,6 +20,8 @@ contract ButterRouterV2 is Router,ReentrancyGuard {
 
     uint256 public gasForReFund = 50000;
 
+    IFeeManager public feeManager;
+
     struct BridgeParam {
         uint256 toChain;
         bytes receiver;
@@ -26,7 +29,9 @@ contract ButterRouterV2 is Router,ReentrancyGuard {
     }
 
     event SetMos(address indexed mos);
+    event SetFeeManager(address indexed _feeManager);
     event SetGasForReFund(uint256 indexed _gasForReFund);
+    event CollectFee(address indexed token,address indexed receiver,uint256 indexed amount,bytes32 transferId,address integrator);
     event SwapAndBridge(
         bytes32 indexed orderId,
         address indexed from,
@@ -92,7 +97,7 @@ contract ButterRouterV2 is Router,ReentrancyGuard {
         emit SwapAndBridge(orderId,msg.sender,swapTemp.srcToken, swapTemp.swapToken,swapTemp.srcAmount, swapTemp.swapAmount,block.chainid,swapTemp.toChain,receiver);
     }
 
-    function swapAndCall(bytes32 _transferId, address _srcToken, uint256 _amount, FeeType _feeType, bytes calldata _swapData, bytes calldata _callbackData, bytes calldata _permitData)
+    function swapAndCall(bytes32 _transferId, address _srcToken, uint256 _amount,address integrator, bytes calldata _swapData, bytes calldata _callbackData, bytes calldata _permitData)
     external 
     payable
     nonReentrant
@@ -102,9 +107,8 @@ contract ButterRouterV2 is Router,ReentrancyGuard {
         swapTemp.srcToken = _srcToken;
         swapTemp.srcAmount = _amount;
         swapTemp.transferId = _transferId;
-        swapTemp.feeType = _feeType;
         require (_swapData.length + _callbackData.length > 0, ErrorMessage.DATA_EMPTY);
-        (, swapTemp.swapAmount) = _collectFee(swapTemp.srcToken, swapTemp.srcAmount,swapTemp.transferId,swapTemp.feeType);
+        (, swapTemp.swapAmount) = _collectFee(swapTemp.srcToken, swapTemp.srcAmount,swapTemp.transferId,integrator);
 
         (swapTemp.receiver,swapTemp.target,swapTemp.swapToken,swapTemp.swapAmount, swapTemp.callAmount) = _doSwapAndCall(_swapData,_callbackData,swapTemp.srcToken,swapTemp.swapAmount);
 
@@ -208,6 +212,28 @@ contract ButterRouterV2 is Router,ReentrancyGuard {
         }
     }
 
+    function _collectFee(address _token, uint256 _amount,bytes32 transferId,address integrator) internal returns(uint256 _fee, uint256 _remain){
+        if(address(feeManager) == address(0)) return (0,_amount);
+        address feeToken;
+        (feeToken, _fee) = feeManager.getFee(integrator,_token,_amount);
+        _remain = _amount;
+        if(_fee == 0) return(_fee,_remain);
+        if(feeToken == _token){
+            _remain = _amount - _fee;
+        } else if(Helper._isNative(feeToken)){
+            require(msg.value >= _fee,ErrorMessage.FEE_MISMATCH);
+        } else {
+            SafeERC20.safeTransferFrom(IERC20(_token),msg.sender,address(this),_fee);
+        }
+        if(Helper._isNative(feeToken)) {
+            feeManager.payFeeWithIntegrator{value:_fee}(integrator,feeToken,_amount);
+        } else {
+            SafeERC20.safeApprove(IERC20(_token),address(feeManager),_fee);
+            feeManager.payFeeWithIntegrator(integrator,feeToken,_amount);
+        }
+        emit CollectFee(feeToken,address(feeManager),_fee,transferId,integrator);
+   }
+
     function setGasForReFund(uint256 _gasForReFund)external onlyOwner {
         gasForReFund = _gasForReFund;
 
@@ -219,6 +245,12 @@ contract ButterRouterV2 is Router,ReentrancyGuard {
     ) public onlyOwner returns (bool) {
         _setMosAddress(_mosAddress);
         return true;
+    }
+
+    function setFeeManager(address _feeManager) public onlyOwner  {
+        require(_feeManager.isContract(),ErrorMessage.NOT_CONTRACT);
+        feeManager = IFeeManager(_feeManager);
+        emit SetFeeManager(_feeManager);
     }
     function _setMosAddress(address _mosAddress) internal returns (bool) {
         require(
