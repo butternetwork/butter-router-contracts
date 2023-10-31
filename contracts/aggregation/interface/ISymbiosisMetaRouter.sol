@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.21;
 
 interface ISymbiosisMetaRouter {
     struct MetaRouteTransaction {
@@ -20,7 +20,5 @@ interface ISymbiosisMetaRouter {
      * @dev calls the next method on the other side
      * @param _metarouteTransaction metaRoute offchain transaction data
      */
-    function metaRoute(
-        MetaRouteTransaction calldata _metarouteTransaction
-    ) external payable;
+    function metaRoute(MetaRouteTransaction calldata _metarouteTransaction) external payable;
 }

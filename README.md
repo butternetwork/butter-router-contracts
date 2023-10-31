@@ -1,18 +1,18 @@
 # Brief Description
 
-This project is  the entry contract for [butterSwap](https://butterswap.io).
+This project is the entry contract for [butterSwap](https://butterswap.io).
 
-ButterRouter.sol is  the old version of the main contract.
+ButterRouter.sol is the old version of the main contract.
 
 ButterRouter V2 consists of three main contracts.
 
-* ButterRouterV2.sol  is new version contract.
-* SwapAdapter.sol  is the swap aggregation adapter contract of the new version contract ,called by ButterRouterV2  to complete swap.
-* Receiver.sol is impls for bridges. called by bridges to complete swap or others on target chain.
+- ButterRouterV2.sol is new version contract.
+- SwapAdapter.sol is the swap aggregation adapter contract of the new version contract ,called by ButterRouterV2 to complete swap.
+- Receiver.sol is impls for bridges. called by bridges to complete swap or others on target chain.
 
 ## Main interfaces explanation(v2)
 
-1. `swapAndCall`  swap tokens and execute a callback method
+1. `swapAndCall` swap tokens and execute a callback method
 
 ```solidity
     // 1. swap: _swapData.length > 0 and _bridgeData.length == 0
@@ -83,17 +83,17 @@ npm install
 ### create an .env file and fill following in the contents
 
 ```
-PRIVATE_KEY =  
-TRON_PRIVATE_KEY = 
-ALCHEMY_KEY = 
-DEPLOY_FACTORY = 
-ROUTER_DEPLOY_SALT = 
-PLUS_DEPLOY_SALT = 
-SWAP_ADAPTER_DEPLOY_SALT = 
-RECEIVER_DEPLOY_SALT = 
-AGG_ADAPTER_SALT = 
-FEE_RECEIVER_SAlT = 
-TRANSFER_PROXY_SALT = 
+PRIVATE_KEY =
+TRON_PRIVATE_KEY =
+ALCHEMY_KEY =
+DEPLOY_FACTORY =
+ROUTER_DEPLOY_SALT =
+PLUS_DEPLOY_SALT =
+SWAP_ADAPTER_DEPLOY_SALT =
+RECEIVER_DEPLOY_SALT =
+AGG_ADAPTER_SALT =
+FEE_RECEIVER_SAlT =
+TRANSFER_PROXY_SALT =
 ```
 
 ### Compiling contracts
@@ -157,7 +157,7 @@ deploy and set up
 npx hardhat routerV1 --mos <mos address> --core <core address> --network <network>
 ```
 
- subtasks
+subtasks
 
 1.set core
 

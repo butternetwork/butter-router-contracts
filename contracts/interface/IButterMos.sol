@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.21;
 
 //Reference https://github.com/butternetwork/butter-mos-contracts/blob/master/evmv2/contracts/interface/IButterMosV2.sol
 interface IButterMos {
-
     struct SwapParam {
         uint256 amountIn;
         uint256 minAmountOut;
@@ -24,14 +23,12 @@ interface IButterMos {
         uint256 _amount,
         uint256 _toChain, // target chain id
         bytes calldata swapData
-    ) external returns(bytes32 orderId);
-
+    ) external returns (bytes32 orderId);
 
     function swapOutNative(
         address _initiatorAddress,
         bytes memory _to,
         uint256 _toChain, // target chain id
         bytes calldata swapData
-    ) external payable returns(bytes32 orderId);
-
+    ) external payable returns (bytes32 orderId);
 }
