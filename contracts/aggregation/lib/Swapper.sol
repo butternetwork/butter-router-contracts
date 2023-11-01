@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity 0.8.21;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./LibAsset.sol";
 import "./Validatable.sol";
 import "./LibSwap.sol";
+
 // import "hardhat/console.sol";
 
 /// @title Swapper
 /// @notice Abstract contract to provide swap functionality
 abstract contract Swapper {
-
     /// @dev only used to get around "Stack Too Deep" errors
     struct ReserveData {
         bytes32 transactionId;
@@ -41,9 +41,9 @@ abstract contract Swapper {
                 address curAsset = _swaps[i].receivingAssetId;
                 // Handle multi-to-one swaps
                 if (curAsset != finalAsset) {
-                    curBalance = LibAsset._getBalance(curAsset,address(this)) -_initialBalances[i];
+                    curBalance = LibAsset._getBalance(curAsset, address(this)) - _initialBalances[i];
                     if (curBalance > 0) {
-                        LibAsset._transfer(curAsset,_leftoverReceiver,curBalance);
+                        LibAsset._transfer(curAsset, _leftoverReceiver, curBalance);
                     }
                 }
                 unchecked {
@@ -77,13 +77,10 @@ abstract contract Swapper {
                 address curAsset = _swaps[i].receivingAssetId;
                 // Handle multi-to-one swaps
                 if (curAsset != finalAsset) {
-                    curBalance =
-                        LibAsset._getBalance(curAsset,address(this)) - _initialBalances[i];
-                    uint256 reserve = LibAsset._isNative(curAsset)
-                        ? _nativeReserve
-                        : 0;
+                    curBalance = LibAsset._getBalance(curAsset, address(this)) - _initialBalances[i];
+                    uint256 reserve = LibAsset._isNative(curAsset) ? _nativeReserve : 0;
                     if (curBalance > 0) {
-                        LibAsset._transfer(curAsset,_leftoverReceiver,curBalance - reserve);
+                        LibAsset._transfer(curAsset, _leftoverReceiver, curBalance - reserve);
                     }
                 }
                 unchecked {
@@ -102,11 +99,9 @@ abstract contract Swapper {
         uint256 initialBalance = address(this).balance - msg.value;
         _;
         uint256 finalBalance = address(this).balance;
-        uint256 excess = finalBalance > initialBalance
-            ? finalBalance - initialBalance
-            : 0;
+        uint256 excess = finalBalance > initialBalance ? finalBalance - initialBalance : 0;
         if (excess > 0) {
-             LibAsset._transfer(LibAsset.NATIVE_ADDRESS,_refundReceiver,excess);
+            LibAsset._transfer(LibAsset.NATIVE_ADDRESS, _refundReceiver, excess);
         }
     }
 
@@ -126,23 +121,18 @@ abstract contract Swapper {
         address payable _leftoverReceiver
     ) internal returns (uint256) {
         uint256 numSwaps = _swaps.length;
-        require(numSwaps > 0,"E13");
+        require(numSwaps > 0, "E13");
         address finalTokenId = _swaps[numSwaps - 1].receivingAssetId;
-        uint256 initialBalance = LibAsset._getBalance(finalTokenId,address(this));
+        uint256 initialBalance = LibAsset._getBalance(finalTokenId, address(this));
         if (LibAsset._isNative(finalTokenId)) {
             initialBalance -= msg.value;
         }
 
         uint256[] memory initialBalances = _fetchBalances(_swaps);
-        depositAssets(_swaps,_integrator);
-        _executeSwaps(
-            _transactionId,
-            _swaps,
-            _leftoverReceiver,
-            initialBalances
-        );
-        uint256 newBalance = LibAsset._getBalance(finalTokenId,address(this)) - initialBalance;
-        require(newBalance >= _minAmount,"E14");
+        depositAssets(_swaps, _integrator);
+        _executeSwaps(_transactionId, _swaps, _leftoverReceiver, initialBalances);
+        uint256 newBalance = LibAsset._getBalance(finalTokenId, address(this)) - initialBalance;
+        require(newBalance >= _minAmount, "E14");
         return newBalance;
     }
 
@@ -160,24 +150,19 @@ abstract contract Swapper {
         address payable _leftoverReceiver,
         uint256 _nativeReserve
     ) internal returns (uint256) {
-
         uint256 numSwaps = _swaps.length;
-        require(numSwaps > 0,"E15");
+        require(numSwaps > 0, "E15");
         address finalTokenId = _swaps[numSwaps - 1].receivingAssetId;
-        uint256 initialBalance = LibAsset._getBalance(finalTokenId,address(this));
+        uint256 initialBalance = LibAsset._getBalance(finalTokenId, address(this));
         if (LibAsset._isNative(finalTokenId)) {
             initialBalance -= msg.value;
         }
         uint256[] memory initialBalances = _fetchBalances(_swaps);
-        depositAssets(_swaps,_integrator);
-        ReserveData memory rd = ReserveData(
-            _transactionId,
-            _leftoverReceiver,
-            _nativeReserve
-        );
+        depositAssets(_swaps, _integrator);
+        ReserveData memory rd = ReserveData(_transactionId, _leftoverReceiver, _nativeReserve);
         _executeSwaps(rd, _swaps, initialBalances);
-        uint256 newBalance = LibAsset._getBalance(finalTokenId,address(this)) -initialBalance;
-        require(newBalance >= _minAmount,"E16");
+        uint256 newBalance = LibAsset._getBalance(finalTokenId, address(this)) - initialBalance;
+        require(newBalance >= _minAmount, "E16");
         return newBalance;
     }
 
@@ -197,7 +182,14 @@ abstract contract Swapper {
         uint256 numSwaps = _swaps.length;
         for (uint256 i = 0; i < numSwaps; ) {
             LibSwap.SwapData memory currentSwap = _swaps[i];
-            require(authentication(currentSwap.sendingAssetId,currentSwap.approveTo,currentSwap.callTo,LibAsset._getFirst4Bytes(currentSwap.callData)));
+            require(
+                authentication(
+                    currentSwap.sendingAssetId,
+                    currentSwap.approveTo,
+                    currentSwap.callTo,
+                    LibAsset._getFirst4Bytes(currentSwap.callData)
+                )
+            );
             LibSwap.swap(_transactionId, currentSwap);
             unchecked {
                 ++i;
@@ -212,20 +204,19 @@ abstract contract Swapper {
         ReserveData memory _reserveData,
         LibSwap.SwapData[] memory _swaps,
         uint256[] memory _initialBalances
-    )
-        internal
-        noLeftoversReserve(
-            _swaps,
-            _reserveData.leftoverReceiver,
-            _initialBalances,
-            _reserveData.nativeReserve
-        )
-    {
+    ) internal noLeftoversReserve(_swaps, _reserveData.leftoverReceiver, _initialBalances, _reserveData.nativeReserve) {
         uint256 numSwaps = _swaps.length;
         for (uint256 i = 0; i < numSwaps; ) {
             LibSwap.SwapData memory currentSwap = _swaps[i];
 
-            require(authentication(currentSwap.sendingAssetId,currentSwap.approveTo,currentSwap.callTo,LibAsset._getFirst4Bytes(currentSwap.callData)));
+            require(
+                authentication(
+                    currentSwap.sendingAssetId,
+                    currentSwap.approveTo,
+                    currentSwap.callTo,
+                    LibAsset._getFirst4Bytes(currentSwap.callData)
+                )
+            );
 
             // require(((LibAsset.isNativeAsset(currentSwap.sendingAssetId) ||
             //         LibAllowList.contractIsAllowed(currentSwap.approveTo)) &&
@@ -245,15 +236,13 @@ abstract contract Swapper {
     /// @dev Fetches balances of tokens to be swapped before swapping.
     /// @param _swaps Array of data used to execute swaps
     /// @return uint256[] Array of token balances.
-    function _fetchBalances(
-        LibSwap.SwapData[] memory _swaps
-    ) private view returns (uint256[] memory) {
+    function _fetchBalances(LibSwap.SwapData[] memory _swaps) private view returns (uint256[] memory) {
         uint256 numSwaps = _swaps.length;
         uint256[] memory balances = new uint256[](numSwaps);
         address asset;
         for (uint256 i = 0; i < numSwaps; ) {
             asset = _swaps[i].receivingAssetId;
-            balances[i] = LibAsset._getBalance(asset,address(this));
+            balances[i] = LibAsset._getBalance(asset, address(this));
 
             if (LibAsset._isNative(asset)) {
                 balances[i] -= msg.value;
@@ -267,14 +256,11 @@ abstract contract Swapper {
         return balances;
     }
 
-    
-
-
-    function depositAssets(LibSwap.SwapData[] memory swaps,address _integrator) internal {
+    function depositAssets(LibSwap.SwapData[] memory swaps, address _integrator) internal {
         for (uint256 i = 0; i < swaps.length; ) {
             LibSwap.SwapData memory swap = swaps[i];
             if (swap.requiresDeposit) {
-                swap.fromAmount -= calcTokenFees(swap.fromAmount,_integrator);
+                swap.fromAmount -= calcTokenFees(swap.fromAmount, _integrator);
                 depositAsset(swap.sendingAssetId, swap.fromAmount);
             }
             unchecked {
@@ -282,22 +268,22 @@ abstract contract Swapper {
             }
         }
     }
-    function depositAsset(address assetId,uint256 amount) internal {
+
+    function depositAsset(address assetId, uint256 amount) internal {
         if (LibAsset._isNative(assetId)) {
-            require(msg.value >= amount,"E17");
+            require(msg.value >= amount, "E17");
         } else {
-            require(amount > 0,"E18");
-            SafeERC20.safeTransferFrom(
-                IERC20(assetId),
-                msg.sender,
-                address(this),
-                amount
-            );
+            require(amount > 0, "E18");
+            SafeERC20.safeTransferFrom(IERC20(assetId), msg.sender, address(this), amount);
         }
     }
 
+    function authentication(
+        address assetId,
+        address _approveTo,
+        address _callTo,
+        bytes4 sig
+    ) public virtual returns (bool);
 
-    function authentication(address assetId,address _approveTo,address _callTo,bytes4 sig) public virtual returns(bool);
-
-    function calcTokenFees(uint256 _amount,address _integrator)public view virtual returns (uint256 totalFee);
+    function calcTokenFees(uint256 _amount, address _integrator) public view virtual returns (uint256 totalFee);
 }

@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
-
-pragma solidity ^0.8.9;
+pragma solidity 0.8.21;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -14,7 +13,8 @@ library DexExecutor {
         UNIV2,
         UNIV3,
         CURVE,
-        FILL
+        FILL,
+        MIX
     }
 
     function execute(
@@ -36,12 +36,55 @@ library DexExecutor {
             (_result) = _makeUniV3Swap(_router, _dstToken, _amount, _isNative, _swap);
         } else if (dexType == DexType.CURVE) {
             (_result) = _makeCurveSwap(_router, _amount, _isNative, _swap);
-        } else if(dexType == DexType.FILL){
+        } else if (dexType == DexType.FILL) {
             (_result) = _makeAggFill(_router, _amount, _isNative, _swap);
-        }else {
-           require(false,"DexExecutor: unsupported dex type");
+        } else if (dexType == DexType.MIX) {
+            (_result) = _makeMixSwap(_srcToken, _amount, _swap);
+        } else {
+            require(false, "DexExecutor: unsupported dex type");
         }
         require(_result, "DexExecutor: swap fail");
+    }
+
+    struct MixSwap {
+        uint256 offset;
+        address srcToken;
+        address callTo;
+        address approveTo;
+        bytes callData;
+    }
+
+    function _makeMixSwap(address _srcToken, uint256 _amount, bytes memory _swap) internal returns (bool _result) {
+        MixSwap[] memory mixSwaps = abi.decode(_swap, (MixSwap[]));
+        for (uint256 i = 0; i < mixSwaps.length; i++) {
+            if (i != 0) {
+                _amount = Helper._getBalance(mixSwaps[i].srcToken, address(this));
+                _srcToken = mixSwaps[i].srcToken;
+            }
+            bytes memory callDatas = mixSwaps[i].callData;
+            uint256 offset = mixSwaps[i].offset;
+            if (offset != 0) {
+                assembly {
+                    mstore(add(callDatas, offset), _amount)
+                }
+            }
+            if (Helper._isNative(_srcToken)) {
+                (_result, ) = mixSwaps[i].callTo.call{value: _amount}(callDatas);
+            } else {
+                if (i != 0) {
+                    IERC20(_srcToken).safeIncreaseAllowance(mixSwaps[i].approveTo, _amount);
+                }
+
+                (_result, ) = mixSwaps[i].callTo.call(callDatas);
+
+                if (i != 0) {
+                    IERC20(_srcToken).safeApprove(mixSwaps[i].approveTo, 0);
+                }
+            }
+            if (!_result) {
+                break;
+            }
+        }
     }
 
     function _makeAggSwap(
@@ -63,7 +106,7 @@ library DexExecutor {
         bool _isNative,
         bytes memory _swap
     ) internal returns (bool _result) {
-        (uint256 offset,bytes memory callDatas) = abi.decode(_swap,(uint256,bytes));
+        (uint256 offset, bytes memory callDatas) = abi.decode(_swap, (uint256, bytes));
         assembly {
             mstore(add(callDatas, offset), _amount)
         }
@@ -81,10 +124,9 @@ library DexExecutor {
         bool _isNative,
         bytes memory _swap
     ) internal returns (bool _result) {
-        (uint256 amountOutMin, address[] memory path) = abi
-            .decode(_swap, (uint256, address[]));
+        (uint256 amountOutMin, address[] memory path) = abi.decode(_swap, (uint256, address[]));
         if (_isNative) {
-         (_result, ) = _router.call{value:_amount}(
+            (_result, ) = _router.call{value: _amount}(
                 abi.encodeWithSignature(
                     "swapExactETHForTokens(uint256,address[],address,uint256)",
                     amountOutMin,
@@ -132,22 +174,16 @@ library DexExecutor {
         bool _isNative,
         bytes memory _swap
     ) internal returns (bool _result) {
-        (uint256 amountOutMin, bytes memory path) = abi
-            .decode(_swap, (uint256, bytes));
-       
-        address receiver = Helper._isNative(_dstToken)? _router: address(this);
-        ExactInputParams memory params = ExactInputParams(
-            path,
-            receiver,
-            _amount,
-            amountOutMin
-        );
+        (uint256 amountOutMin, bytes memory path) = abi.decode(_swap, (uint256, bytes));
+
+        address receiver = Helper._isNative(_dstToken) ? _router : address(this);
+        ExactInputParams memory params = ExactInputParams(path, receiver, _amount, amountOutMin);
         bytes memory swapData = abi.encodeWithSignature("exactInput((bytes,address,uint256,uint256))", params);
         uint256 value = _isNative ? _amount : 0;
         if (Helper._isNative(_dstToken)) {
             bytes[] memory c = new bytes[](2);
             c[0] = swapData;
-            c[1] = abi.encodeWithSignature("unwrapWETH9(uint256,address)",amountOutMin,address(this));
+            c[1] = abi.encodeWithSignature("unwrapWETH9(uint256,address)", amountOutMin, address(this));
             (_result, ) = _router.call{value: value}(abi.encodeWithSignature("multicall(bytes[])", c));
         } else {
             (_result, ) = _router.call{value: value}(swapData);
@@ -160,14 +196,10 @@ library DexExecutor {
         bool _isNative,
         bytes memory _swap
     ) internal returns (bool _result) {
-        (
-            uint256 expected,
-            address[9] memory routes,
-            uint256[3][4] memory swap_params,
-            address[4] memory pools
-        ) = abi.decode(_swap,(uint256, address[9], uint256[3][4], address[4]));
+        (uint256 expected, address[9] memory routes, uint256[3][4] memory swap_params, address[4] memory pools) = abi
+            .decode(_swap, (uint256, address[9], uint256[3][4], address[4]));
         uint256 value = _isNative ? _amount : 0;
-      
+
         (_result, ) = _router.call{value: value}(
             abi.encodeWithSignature(
                 "exchange_multiple(address[9],uint256[3][4],uint256,uint256,address[4],address)",
@@ -179,6 +211,5 @@ library DexExecutor {
                 address(this)
             )
         );
-      
     }
 }

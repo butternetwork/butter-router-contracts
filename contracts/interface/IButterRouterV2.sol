@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.0;
+pragma solidity 0.8.21;
 
 interface IButterRouterV2 {
-
     enum FeeType {
         FIXED,
         PROPORTION
@@ -11,7 +10,7 @@ interface IButterRouterV2 {
     struct SwapParam {
         uint8 dexType;
         address executor;
-        address approveTo; 
+        address approveTo;
         address receiver;
         address dstToken;
         uint256 minReturnAmount;
@@ -26,13 +25,12 @@ interface IButterRouterV2 {
 
     struct CallbackParam {
         address target;
-        address approveTo; 
+        address approveTo;
         uint256 amount;
         uint256 extraNativeAmount;
         address receiver;
         bytes data;
     }
-
 
     event SwapAndBridge(
         bytes32 indexed orderId,
@@ -58,7 +56,6 @@ interface IButterRouterV2 {
         uint256 callAmount
     );
 
-
     event RemoteSwapAndCall(
         bytes32 indexed orderId,
         address indexed receiver,
@@ -73,7 +70,6 @@ interface IButterRouterV2 {
         bytes from
     );
 
-
     // 1. swap: _swapData.length > 0 and _bridgeData.length == 0
     // 2. swap and call: _swapData.length > 0 and _callbackData.length > 0
     function swapAndCall(
@@ -86,8 +82,6 @@ interface IButterRouterV2 {
         bytes calldata _permitData
     ) external payable;
 
-
-
     // 1. bridge:  _swapData.length == 0 and _bridgeData.length > 0
     // 2. swap and bridge: _swapData.length > 0 and _bridgeData.length > 0
     function swapAndBridge(
@@ -97,7 +91,6 @@ interface IButterRouterV2 {
         bytes calldata _bridgeData,
         bytes calldata _permitData
     ) external payable;
-
 
     // At remote chain call after bridge
     // mos transfer token to router first
@@ -113,10 +106,15 @@ interface IButterRouterV2 {
         bytes calldata _swapAndCall
     ) external payable;
 
-    function getFee(uint256 _amount,address _token,FeeType _feeType)
-        external
-        view
-        returns (address _feeReceiver,address _feeToken,uint256 _fee,uint256 _feeAfter);
+    function getFee(
+        uint256 _amount,
+        address _token,
+        FeeType _feeType
+    ) external view returns (address _feeReceiver, address _feeToken, uint256 _fee, uint256 _feeAfter);
 
-      function getInputBeforeFee(uint256 _amountAfterFee,address _token,FeeType _feeType) external view  returns(uint256 _input,address _feeReceiver,address _feeToken,uint256 _fee);
+    function getInputBeforeFee(
+        uint256 _amountAfterFee,
+        address _token,
+        FeeType _feeType
+    ) external view returns (uint256 _input, address _feeReceiver, address _feeToken, uint256 _fee);
 }

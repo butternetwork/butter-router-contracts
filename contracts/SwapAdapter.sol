@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.9;
+pragma solidity 0.8.21;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable2Step.sol";
@@ -31,13 +31,18 @@ contract SwapAdapter is Ownable2Step, ReentrancyGuard {
         bytes callData;
     }
 
-
-    event  SwapComplete(address indexed from, address indexed srcToken, uint256 indexed inputAmount, address outToken, uint256 outAmount, address receiver);
-
+    event SwapComplete(
+        address indexed from,
+        address indexed srcToken,
+        uint256 indexed inputAmount,
+        address outToken,
+        uint256 outAmount,
+        address receiver
+    );
 
     constructor(address _owner) {
         require(_owner != Helper.ZERO_ADDRESS, "ButterAgg: zero addr");
-         _transferOwnership(_owner);
+        _transferOwnership(_owner);
     }
 
     // Not recommended for EOA call with token approve
@@ -46,8 +51,8 @@ contract SwapAdapter is Ownable2Step, ReentrancyGuard {
     function swap(Param calldata params) external payable nonReentrant returns (uint256 outAmount) {
         require(params.swaps.length > 0, "ButterAgg: empty swap data");
 
-        (uint256 amount, uint256 initInputTokenBalance) = _depositToken( params.srcToken);
-        uint256 finalTokenAmount = Helper._getBalance( params.dstToken, address(this));
+        (uint256 amount, uint256 initInputTokenBalance) = _depositToken(params.srcToken);
+        uint256 finalTokenAmount = Helper._getBalance(params.dstToken, address(this));
         (uint256 amountAdjust, uint256 firstAdjust, bool isUp) = _reBuildSwaps(amount, params.swaps);
         bool isFirst = true;
         SwapData[] memory _swaps = params.swaps;
@@ -88,21 +93,14 @@ contract SwapAdapter is Ownable2Step, ReentrancyGuard {
         emit SwapComplete(msg.sender, params.srcToken, amount, params.dstToken, outAmount, receiver);
     }
 
-    function _depositToken(
-        address _token
-    ) private returns (uint256 amount, uint256 initInputTokenBalance) {
+    function _depositToken(address _token) private returns (uint256 amount, uint256 initInputTokenBalance) {
         initInputTokenBalance = Helper._getBalance(_token, address(this));
         if (Helper._isNative(_token)) {
             initInputTokenBalance -= msg.value;
             amount = msg.value;
         } else {
             amount = IERC20(_token).allowance(msg.sender, address(this));
-            SafeERC20.safeTransferFrom(
-                IERC20(_token),
-                msg.sender,
-                address(this),
-                amount
-            );
+            SafeERC20.safeTransferFrom(IERC20(_token), msg.sender, address(this), amount);
         }
         require(amount > 0, "ButterAgg: zero input");
     }
@@ -119,26 +117,26 @@ contract SwapAdapter is Ownable2Step, ReentrancyGuard {
                 count++;
             }
         }
-        if (total > _amount) {  
-            require(count > 0,"ButterAgg: cannot adjust");
+        if (total > _amount) {
+            require(count > 0, "ButterAgg: cannot adjust");
             isUp = false;
             uint256 margin = total - _amount;
             amountAdjust = margin / count;
             firstAdjust = amountAdjust + (margin - amountAdjust * count);
         } else if (total < _amount) {
             if (count > 0) {
-              isUp = true;
-              uint256 margin =  _amount - total;
-              amountAdjust = margin / count;
-              firstAdjust = amountAdjust + (margin - amountAdjust * count);
+                isUp = true;
+                uint256 margin = _amount - total;
+                amountAdjust = margin / count;
+                firstAdjust = amountAdjust + (margin - amountAdjust * count);
             }
         }
     }
 
-     function rescueFunds(address _token, address _receiver, uint256 _amount) external onlyOwner {
+    function rescueFunds(address _token, address _receiver, uint256 _amount) external onlyOwner {
         require(_receiver != address(0));
         Helper._transfer(_token, _receiver, _amount);
     }
-    
+
     receive() external payable {}
 }

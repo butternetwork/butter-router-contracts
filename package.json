@@ -12,7 +12,8 @@
     "!contracts/mock/*.sol"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "format": "prettier --print-width 120 --tab-width 4 --write ./contracts ./scripts ./tasks ./test ./utils"
   },
   "repository": {
     "type": "git",
@@ -41,6 +42,8 @@
     "hardhat": "^2.14.0",
     "hardhat-gas-reporter": "^1.0.8",
     "solidity-coverage": "^0.8.1",
+    "prettier": "^2.8.8",
+    "prettier-plugin-solidity": "^1.1.0",
     "ts-node": "^10.9.1",
     "typechain": "^8.1.0",
     "typescript": "^4.9.5"
@@ -49,7 +52,7 @@
     "@matterlabs/hardhat-zksync-deploy": "^0.6.3",
     "@matterlabs/hardhat-zksync-solc": "^0.3.17",
     "@matterlabs/hardhat-zksync-verify": "^0.1.6",
-    "@openzeppelin/contracts": "^4.8.2",
+    "@openzeppelin/contracts": "^4.9.3",
     "dotenv": "^16.0.3",
     "hardhat-deploy": "^0.11.25",
     "tronweb": "^5.3.0",
