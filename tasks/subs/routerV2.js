@@ -25,10 +25,7 @@ module.exports = async (taskArgs, hre) => {
     } else {
         console.log("deployer :", deployer);
 
-        await hre.run("routerV2:deploy", {
-            mos: config.v2.mos,
-            wtoken: config.wToken,
-        });
+        await hre.run("routerV2:deploy", { mos: config.v2.mos, wtoken: config.wToken });
 
         let deploy_json = await readFromFile(network.name);
 
@@ -44,10 +41,7 @@ module.exports = async (taskArgs, hre) => {
 
         let executors_s = config.v2.executors.join(",");
 
-        await hre.run("routerV2:setAuthorization", {
-            router: router_addr,
-            executors: executors_s,
-        });
+        await hre.run("routerV2:setAuthorization", { router: router_addr, executors: executors_s });
 
         await hre.run("routerV2:setFee", {
             router: router_addr,

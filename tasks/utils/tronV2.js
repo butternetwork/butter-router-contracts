@@ -49,10 +49,15 @@ exports.tronSetFee = async function (artifacts, network, router_addr, feereceive
 
 async function deployRouterV2(artifacts, network, mos, wtoken) {
     let tronWeb = await getTronWeb(network);
-    let deployer = "0x" + tronWeb.defaultAddress.hex.substring(2);
-    console.log("deployer :", tronWeb.address.fromHex(deployer));
-    let routerV2 = await deploy_contract(artifacts, "ButterRouterV2", [mos, deployer, wtoken], tronWeb);
+    console.log("deployer :", tronWeb.defaultAddress);
+
+    let deployer = tronWeb.defaultAddress.hex.replace(/^(41)/, "0x");
+    let mosHex = tronWeb.address.toHex(mos).replace(/^(41)/, "0x");
+    let wtokenHex = tronWeb.address.toHex(wtoken).replace(/^(41)/, "0x");
+
+    let routerV2 = await deploy_contract(artifacts, "ButterRouterV2", [mosHex, deployer, wtokenHex], tronWeb);
     console.log("router v2 address :", routerV2);
+
     let deploy = await readFromFile(network);
     if (!deploy[network]["ButterRouterV2"]) {
         deploy[network]["ButterRouterV2"] = {};
@@ -65,8 +70,8 @@ async function deployRouterV2(artifacts, network, mos, wtoken) {
 
 async function deploySwapAdapter(artifacts, network) {
     let tronWeb = await getTronWeb(network);
-    let deployer = "0x" + tronWeb.defaultAddress.hex.substring(2);
-    console.log("deployer :", tronWeb.address.fromHex(deployer));
+    let deployer = tronWeb.defaultAddress.base58;
+    console.log("deployer :", deployer);
     let adapt = await deploy_contract(artifacts, "SwapAdapter", [deployer], tronWeb);
     console.log("SwapAdapter address :", adapt);
     let deploy = await readFromFile(network);

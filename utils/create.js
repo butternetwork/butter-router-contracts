@@ -15,6 +15,7 @@ async function create(salt, bytecode, param) {
     console.log("deploy factory address:", factory.address);
     console.log("deploy salt:", salt);
     let addr = await factory.getAddress(salt_hash);
+    console.log("deployed to :", addr);
     let code = await ethers.provider.getCode(addr);
     let redeploy = false;
     if (code === "0x") {
@@ -28,7 +29,7 @@ async function create(salt, bytecode, param) {
             throw "deploy fail";
         }
     } else {
-        console.log("already deploy, please change the salt if if want to deploy another contract ...");
+        throw "already deploy, please change the salt if if want to deploy another contract ...";
     }
 
     return [addr, redeploy];

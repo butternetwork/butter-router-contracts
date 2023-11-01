@@ -12,7 +12,11 @@ exports.setAuthorization = async function (tronWeb, artifacts, network, router_a
         console.log("executors is empty ...");
         return;
     }
-    await router.setAuthorization(executorList, flag).send();
+    let executorsHex = [];
+    for (let i = 0; i < executorList.length; i++) {
+        executorsHex.push(tronWeb.address.toHex(executorList[i]).replace(/^(41)/, "0x"));
+    }
+    await router.setAuthorization(executorsHex, flag).send();
     console.log(`Router ${router_addr} setAuthorization ${executorList} succeed`);
 };
 
@@ -23,7 +27,9 @@ exports.setFee = async function (tronWeb, artifacts, network, router_addr, feere
     }
     let router = await tronWeb.contract(Router.abi, router_addr);
 
-    await router.setFee(feereceiver, feerate, fixedfee).send();
+    let receiver = tronWeb.address.toHex(feereceiver).replace(/^(41)/, "0x");
+
+    await router.setFee(receiver, feerate, fixedfee).send();
 
     console.log(`Router ${router_addr} setFee rate(${feerate}), fixed(${fixedfee}), receiver(${feereceiver}) succeed`);
 };
@@ -37,9 +43,11 @@ exports.deploy_contract = async function deploy_contract(artifacts, name, args, 
         callValue: 0,
         parameters: args,
     });
-    console.log(`${name} deployed on: ${contract_instance.address}`);
 
-    return "0x" + contract_instance.address.substring(2);
+    let addr = tronWeb.address.fromHex(contract_instance.address);
+    console.log(`${name} deployed on: ${addr} ( ${contract_instance.address} )`);
+
+    return addr;
 };
 
 exports.getTronWeb = async function (network) {

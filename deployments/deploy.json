@@ -7,12 +7,16 @@
 		"ButterRouterV2": {
 			"addr": "0x63212C5F70D1b374A023950a96bE3506779cAe24"
 		},
-		"SwapAdapter": "0x35D0679243fd8adDD4f34D14443981F74e826F1a"
+		"SwapAdapter": "0x4aAB00833FD5f13d03115559277B0B8cC0A5Ff36"
 	},
 	"Avalanche": {
 		"ButterRouterPlus": {
 			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
-		}
+		},
+		"ButterRouterV2": {
+			"addr": "0x63212C5F70D1b374A023950a96bE3506779cAe24"
+		},
+		"SwapAdapter": "0x4aAB00833FD5f13d03115559277B0B8cC0A5Ff36"
 	},
 	"Bsc": {
 		"ButterRouterPlus": {
@@ -22,7 +26,7 @@
 		"ButterRouterV2": {
 			"addr": "0x63212C5F70D1b374A023950a96bE3506779cAe24"
 		},
-		"SwapAdapter": "0x35D0679243fd8adDD4f34D14443981F74e826F1a"
+		"SwapAdapter": "0x4aAB00833FD5f13d03115559277B0B8cC0A5Ff36"
 	},
 	"Matic": {
 		"ButterRouterPlus": {
@@ -32,78 +36,126 @@
 		"ButterRouterV2": {
 			"addr": "0x63212C5F70D1b374A023950a96bE3506779cAe24"
 		},
-		"SwapAdapter": "0x35D0679243fd8adDD4f34D14443981F74e826F1a"
+		"SwapAdapter": "0x4aAB00833FD5f13d03115559277B0B8cC0A5Ff36"
 	},
 	"Arbitrum": {
 		"ButterRouterPlus": {
 			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
 		},
-		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75",
+		"ButterRouterV2": {
+			"addr": "0x63212C5F70D1b374A023950a96bE3506779cAe24"
+		},
+		"SwapAdapter": "0x4aAB00833FD5f13d03115559277B0B8cC0A5Ff36"
 	},
 	"Optimism": {
 		"ButterRouterPlus": {
 			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
 		},
-		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75",
+		"ButterRouterV2": {
+			"addr": "0x63212C5F70D1b374A023950a96bE3506779cAe24"
+		},
+		"SwapAdapter": "0x4aAB00833FD5f13d03115559277B0B8cC0A5Ff36"
 	},
 	"zkSync": {
 		"ButterRouterPlus": {
 			"addr": "0x12964f48a2102A890936Cb94F1F3f8674a8e286c"
-		}
+		},
+		"ButterRouterV2": {
+			"addr": "0x34D329eA17d9C259c245bce4162335956164c1eE"
+		},
+		"SwapAdapter": "0x270AEd4f0F521CADA3Dcf086a03687306D6D9d6E"
 	},
 	"Aurora": {
 		"ButterRouterPlus": {
 			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
 		},
-		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75",
+		"ButterRouterV2": {
+			"addr": "0x63212C5F70D1b374A023950a96bE3506779cAe24"
+		},
+		"SwapAdapter": "0x4aAB00833FD5f13d03115559277B0B8cC0A5Ff36"
 	},
 	"Okt": {
 		"ButterRouterPlus": {
 			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
 		},
-		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75",
+		"ButterRouterV2": {
+			"addr": "0x63212C5F70D1b374A023950a96bE3506779cAe24"
+		},
+		"SwapAdapter": "0x4aAB00833FD5f13d03115559277B0B8cC0A5Ff36"
 	},
 	"Boba": {
 		"ButterRouterPlus": {
 			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
 		},
-		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75",
+		"ButterRouterV2": {
+			"addr": "0x63212C5F70D1b374A023950a96bE3506779cAe24"
+		},
+		"SwapAdapter": "0x4aAB00833FD5f13d03115559277B0B8cC0A5Ff36"
 	},
 	"Celo": {
 		"ButterRouterPlus": {
-			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
+			"addr": "0x1624451D2Aa0A01382724230162e578a59d07dea"
 		},
-		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75",
+		"ButterRouterV2": {
+			"addr": "0x63212C5F70D1b374A023950a96bE3506779cAe24"
+		},
+		"SwapAdapter": "0x4aAB00833FD5f13d03115559277B0B8cC0A5Ff36"
 	},
 	"Cronos": {
 		"ButterRouterPlus": {
 			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
 		},
-		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75",
+		"ButterRouterV2": {
+			"addr": "0x63212C5F70D1b374A023950a96bE3506779cAe24"
+		},
+		"SwapAdapter": "0x4aAB00833FD5f13d03115559277B0B8cC0A5Ff36"
 	},
 	"Fantom": {
 		"ButterRouterPlus": {
 			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
 		},
-		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75",
+		"ButterRouterV2": {
+			"addr": "0x63212C5F70D1b374A023950a96bE3506779cAe24"
+		},
+		"SwapAdapter": "0x4aAB00833FD5f13d03115559277B0B8cC0A5Ff36"
 	},
 	"Gnosis": {
 		"ButterRouterPlus": {
 			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
 		},
-		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75",
+		"ButterRouterV2": {
+			"addr": "0x63212C5F70D1b374A023950a96bE3506779cAe24"
+		},
+		"SwapAdapter": "0x4aAB00833FD5f13d03115559277B0B8cC0A5Ff36"
 	},
 	"Harmony": {
 		"ButterRouterPlus": {
 			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
 		},
-		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75",
+		"ButterRouterV2": {
+			"addr": "0x63212C5F70D1b374A023950a96bE3506779cAe24"
+		},
+		"SwapAdapter": "0x4aAB00833FD5f13d03115559277B0B8cC0A5Ff36"
 	},
 	"Kava": {
 		"ButterRouterPlus": {
 			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
 		},
-		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75",
+		"ButterRouterV2": {
+			"addr": "0x63212C5F70D1b374A023950a96bE3506779cAe24"
+		},
+		"SwapAdapter": "0x4aAB00833FD5f13d03115559277B0B8cC0A5Ff36"
 	},
 	"Klaytn": {
 		"ButterRouterPlus": {
@@ -119,49 +171,81 @@
 		"ButterRouterPlus": {
 			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
 		},
-		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75",
+		"ButterRouterV2": {
+			"addr": "0x63212C5F70D1b374A023950a96bE3506779cAe24"
+		},
+		"SwapAdapter": "0x4aAB00833FD5f13d03115559277B0B8cC0A5Ff36"
 	},
 	"Moonbeam": {
 		"ButterRouterPlus": {
 			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
 		},
-		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75",
+		"ButterRouterV2": {
+			"addr": "0x63212C5F70D1b374A023950a96bE3506779cAe24"
+		},
+		"SwapAdapter": "0x4aAB00833FD5f13d03115559277B0B8cC0A5Ff36"
 	},
 	"Moonriver": {
 		"ButterRouterPlus": {
 			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
 		},
-		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75",
+		"ButterRouterV2": {
+			"addr": "0x63212C5F70D1b374A023950a96bE3506779cAe24"
+		},
+		"SwapAdapter": "0x4aAB00833FD5f13d03115559277B0B8cC0A5Ff36"
 	},
 	"Oasis": {
 		"ButterRouterPlus": {
 			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
 		},
-		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75",
+		"ButterRouterV2": {
+			"addr": "0x63212C5F70D1b374A023950a96bE3506779cAe24"
+		},
+		"SwapAdapter": "0x4aAB00833FD5f13d03115559277B0B8cC0A5Ff36"
 	},
 	"Syscoin": {
 		"ButterRouterPlus": {
 			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
 		},
-		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75",
+		"ButterRouterV2": {
+			"addr": "0x63212C5F70D1b374A023950a96bE3506779cAe24"
+		},
+		"SwapAdapter": "0x4aAB00833FD5f13d03115559277B0B8cC0A5Ff36"
 	},
 	"Telos": {
 		"ButterRouterPlus": {
 			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
 		},
-		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75",
+		"ButterRouterV2": {
+			"addr": "0x63212C5F70D1b374A023950a96bE3506779cAe24"
+		},
+		"SwapAdapter": "0x4aAB00833FD5f13d03115559277B0B8cC0A5Ff36"
 	},
 	"Velas": {
 		"ButterRouterPlus": {
 			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
 		},
-		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75",
+		"ButterRouterV2": {
+			"addr": "0x63212C5F70D1b374A023950a96bE3506779cAe24"
+		},
+		"SwapAdapter": "0x4aAB00833FD5f13d03115559277B0B8cC0A5Ff36"
 	},
 	"Astar": {
 		"ButterRouterPlus": {
 			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
 		},
-		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75",
+		"ButterRouterV2": {
+			"addr": "0x63212C5F70D1b374A023950a96bE3506779cAe24"
+		},
+		"SwapAdapter": "0x4aAB00833FD5f13d03115559277B0B8cC0A5Ff36"
 	},
 	"Map": {
 		"ButterRouterPlus": {
@@ -171,47 +255,90 @@
 		"ButterRouterV2": {
 			"addr": "0x63212C5F70D1b374A023950a96bE3506779cAe24"
 		},
-		"SwapAdapter": "0x35D0679243fd8adDD4f34D14443981F74e826F1a"
+		"SwapAdapter": "0x4aAB00833FD5f13d03115559277B0B8cC0A5Ff36"
 	},
 	"Fuse": {
 		"ButterRouterPlus": {
 			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
 		},
-		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75",
+		"ButterRouterV2": {
+			"addr": "0x63212C5F70D1b374A023950a96bE3506779cAe24"
+		},
+		"SwapAdapter": "0x4aAB00833FD5f13d03115559277B0B8cC0A5Ff36"
 	},
 	"zkEvm": {
 		"ButterRouterPlus": {
 			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
 		},
-		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75",
+		"ButterRouterV2": {
+			"addr": "0x63212C5F70D1b374A023950a96bE3506779cAe24"
+		},
+		"SwapAdapter": "0x4aAB00833FD5f13d03115559277B0B8cC0A5Ff36"
 	},
 	"Base": {
 		"ButterRouterPlus": {
 			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
 		},
-		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75",
+		"ButterRouterV2": {
+			"addr": "0x63212C5F70D1b374A023950a96bE3506779cAe24"
+		},
+		"SwapAdapter": "0x4aAB00833FD5f13d03115559277B0B8cC0A5Ff36"
 	},
 	"Kcc": {
 		"ButterRouterPlus": {
 			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
 		},
-		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75",
+		"ButterRouterV2": {
+			"addr": "0x63212C5F70D1b374A023950a96bE3506779cAe24"
+		},
+		"SwapAdapter": "0x4aAB00833FD5f13d03115559277B0B8cC0A5Ff36"
 	},
 	"Thunder": {
 		"ButterRouterPlus": {
 			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
 		},
-		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75",
+		"ButterRouterV2": {
+			"addr": "0x63212C5F70D1b374A023950a96bE3506779cAe24"
+		},
+		"SwapAdapter": "0x4aAB00833FD5f13d03115559277B0B8cC0A5Ff36"
 	},
 	"Filecoin": {
 		"ButterRouterPlus": {
 			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
-		}
+		},
+		"ButterRouterV2": {
+			"addr": "0x63212C5F70D1b374A023950a96bE3506779cAe24"
+		},
+		"SwapAdapter": "0x4aAB00833FD5f13d03115559277B0B8cC0A5Ff36"
 	},
 	"Linea": {
 		"ButterRouterPlus": {
 			"addr": "0x47BE4C04c91d4897F8F27D32C7D79357B0939a91"
 		},
-		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75"
+		"TransferProxy": "0x82ac22bAaF08860c4C2AEaE26e2beE418a984e75",
+		"ButterRouterV2": {
+			"addr": "0x63212C5F70D1b374A023950a96bE3506779cAe24"
+		},
+		"SwapAdapter": "0x4aAB00833FD5f13d03115559277B0B8cC0A5Ff36"
+	},
+	"Conflux": {
+		"ButterRouterV2": {
+			"addr": "0x63212C5F70D1b374A023950a96bE3506779cAe24"
+		},
+		"SwapAdapter": "0x4aAB00833FD5f13d03115559277B0B8cC0A5Ff36",
+		"ButterRouterPlus": {
+			"addr": "0x1624451D2Aa0A01382724230162e578a59d07dea"
+		}
+	},
+	"Tron": {
+		"ButterRouterV2": {
+			"addr": "TZ2dP5xgPrDZB9EbEgBidj3GTR272fYzqQ"
+		},
+		"SwapAdapter": "TVj8CfwgpNXxmvPEaY5reWn2zSuqqU3gn5"
 	}
 }
