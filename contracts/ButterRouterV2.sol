@@ -173,41 +173,42 @@ contract ButterRouterV2 is Router, ReentrancyGuard {
         require(_swapData.length + _callbackData.length > 0, ErrorMessage.DATA_EMPTY);
         bool result = true;
         uint256 minExecGas = gasForReFund * 2;
-        if (gasleft() > minExecGas && _swapData.length > 0) {
+        if (_swapData.length > 0) {
             Helper.SwapParam memory swap = abi.decode(_swapData, (Helper.SwapParam));
             swapTemp.receiver = swap.receiver;
-            try this.doRemoteSwap{gas: gasleft() - gasForReFund}(swap, swapTemp.srcToken, swapTemp.srcAmount) returns (
-                address target,
-                address dstToken,
-                uint256 dstAmount
-            ) {
-                swapTemp.swapToken = dstToken;
-                swapTemp.target = target;
-                swapTemp.swapAmount = dstAmount;
-            } catch {
-                result = false;
-            }
-        }
-
-        if (result && gasleft() > minExecGas && _callbackData.length > 0) {
-            Helper.CallbackParam memory callParam = abi.decode(_callbackData, (Helper.CallbackParam));
-            try
-                this.doRemoteCall{gas: gasleft() - gasForReFund}(callParam, swapTemp.swapToken, swapTemp.swapAmount)
-            returns (address target, uint256 callAmount) {
-                swapTemp.target = target;
-                swapTemp.callAmount = callAmount;
-                swapTemp.receiver = callParam.receiver;
-            } catch {
-                if (swapTemp.receiver == address(0)) {
-                    swapTemp.receiver = callParam.receiver;
+            if(gasleft() > minExecGas) {
+                try this.doRemoteSwap{gas: gasleft() - gasForReFund}(swap, swapTemp.srcToken, swapTemp.srcAmount) returns (
+                    address target,
+                    address dstToken,
+                    uint256 dstAmount
+                ) {
+                    swapTemp.swapToken = dstToken;
+                    swapTemp.target = target;
+                    swapTemp.swapAmount = dstAmount;
+                } catch {
+                    result = false;
                 }
             }
         }
 
+        if (_callbackData.length > 0) {
+            Helper.CallbackParam memory callParam = abi.decode(_callbackData, (Helper.CallbackParam));
+            if (swapTemp.receiver == address(0)) {
+                 swapTemp.receiver = callParam.receiver;
+            }
+            if(result && gasleft() > minExecGas){
+                try
+                    this.doRemoteCall{gas: gasleft() - gasForReFund}(callParam, swapTemp.swapToken, swapTemp.swapAmount)
+                returns (address target, uint256 callAmount) {
+                    swapTemp.target = target;
+                    swapTemp.callAmount = callAmount;
+                    swapTemp.receiver = callParam.receiver;
+                } catch {}
+            }
+        }
         if (swapTemp.swapAmount > swapTemp.callAmount) {
             Helper._transfer(swapTemp.swapToken, swapTemp.receiver, (swapTemp.swapAmount - swapTemp.callAmount));
         }
-
         emit RemoteSwapAndCall(
             _orderId,
             swapTemp.receiver,
