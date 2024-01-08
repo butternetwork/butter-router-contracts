@@ -10,6 +10,7 @@ let {
     tronSetFee,
     tronSetAuthFromConfig,
 } = require("../utils/tronPlus.js");
+let {verify} = require("../utils/verify.js")
 
 module.exports = async (taskArgs, hre) => {
     const { getNamedAccounts, network } = hre;
@@ -86,6 +87,9 @@ task("routerPlus:deploy", "deploy butter router plus")
             deploy[network.name]["ButterRouterPlus"]["addr"] = plus;
 
             await writeToFile(deploy);
+            const verifyArgs = [deployer, taskArgs.wtoken].map((arg) => (typeof arg == 'string' ? `'${arg}'` : arg)).join(' ')
+            console.log(`To verify, run: npx hardhat verify --network ${network.name} ${plus} ${verifyArgs}`)
+            await verify(plus,[deployer, taskArgs.wtoken],"contracts/ButterRouterPlus.sol:ButterRouterPlus",chainId); 
         }
     });
 
@@ -113,6 +117,9 @@ task("routerPlus:deployTransferProxy", "deploy transfer proxy").setAction(async 
         deploy[network.name]["TransferProxy"] = proxy;
 
         await writeToFile(deploy);
+
+        console.log(`To verify, run: npx hardhat verify --network ${network.name} ${proxy}`)
+        await verify(proxy,[],"contracts/TransferProxy.sol:TransferProxy",chainId); 
     }
 });
 
