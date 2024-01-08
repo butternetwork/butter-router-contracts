@@ -1,5 +1,7 @@
 let { create, createZk, readFromFile, writeToFile } = require("../../utils/create.js");
 let { deployFeeReceiver } = require("../utils/tronPlus.js");
+let {verify} = require("../utils/verify.js")
+
 module.exports = async (taskArgs, hre) => {
     const { deployments, getNamedAccounts, ethers } = hre;
     const { deployer } = await getNamedAccounts();
@@ -17,12 +19,12 @@ module.exports = async (taskArgs, hre) => {
             v2 = await createZk("FeeReceiver", [payees, shares, deployer], hre);
         } else {
             let salt = process.env.FEE_RECEIVER_SAlT;
-            let ButterRouterV2 = await ethers.getContractFactory("FeeReceiver");
+            let FeeReceiver = await ethers.getContractFactory("FeeReceiver");
             let param = ethers.utils.defaultAbiCoder.encode(
                 ["address[]", "uint256[]", "address"],
                 [payees, shares, deployer]
             );
-            let result = await create(salt, ButterRouterV2.bytecode, param);
+            let result = await create(salt, FeeReceiver.bytecode, param);
             v2 = result[0];
         }
         console.log("FeeReceiver address :", v2);
@@ -30,7 +32,10 @@ module.exports = async (taskArgs, hre) => {
         let deploy = await readFromFile(network.name);
 
         deploy[network.name]["FeeReceiver"] = v2;
-
         await writeToFile(deploy);
+
+        const verifyArgs = [payees, shares, deployer].map((arg) => (typeof arg == 'string' ? `'${arg}'` : arg)).join(' ')
+        console.log(`To verify, run: npx hardhat verify --network ${network.name} ${v2} ${verifyArgs}`)
+        await verify(v2,[payees, shares, deployer],"contracts/FeeReceiver.sol:FeeReceiver",chainId); 
     }
 };

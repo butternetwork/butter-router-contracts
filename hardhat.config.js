@@ -86,6 +86,7 @@ module.exports = {
     },
     zkSync: {
       url: `https://mainnet.era.zksync.io`,
+      verifyURL: 'https://zksync2-mainnet-explorer.zksync.io/contract_verification',
       chainId: 324,
       zksync: true,
       ethNetwork: "Eth",
@@ -342,5 +343,120 @@ module.exports = {
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
+  },
+
+  etherscan: {
+    apiKey: {
+      Bttc: process.env.API_KEY_BTTC,
+      Eth:  process.env.API_KEY_ETH,
+      Bsc:  process.env.API_KEY_BSC,
+      Matic: process.env.API_KEY_MATIC,
+      Avalanche: 'snowtrace',
+      Gnosis: process.env.API_KEY_GNOSIS,
+      Optimism : process.env.API_KEY_OP,
+      Arbitrum : process.env.API_KEY_ARB,
+      Linea : process.env.API_KEY_LINEA,
+      Base : process.env.API_KEY_BASE,
+      zkEvm : process.env.API_KEY_ZKEVM,
+      MaticTest: process.env.API_KEY_MATIC_TEST,
+    },
+    customChains: [
+      {
+        network: "Bttc",
+        chainId: 199,
+        urls: {
+          apiURL: "https://api.bttcscan.com/api",
+          browserURL: "https://bttcscan.com/",
+        },
+      },
+      {
+        network: "Eth",
+        chainId: 1,
+        urls: {
+          apiURL: "https://api.etherscan.io/api",
+          browserURL: "https://etherscan.com/",
+        },
+      },
+      {
+        network: "Bsc",
+        chainId: 56,
+        urls: {
+          apiURL: "https://api.bscscan.com/api",
+          browserURL: "https://bscscan.com/",
+        },
+      },
+      {
+        network: "Matic",
+        chainId: 137,
+        urls: {
+          apiURL: "https://api.polygonscan.com/api",
+          browserURL: "https://polygonscan.com/",
+        },
+      },
+      {
+        network: "Avalanche",
+        chainId: 43114,
+        urls: {
+          apiURL: "https://api.routescan.io/v2/network/mainnet/evm/43114/etherscan",
+          browserURL: "https://avalanche.routescan.io",
+        },
+      },
+      {
+        network: "Gnosis",
+        chainId: 100,
+        urls: {
+          apiURL: "https://api.routescan.io/v2/network/mainnet/evm/43114/etherscan",
+          browserURL: "https://avalanche.routescan.io",
+        },
+      },
+      {
+        network: "Optimism",
+        chainId: 10,
+        urls: {
+          apiURL: "https://api-optimistic.etherscan.io/api",
+          browserURL: "https://optimistic.etherscan.io/",
+        },
+      },
+      {
+        network: "Arbitrum",
+        chainId: 42161,
+        urls: {
+          apiURL: "https://api.arbiscan.io/api",
+          browserURL: "https://arbiscan.io/",
+        },
+      },
+      {
+        network: "Linea",
+        chainId: 59144,
+        urls: {
+          apiURL: "https://api.lineascan.build/api",
+          browserURL: "https://lineascan.build/",
+        },
+      },
+      {
+        network: "Base",
+        chainId: 8453,
+        urls: {
+          apiURL: "https://api.basescan.org/api",
+          browserURL: "https://basescan.org/",
+        },
+      },
+      {
+        network: "zkEvm",
+        chainId: 1101,
+        urls: {
+          apiURL: "https://api-zkevm.polygonscan.com/api",
+          browserURL: "https://zkevm.polygonscan.com/",
+        },
+      },
+      {
+        network: "MaticTest",
+        chainId: 80001,
+        urls: {
+          apiURL: "https://api-testnet.polygonscan.com/api",
+          browserURL: "https://mumbai.polygonscan.com/",
+        },
+      },
+    ],
   },
 };

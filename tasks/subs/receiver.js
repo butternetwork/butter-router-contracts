@@ -1,4 +1,6 @@
 let { task } = require("hardhat/config");
+let { create, createZk, readFromFile, writeToFile } = require("../../utils/create.js");
+let {verify} = require("../utils/verify.js")
 
 module.exports = async (taskArgs, hre) => {
     const { deployments, getNamedAccounts, ethers } = hre;
@@ -11,9 +13,9 @@ module.exports = async (taskArgs, hre) => {
     } else {
         let salt = process.env.RECEIVER_DEPLOY_SALT;
         let salt_hash = await ethers.utils.keccak256(await ethers.utils.toUtf8Bytes(salt));
-        let ButterRouterV2 = await ethers.getContractFactory("Receiver");
+        let Receiver = await ethers.getContractFactory("Receiver");
         let param = ethers.utils.defaultAbiCoder.encode(["address", "address"], [taskArgs.router, deployer]);
-        let result = await create(salt_hash, ButterRouterV2.bytecode, param);
+        let result = await create(salt_hash, Receiver.bytecode, param);
         v2 = result[0];
     }
     console.log("Receiver  address :", v2);
@@ -27,6 +29,10 @@ module.exports = async (taskArgs, hre) => {
     deploy[network.name]["Receiver"]["addr"] = v2;
 
     await writeToFile(deploy);
+
+    const verifyArgs = [taskArgs.router, deployer].map((arg) => (typeof arg == 'string' ? `'${arg}'` : arg)).join(' ')
+    console.log(`To verify, run: npx hardhat verify --network ${network.name} ${v2} ${verifyArgs}`)
+    await verify(v2,[taskArgs.router, deployer],"contracts/Receiver.sol:Receiver",chainId); 
 };
 
 task("receiver:setRouter", "set bridges router address")
