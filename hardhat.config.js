@@ -405,8 +405,8 @@ module.exports = {
         network: "Gnosis",
         chainId: 100,
         urls: {
-          apiURL: "https://api.routescan.io/v2/network/mainnet/evm/43114/etherscan",
-          browserURL: "https://avalanche.routescan.io",
+          apiURL: "https://api.gnosisscan.io/api",
+          browserURL: "https://api.gnosisscan.io",
         },
       },
       {
