@@ -19,6 +19,17 @@ exports.routerV2 = async function (artifacts, network, config) {
     );
 };
 
+exports.deployFeeReceiver = async function (artifacts, network, payees, shares) {
+    let tronWeb = await getTronWeb(network);
+    let deployer = "0x" + tronWeb.defaultAddress.hex.substring(2);
+    console.log("deployer :", tronWeb.address.fromHex(deployer));
+    let feeReveiver = await deploy_contract(artifacts, "FeeReceiver", [payees, shares, deployer], tronWeb);
+    console.log("FeeReceiver address :", feeReveiver);
+    let deploy = await readFromFile(network);
+    deploy[network]["FeeReceiver"] = feeReveiver;
+    await writeToFile(deploy);
+};
+
 exports.deployRouterV2 = async function (artifacts, network, mos, wtoken) {
     await deployRouterV2(artifacts, network, mos, wtoken);
 };

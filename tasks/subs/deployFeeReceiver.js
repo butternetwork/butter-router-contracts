@@ -1,6 +1,6 @@
 let { create, createZk, readFromFile, writeToFile } = require("../../utils/create.js");
-let { deployFeeReceiver } = require("../utils/tronPlus.js");
-let {verify} = require("../utils/verify.js")
+let { deployFeeReceiver } = require("../utils/tronV2.js");
+let { verify } = require("../utils/verify.js");
 
 module.exports = async (taskArgs, hre) => {
     const { deployments, getNamedAccounts, ethers } = hre;
@@ -34,8 +34,10 @@ module.exports = async (taskArgs, hre) => {
         deploy[network.name]["FeeReceiver"] = v2;
         await writeToFile(deploy);
 
-        const verifyArgs = [payees, shares, deployer].map((arg) => (typeof arg == 'string' ? `'${arg}'` : arg)).join(' ')
-        console.log(`To verify, run: npx hardhat verify --network ${network.name} ${v2} ${verifyArgs}`)
-        await verify(v2,[payees, shares, deployer],"contracts/FeeReceiver.sol:FeeReceiver",chainId); 
+        const verifyArgs = [payees, shares, deployer]
+            .map((arg) => (typeof arg == "string" ? `'${arg}'` : arg))
+            .join(" ");
+        console.log(`To verify, run: npx hardhat verify --network ${network.name} ${v2} ${verifyArgs}`);
+        await verify(v2, [payees, shares, deployer], "contracts/FeeReceiver.sol:FeeReceiver", chainId);
     }
 };
