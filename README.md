@@ -2,13 +2,10 @@
 
 This project is the entry contract for [butterSwap](https://butterswap.io).
 
-ButterRouter.sol is the old version of the main contract.
-
-ButterRouter V2 consists of three main contracts.
+ButterRouter V2 consists of two main contracts.
 
 - ButterRouterV2.sol is new version contract.
 - SwapAdapter.sol is the swap aggregation adapter contract of the new version contract ,called by ButterRouterV2 to complete swap.
-- Receiver.sol is impls for bridges. called by bridges to complete swap or others on target chain.
 
 ## Main interfaces explanation(v2)
 
@@ -86,14 +83,9 @@ npm install
 PRIVATE_KEY =
 TRON_PRIVATE_KEY =
 ALCHEMY_KEY =
-DEPLOY_FACTORY =
 ROUTER_DEPLOY_SALT =
-PLUS_DEPLOY_SALT =
 SWAP_ADAPTER_DEPLOY_SALT =
-RECEIVER_DEPLOY_SALT =
-AGG_ADAPTER_SALT =
 FEE_RECEIVER_SAlT =
-TRANSFER_PROXY_SALT =
 ```
 
 ### Compiling contracts
@@ -149,30 +141,6 @@ Compiled 6 Solidity files successfully
 
 The deploy script is located in tasks folder . We can run the following command to deploy.
 
-#### v1
-
-deploy and set up
-
-```
-npx hardhat routerV1 --mos <mos address> --core <core address> --network <network>
-```
-
-subtasks
-
-1.set core
-
-```
-npx hardhat setCore --router <router address> --core  <core address > --network <network>
-```
-
-2.set mos
-
-```
-npx hardhat setMos --router <router address> --mos  <mos address> --network <network>
-```
-
----
-
 NOTE
 
 if deploy chain is zksync or zksyncTestnet,please compile this contract use
@@ -214,77 +182,3 @@ npx hardhat routerV2:setAuthorization --router <router address> --executors <exc
 ```
 npx hardhat routerV2:setFee --router <router address> --feereceiver <receiver address> --feerate <rate> --fixedfee <fixedfee> --network <network>
 ```
-
-#### plus
-
-1.deploy and set up before run this task, set task/config.js
-
-```
-npx hardhat routerPlus --network <network>
-```
-
-subtasks
-
-1.routerPlus:deploy
-
-```
-npx hardhat routerV2:deploy  --wtoken <wtoken address> --network <network>
-```
-
-2.routerPlus:deployTransferProxy
-
-```
-npx hardhat routerPlus:deployTransferProxy  --network <network>
-```
-
-3.routerPlus:setAuthorization
-
-```
-npx hardhat routerPlus:setAuthorization --router <router address> --executors <excutor1,excutor2,..> --flag <flag> --network <network>
-```
-
-4.routerPlus:setFee
-
-```
-npx hardhat routerPlus:setFee --router <router address> --feereceiver <receiver address> --feerate <rate> --fixedfee <fixedfee> --network <network>
-```
-
-#### deployFeeReceiver
-
-```
-npx hardhat deployFeeReceiver --payees <addr1,addr2,..> --shares <share1,share2,..> --network <network>
-```
-
-#### deployAggregationAdaptor
-
-```
-npx hardhat deployAggregationAdaptor --network <network>
-```
-
-#### receiver
-
-subtasks
-
-1.deploy receiver
-
-```
-npx hardhat receiver --router <router address> --network <network>
-```
-
-2.receiver:setRouter
-
-```
-npx hardhat receiver:setRouter --receiver <receiver address> --name <name> --router <router> --network <network>
-```
-
-name:
-
-cbridge -> setCBridgeMessageBus
-
-amarok -> setAmarokRouter
-
-stargate -> setStargateRouter
-
-butter -> setAuthorization
-
-router is this address for the bridge router

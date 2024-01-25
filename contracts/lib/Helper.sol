@@ -13,7 +13,7 @@ library Helper {
     struct CallbackParam {
         address target;
         address approveTo;
-        uint256 amount;
+        uint256 offset;
         uint256 extraNativeAmount;
         address receiver;
         bytes data;
@@ -89,18 +89,25 @@ library Helper {
     }
 
     function _callBack(
+        uint256 _amount,
         address _token,
         CallbackParam memory _callParam
     ) internal returns (bool _result, uint256 _callAmount) {
         _callAmount = Helper._getBalance(_token, address(this));
-
+        uint256 offset = _callParam.offset;
+        bytes memory callDatas = _callParam.data;
+        if (offset != 0) {
+            assembly {
+                mstore(add(callDatas, offset), _amount)
+            }
+        }
         if (Helper._isNative(_token)) {
-            (_result, ) = _callParam.target.call{value: _callParam.amount}(_callParam.data);
+            (_result, ) = _callParam.target.call{value: _amount}(callDatas);
         } else {
-            IERC20(_token).safeIncreaseAllowance(_callParam.approveTo, _callParam.amount);
+            if (_amount != 0) IERC20(_token).safeIncreaseAllowance(_callParam.approveTo, _amount);
             // this contract not save money make sure send value can cover this
-            (_result, ) = _callParam.target.call{value: _callParam.extraNativeAmount}(_callParam.data);
-            IERC20(_token).safeApprove(_callParam.approveTo, 0);
+            (_result, ) = _callParam.target.call{value: _callParam.extraNativeAmount}(callDatas);
+            if (_amount != 0) IERC20(_token).safeApprove(_callParam.approveTo, 0);
         }
         _callAmount = _callAmount - Helper._getBalance(_token, address(this));
     }

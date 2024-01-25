@@ -17,7 +17,7 @@ contract ButterRouterV2 is Router, ReentrancyGuard {
 
     address public mosAddress;
 
-    uint256 public gasForReFund = 50000;
+    uint256 public gasForReFund = 80000;
 
     struct BridgeParam {
         uint256 toChain;
@@ -176,12 +176,10 @@ contract ButterRouterV2 is Router, ReentrancyGuard {
         if (_swapData.length > 0) {
             Helper.SwapParam memory swap = abi.decode(_swapData, (Helper.SwapParam));
             swapTemp.receiver = swap.receiver;
-            if(gasleft() > minExecGas) {
-                try this.doRemoteSwap{gas: gasleft() - gasForReFund}(swap, swapTemp.srcToken, swapTemp.srcAmount) returns (
-                    address target,
-                    address dstToken,
-                    uint256 dstAmount
-                ) {
+            if (gasleft() > minExecGas) {
+                try
+                    this.doRemoteSwap{gas: gasleft() - gasForReFund}(swap, swapTemp.srcToken, swapTemp.srcAmount)
+                returns (address target, address dstToken, uint256 dstAmount) {
                     swapTemp.swapToken = dstToken;
                     swapTemp.target = target;
                     swapTemp.swapAmount = dstAmount;
@@ -194,9 +192,9 @@ contract ButterRouterV2 is Router, ReentrancyGuard {
         if (_callbackData.length > 0) {
             Helper.CallbackParam memory callParam = abi.decode(_callbackData, (Helper.CallbackParam));
             if (swapTemp.receiver == address(0)) {
-                 swapTemp.receiver = callParam.receiver;
+                swapTemp.receiver = callParam.receiver;
             }
-            if(result && gasleft() > minExecGas){
+            if (result && gasleft() > minExecGas) {
                 try
                     this.doRemoteCall{gas: gasleft() - gasForReFund}(callParam, swapTemp.swapToken, swapTemp.swapAmount)
                 returns (address target, uint256 callAmount) {
@@ -243,9 +241,8 @@ contract ButterRouterV2 is Router, ReentrancyGuard {
         uint256 _amount
     ) external returns (address target, uint256 callAmount) {
         require(msg.sender == address(this));
-        require(_amount >= _callParam.amount, ErrorMessage.CALL_AMOUNT_INVALID);
         bool result;
-        (result, callAmount) = _callBack(_callToken, _callParam);
+        (result, callAmount) = _callBack(_amount, _callToken, _callParam);
         require(result, ErrorMessage.CALL_FAIL);
         target = _callParam.target;
     }

@@ -10,8 +10,7 @@ let {
     tronSetFee,
     tronSetAuthFromConfig,
 } = require("../utils/tronV2.js");
-let {verify} = require("../utils/verify.js")
-
+let { verify } = require("../utils/verify.js");
 
 module.exports = async (taskArgs, hre) => {
     const { getNamedAccounts, network } = hre;
@@ -95,9 +94,16 @@ task("routerV2:deploy", "deploy butterRouterV2")
 
             await writeToFile(deploy);
 
-            const verifyArgs = [taskArgs.mos, deployer, taskArgs.wtoken].map((arg) => (typeof arg == 'string' ? `'${arg}'` : arg)).join(' ')
-            console.log(`To verify, run: npx hardhat verify --network ${network.name} ${v2} ${verifyArgs}`)
-            await verify(v2,[taskArgs.mos, deployer, taskArgs.wtoken],"contracts/ButterRouterV2.sol:ButterRouterV2",chainId); 
+            const verifyArgs = [taskArgs.mos, deployer, taskArgs.wtoken]
+                .map((arg) => (typeof arg == "string" ? `'${arg}'` : arg))
+                .join(" ");
+            console.log(`To verify, run: npx hardhat verify --network ${network.name} ${v2} ${verifyArgs}`);
+            await verify(
+                v2,
+                [taskArgs.mos, deployer, taskArgs.wtoken],
+                "contracts/ButterRouterV2.sol:ButterRouterV2",
+                chainId
+            );
         }
     });
 
@@ -128,9 +134,9 @@ task("routerV2:deploySwapAdapter", "deploy SwapAdapter").setAction(async (taskAr
 
         await writeToFile(deploy);
 
-        const verifyArgs = [deployer].map((arg) => (typeof arg == 'string' ? `'${arg}'` : arg)).join(' ')
-        console.log(`To verify, run: npx hardhat verify --network ${network.name} ${swapAdapter} ${verifyArgs}`)
-        await verify(swapAdapter,[deployer],"contracts/SwapAdapter.sol:SwapAdapter",chainId); 
+        const verifyArgs = [deployer].map((arg) => (typeof arg == "string" ? `'${arg}'` : arg)).join(" ");
+        console.log(`To verify, run: npx hardhat verify --network ${network.name} ${swapAdapter} ${verifyArgs}`);
+        await verify(swapAdapter, [deployer], "contracts/SwapAdapter.sol:SwapAdapter", chainId);
     }
 });
 

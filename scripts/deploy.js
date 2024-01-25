@@ -6,32 +6,22 @@
 // global scope, and execute the script.
 const hre = require("hardhat");
 
-let mos_addr = "0xb4fCfdD492202c91A7eBaf887642F437a07A2664";
+let mos_addr = "";
 
-let butter_core_addr = "";
+let wtoken = "";
 
 async function main() {
-  let [wallet] = await ethers.getSigners();
-  console.log(wallet.address);
-  const Router = await hre.ethers.getContractFactory("ButterRouter");
-  const router = await Router.deploy(mos_addr,butter_core_addr);
-
-  await router.deployed();
-
-  console.log(
-    `router deployed to ${router.address}`
-  );
-  // await (await router.setMosAddress(mos_addr)).wait();
-  // await (await router.setButterCore(butter_core_addr)).wait();
-  // console.log(await router.butterCore());
-
+    let [wallet] = await ethers.getSigners();
+    console.log(wallet.address);
+    const Router = await hre.ethers.getContractFactory("ButterRouterV2");
+    const router = await Router.deploy(mos_addr, wallet.address, wtoken);
+    await router.deployed();
+    console.log(`router deployed to ${router.address}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
 main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
+    console.error(error);
+    process.exitCode = 1;
 });
-
-
