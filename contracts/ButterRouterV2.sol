@@ -7,11 +7,12 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@butternetwork/bridge/contracts/interface/IButterMosV2.sol";
+import "./interface/IButterReceiver.sol";
 import "./lib/ErrorMessage.sol";
 import "./abstract/Router.sol";
 import "./lib/Helper.sol";
 
-contract ButterRouterV2 is Router, ReentrancyGuard {
+contract ButterRouterV2 is Router, ReentrancyGuard,IButterReceiver {
     using SafeERC20 for IERC20;
     using Address for address;
 
@@ -150,7 +151,7 @@ contract ButterRouterV2 is Router, ReentrancyGuard {
     }
 
     // _srcToken must erc20 Token or wToken
-    function remoteSwapAndCall(
+    function onReceived(
         bytes32 _orderId,
         address _srcToken,
         uint256 _amount,

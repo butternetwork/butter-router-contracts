@@ -97,13 +97,13 @@ interface IButterRouterV2 {
     //  1. swap: _swapData.length > 0 and _callbackData.length == 0
     //  2. call: _swapData.length == 0 and _callbackData.length > 0
     //  3. swap and call: _swapData.length > 0 and _callbackData.length > 0
-    function remoteSwapAndCall(
+    function onReceived(
         bytes32 _orderId,
         address _srcToken,
         uint256 _amount,
         uint256 _fromChain,
         bytes calldata _from,
-        bytes calldata _swapAndCall
+        bytes calldata _payload
     ) external payable;
 
     function getFee(
