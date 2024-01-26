@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.21;
 
-import "../interface/IButterMos.sol";
+import "@butternetwork/bridge/contracts/interface/IButterMosV2.sol";
 import "../interface/IButterRouterV2.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract MosMock is IButterMos {
+contract MosMock is IButterMosV2 {
     event SwapOut(
         uint256 indexed fromChain, // from chain
         uint256 indexed toChain, // to chain
@@ -56,6 +56,14 @@ contract MosMock is IButterMos {
             swapData
         );
         return bytes32(0);
+    }
+
+    function depositToken(address _token, address to, uint256 _amount) external {
+        emit mapDepositOut(block.chainid, 212, bytes32(0), _token, bytes("0"), to, _amount);
+    }
+
+    function depositNative(address _to) external payable {
+        emit mapDepositOut(block.chainid, 212, bytes32(0), address(0x00), bytes("0"), _to, msg.value);
     }
 
     function mockRemoteSwapAndCall(

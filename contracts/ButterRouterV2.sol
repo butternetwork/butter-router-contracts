@@ -7,12 +7,12 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@butternetwork/bridge/contracts/interface/IButterMosV2.sol";
-import "./interface/IButterReceiver.sol";
+import "@butternetwork/bridge/contracts/interface/IButterReceiver.sol";
 import "./lib/ErrorMessage.sol";
 import "./abstract/Router.sol";
 import "./lib/Helper.sol";
 
-contract ButterRouterV2 is Router, ReentrancyGuard,IButterReceiver {
+contract ButterRouterV2 is Router, ReentrancyGuard, IButterReceiver {
     using SafeERC20 for IERC20;
     using Address for address;
 
@@ -158,7 +158,7 @@ contract ButterRouterV2 is Router, ReentrancyGuard,IButterReceiver {
         uint256 _fromChain,
         bytes calldata _from,
         bytes calldata _swapAndCall
-    ) external payable nonReentrant {
+    ) external nonReentrant {
         SwapTemp memory swapTemp;
         swapTemp.srcToken = _srcToken;
         swapTemp.srcAmount = _amount;
@@ -167,7 +167,7 @@ contract ButterRouterV2 is Router, ReentrancyGuard,IButterReceiver {
         swapTemp.fromChain = _fromChain;
         swapTemp.toChain = block.chainid;
         swapTemp.from = _from;
-        nativeBalanceBeforeExec = address(this).balance - msg.value;
+        nativeBalanceBeforeExec = address(this).balance;
         require(msg.sender == mosAddress, ErrorMessage.MOS_ONLY);
         require(Helper._getBalance(swapTemp.srcToken, address(this)) >= _amount, ErrorMessage.RECEIVE_LOW);
         (bytes memory _swapData, bytes memory _callbackData) = abi.decode(_swapAndCall, (bytes, bytes));

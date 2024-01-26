@@ -10,13 +10,15 @@ contract FeeReceiver is Ownable2Step {
     uint256 private _totalShares;
     address[] private _payees;
     mapping(address => uint256) public shares;
-    mapping(address => bool) public stablecoins;
+
+    // the list of token that can be released
+    mapping(address => bool) public releaseTokens;
     //0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE for native token
     mapping(address => uint256) public totalReleased;
     mapping(address => mapping(address => uint256)) public payeeReleased;
 
     event PayeeAdded(address account, uint256 shares);
-    event AddStablecoin(address indexed stablecoin);
+    event AddReleaseToken(address indexed stablecoin);
     event PaymentReceived(address from, uint256 amount);
     event EditConverter(address converter, bool flag);
     event ConvertTo(address token, uint256 amount);
@@ -26,7 +28,7 @@ contract FeeReceiver is Ownable2Step {
         address token;
         address callTo;
         address approveTo;
-        bytes playload;
+        bytes payload;
     }
 
     constructor(address[] memory payees, uint256[] memory shares_, address _owner) {
@@ -46,14 +48,14 @@ contract FeeReceiver is Ownable2Step {
         require(converts.length > 0);
         for (uint256 i = 0; i < converts.length; i++) {
             require(converts[i].callTo.code.length > 0, "execute must be contract address");
-            require(!stablecoins[converts[i].token], "not need convert");
+            require(!releaseTokens[converts[i].token], "not need convert");
             uint256 balance = Helper._getBalance(converts[i].token, address(this));
             bool result;
             if (Helper._isNative(converts[i].token)) {
-                (result, ) = converts[i].callTo.call{value: balance}(converts[i].playload);
+                (result, ) = converts[i].callTo.call{value: balance}(converts[i].payload);
             } else {
                 SafeERC20.safeIncreaseAllowance(IERC20(converts[i].token), converts[i].approveTo, balance);
-                (result, ) = converts[i].callTo.call(converts[i].playload);
+                (result, ) = converts[i].callTo.call(converts[i].payload);
             }
             require(result, "convert fail");
             emit ConvertTo(converts[i].token, balance);
@@ -65,14 +67,14 @@ contract FeeReceiver is Ownable2Step {
         emit EditConverter(converter, flag);
     }
 
-    function addStablecoins(address stablecoin) external onlyOwner {
-        stablecoins[stablecoin] = true;
-        emit AddStablecoin(stablecoin);
+    function addReleaseToken(address token) external onlyOwner {
+        releaseTokens[token] = true;
+        emit AddReleaseToken(token);
     }
 
     function release(address token, address account) public virtual {
         require(shares[account] > 0, "account has no shares");
-        require(stablecoins[token], "unsuport release token");
+        require(releaseTokens[token], "unsupported release token");
         uint256 payment = releasable(token, account);
         require(payment != 0, "account is not due payment");
 

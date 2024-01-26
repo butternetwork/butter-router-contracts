@@ -231,3 +231,46 @@ task("routerV2:setAuthFromConfig", "set Authorization from config file")
             console.log("RouterV2 sync authorization from config file.");
         }
     });
+
+task("routerV2:withdraw", "rescueFunds from router")
+    .addOptionalParam("router", "router address", "router", types.string)
+    .addParam("token", "token address")
+    .addParam("amount", "token amount")
+    .setAction(async (taskArgs, hre) => {
+        const { deployments, getNamedAccounts, ethers } = hre;
+        const { deploy } = deployments;
+        const { deployer } = await getNamedAccounts();
+        let config = getConfig(network.name);
+        if (!config) {
+            throw "config not set";
+        }
+        if (network.name === "Tron" || network.name === "TronTest") {
+        } else {
+            console.log("\nset rescueFunds from config file deployer :", deployer);
+            let deploy_json = await readFromFile(network.name);
+
+            let router_addr = taskArgs.router;
+            if (router_addr === "router") {
+                if (deploy_json[network.name]["ButterRouterV2"] === undefined) {
+                    throw "can not get router address";
+                }
+                router_addr = deploy_json[network.name]["ButterRouterV2"]["addr"];
+            }
+            console.log("router: ", router_addr);
+
+            let Router = await ethers.getContractFactory("ButterRouterV2");
+            let router = Router.attach(router_addr);
+
+            let result;
+
+            result = await (await router.rescueFunds(taskArgs.token, taskArgs.amount)).wait();
+
+            if (result.status == 1) {
+                console.log(`Router ${router.address} rescueFunds ${taskArgs.token} ${taskArgs.amount} succeed`);
+            } else {
+                console.log("rescueFunds failed");
+            }
+
+            console.log("RouterV2 rescueFunds.");
+        }
+    });
