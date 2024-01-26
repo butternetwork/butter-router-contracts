@@ -70,7 +70,7 @@ contract MosMock is IButterMos {
             SafeERC20.safeTransferFrom(IERC20(_srcToken), msg.sender, _router, _amount);
         }
 
-        IButterRouterV2(_router).remoteSwapAndCall{value: msg.value}(
+        IButterRouterV2(_router).onReceived{value: msg.value}(
             bytes32(0),
             _srcToken,
             _amount,
