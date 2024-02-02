@@ -28,7 +28,7 @@ library ErrorMessage {
 
     string internal constant DATA_EMPTY = "ButterRouterV2: data empty";
 
-    string internal constant NO_APPROVE = "ButterRouterV2:not approved";
+    string internal constant NO_APPROVE = "ButterRouterV2: not approved";
 
-    string internal constant NATIVE_VAULE_OVERSPEND = "ButterRouterV2: native value overspend";
+    string internal constant NATIVE_VALUE_OVERSPEND = "ButterRouterV2: native value overspend";
 }

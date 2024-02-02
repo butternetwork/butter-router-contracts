@@ -220,7 +220,7 @@ abstract contract Router is Ownable2Step {
     ) internal returns (bool _result, uint256 _callAmount) {
         require(approved[_callParam.target], ErrorMessage.NO_APPROVE);
         (_result, _callAmount) = Helper._callBack(_amount, _token, _callParam);
-        require(address(this).balance >= nativeBalanceBeforeExec, ErrorMessage.NATIVE_VAULE_OVERSPEND);
+        require(address(this).balance >= nativeBalanceBeforeExec, ErrorMessage.NATIVE_VALUE_OVERSPEND);
     }
 
     function _makeSwap(
