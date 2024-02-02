@@ -22,7 +22,6 @@ async function create(salt, bytecode, param) {
         let create_code = ethers.utils.solidityPack(["bytes", "bytes"], [bytecode, param]);
         let create = await (await factory.deploy(salt_hash, create_code, 0)).wait();
         if (create.status == 1) {
-            console.log("deployed to :", addr);
             redeploy = true;
         } else {
             console.log("deploy fail");

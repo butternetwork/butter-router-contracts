@@ -18,6 +18,7 @@ module.exports = {
       {
         version: "0.8.21",
         settings: {
+          evmVersion: "paris",
           optimizer: {
             enabled: true,
             runs: 200,
@@ -50,7 +51,7 @@ module.exports = {
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     Matic: {
-      url: `https://polygon.llamarpc.com`,
+      url: `https://rpc.ankr.com/polygon`,
       chainId: 137,
       zksync: false,
       accounts:
@@ -65,12 +66,20 @@ module.exports = {
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     Klaytn: {
-      url: `https://public-node-api.klaytnapi.com/v1/cypress`,
+      url: `https://public-en-cypress.klaytn.net`,
       chainId: 8217,
       zksync: false,
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
+    Conflux: {
+      url: `https://evm.confluxrpc.com`,
+      chainId: 1030,
+      zksync: false,
+      accounts:
+          process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+
     Tron: {
       url: `https://mainnet-rpc.thundertoken.net`,
       chainId: 108, //728126428,
@@ -112,6 +121,13 @@ module.exports = {
       zksync: false,
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    ConfluxTest: {
+      url: `https://evmtestnet.confluxrpc.com`,
+      chainId: 71,
+      zksync: false,
+      accounts:
+          process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     TronTest: {
       url: `https://mainnet-rpc.thundertoken.net`,

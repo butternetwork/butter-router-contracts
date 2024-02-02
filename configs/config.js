@@ -7,7 +7,7 @@ let config = new Map([
             v2: {
                 mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
-                    receiver: "0x4A53841B9b16182f996a65aAb407e7622CBCf966",
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
                     fixedFee: "0",
                 },
@@ -29,7 +29,7 @@ let config = new Map([
             v2: {
                 mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
-                    receiver: "0x4A53841B9b16182f996a65aAb407e7622CBCf966",
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
                     fixedFee: "0",
                 },
@@ -49,7 +49,7 @@ let config = new Map([
             v2: {
                 mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
-                    receiver: "0x4A53841B9b16182f996a65aAb407e7622CBCf966",
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
                     fixedFee: "0",
                 },
@@ -71,7 +71,7 @@ let config = new Map([
             v2: {
                 mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
-                    receiver: "0x4A53841B9b16182f996a65aAb407e7622CBCf966",
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
                     fixedFee: "0",
                 },
@@ -84,13 +84,31 @@ let config = new Map([
     ],
 
     [
+        "Conflux",
+        {
+            wToken: "0x14b2d3bc65e74dae1030eafd8ac30c533c976a9b",
+            v2: {
+                mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [
+                    "0x62b0873055bf896dd869e172119871ac24aea305", //Swappi
+                ],
+            },
+        },
+    ],
+
+    [
         "Map",
         {
             wToken: "0x13cb04d4a5dfb6398fc5ab005a6c84337256ee23",
             v2: {
                 mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
-                    receiver: "0x4A53841B9b16182f996a65aAb407e7622CBCf966",
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
                     fixedFee: "0",
                 },

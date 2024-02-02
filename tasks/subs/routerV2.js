@@ -12,6 +12,8 @@ let {
 } = require("../utils/tronV2.js");
 let { verify } = require("../utils/verify.js");
 
+const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
+
 module.exports = async (taskArgs, hre) => {
     const { getNamedAccounts, network } = hre;
     const { deployer } = await getNamedAccounts();
@@ -23,7 +25,7 @@ module.exports = async (taskArgs, hre) => {
     if (network.name === "Tron" || network.name === "TronTest") {
         await routerV2(hre.artifacts, network.name, config);
     } else {
-        console.log("deployer :", deployer);
+        console.log("routerV2 deployer :", deployer);
 
         await hre.run("routerV2:deploy", { mos: config.v2.mos, wtoken: config.wToken });
 
@@ -62,7 +64,7 @@ task("routerV2:deploy", "deploy butterRouterV2")
         if (network.name === "Tron" || network.name === "TronTest") {
             await deployRouterV2(hre.artifacts, network.name, taskArgs.mos, taskArgs.wtoken);
         } else {
-            console.log("deployer :", deployer);
+            console.log("\ndeploy deployer :", deployer);
             let chainId = await hre.network.config.chainId;
             let v2;
             if (chainId === 324 || chainId === 280) {
@@ -92,6 +94,9 @@ task("routerV2:deploy", "deploy butterRouterV2")
                 .map((arg) => (typeof arg == "string" ? `'${arg}'` : arg))
                 .join(" ");
             console.log(`To verify, run: npx hardhat verify --network ${network.name} ${v2} ${verifyArgs}`);
+
+            await sleep(10000);
+
             await verify(
                 v2,
                 [taskArgs.mos, deployer, taskArgs.wtoken],
@@ -107,7 +112,7 @@ task("routerV2:deploySwapAdapter", "deploy SwapAdapter").setAction(async (taskAr
     if (network.name === "Tron" || network.name === "TronTest") {
         await deploySwapAdapter(hre.artifacts, network.name);
     } else {
-        console.log("deployer :", deployer);
+        console.log("\ndeploySwapAdapter deployer :", deployer);
         let chainId = await hre.network.config.chainId;
 
         let swapAdapter;
@@ -130,6 +135,7 @@ task("routerV2:deploySwapAdapter", "deploy SwapAdapter").setAction(async (taskAr
 
         const verifyArgs = [deployer].map((arg) => (typeof arg == "string" ? `'${arg}'` : arg)).join(" ");
         console.log(`To verify, run: npx hardhat verify --network ${network.name} ${swapAdapter} ${verifyArgs}`);
+        await sleep(10000);
         await verify(swapAdapter, [deployer], "contracts/SwapAdapter.sol:SwapAdapter", chainId);
     }
 });
@@ -146,7 +152,7 @@ task("routerV2:setAuthorization", "set Authorization")
         if (network.name === "Tron" || network.name === "TronTest") {
             await tronSetAuthorization(hre.artifacts, network.name, taskArgs.router, taskArgs.executors, taskArgs.flag);
         } else {
-            console.log("deployer :", deployer);
+            console.log("\nsetAuthorization deployer :", deployer);
 
             await setAuthorization(taskArgs.router, taskArgs.executors, taskArgs.flag);
         }
@@ -171,7 +177,7 @@ task("routerV2:setFee", "set setFee")
                 taskArgs.fixedfee
             );
         } else {
-            console.log("deployer :", deployer);
+            console.log("\nsetFee deployer :", deployer);
 
             await setFee(taskArgs.router, taskArgs.feereceiver, taskArgs.feerate, taskArgs.fixedfee);
         }
