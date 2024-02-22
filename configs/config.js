@@ -119,6 +119,40 @@ let config = new Map([
         },
     ],
 
+    [
+        "Merlin",
+        {
+            wToken: "0xF6D226f9Dc15d9bB51182815b320D3fBE324e1bA",
+            v2: {
+                mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [
+                    "0x6628a22D9E16E42225a46ceaDd93dACFefAcfE1b", //hiveswap
+                ],
+            },
+        },
+    ],
+    [
+        "Bevm",
+        {
+            wToken: "0x09Ff8E49D0EA411A3422ed95E8f5497D4241F532",
+            v2: {
+                mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [
+                ],
+            },
+        },
+    ],
+
     //<------------------------------------- testnet----------------------------------------->
 
     [

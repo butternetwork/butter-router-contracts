@@ -46,5 +46,17 @@
 			"addr": "0xbB21e441fb738F54e6eC244e435475096E179d66"
 		},
 		"SwapAdapter": "0x002162B2aEe2dD657FB131b28CC34deE6797b66f"
+	},
+	"Merlin": {
+		"ButterRouterV2": {
+			"addr": "0xbB21e441fb738F54e6eC244e435475096E179d66"
+		},
+		"SwapAdapter": "0x002162B2aEe2dD657FB131b28CC34deE6797b66f"
+	},
+	"Bevm": {
+		"ButterRouterV2": {
+			"addr": "0xbB21e441fb738F54e6eC244e435475096E179d66"
+		},
+		"SwapAdapter": "0x002162B2aEe2dD657FB131b28CC34deE6797b66f"
 	}
 }

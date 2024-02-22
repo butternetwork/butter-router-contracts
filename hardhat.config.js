@@ -80,6 +80,20 @@ module.exports = {
           process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
 
+    Merlin: {
+      url: `https://rpc.merlinchain.io`,
+      chainId : 4200,
+      accounts:
+          process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+
+    Bevm: {
+      url: `https://rpc-canary-2.bevm.io/`,
+      chainId : 1501,
+      accounts:
+          process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+
     Tron: {
       url: `https://mainnet-rpc.thundertoken.net`,
       chainId: 108, //728126428,
