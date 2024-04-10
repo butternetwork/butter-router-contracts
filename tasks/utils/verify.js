@@ -9,7 +9,7 @@ exports.verify = async function (addr, arg, code, chainId) {
 };
 
 function needVerify(chainId) {
-    let needs = [1, 56, 137, 199, 80001];
+    let needs = [1, 56, 137, 199, 80001, 81457, 8453];
     if (needs.includes(chainId)) {
         return true;
     } else {

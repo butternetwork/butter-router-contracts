@@ -119,6 +119,23 @@ let config = new Map([
         },
     ],
 
+    ["Tron",{
+        wToken:"TNUC9Qb1rRpS5CbWLmNMxXBjyFoydXjWFR",
+        v2: {
+            mos: "TAR515UoMxTa2ruua6KqnXDwPJQEu66RVU",
+            fee: {
+                receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                feeRate: "0", //denominator is 1000000
+                fixedFee: "0",
+            },
+            executors: [
+                "TFVisXFaijZfeyeSjCEVkHfex7HGdTxzF9",   // sun smart router
+                "TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ax",   // sun v2 route
+                "TQAvWQpT9H916GckwWDJNhYZvQMkuRL7PN",   // sun v3 route
+            ],
+        }
+    }],
+
     [
         "Merlin",
         {
@@ -132,6 +149,57 @@ let config = new Map([
                 },
                 executors: [
                     "0x6628a22D9E16E42225a46ceaDd93dACFefAcfE1b", //hiveswap
+                ],
+            },
+        },
+    ],
+    [
+        "Blast",
+        {
+            wToken: "0x4300000000000000000000000000000000000004",
+            v2: {
+                mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [
+                    "0x44889b52b71E60De6ed7dE82E2939fcc52fB2B4E", //Thruster
+                ],
+            },
+        },
+    ],
+    [
+        "Base",
+        {
+            wToken: "0x4200000000000000000000000000000000000006",
+            v2: {
+                mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [
+                    "0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43", //Aerodrome Router
+                    "0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD", // UniSwap UniversalRouter
+                ],
+            },
+        },
+    ],
+    [
+        "Ainn",
+        {
+            wToken: "0x1470a4831F76954686BfB4dE8180F7469EA8dE6F",
+            v2: {
+                mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [
                 ],
             },
         },

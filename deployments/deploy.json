@@ -58,5 +58,23 @@
 			"addr": "0xbB21e441fb738F54e6eC244e435475096E179d66"
 		},
 		"SwapAdapter": "0x002162B2aEe2dD657FB131b28CC34deE6797b66f"
+	},
+	"Blast": {
+		"ButterRouterV2": {
+			"addr": "0xbB21e441fb738F54e6eC244e435475096E179d66"
+		},
+		"SwapAdapter": "0x002162B2aEe2dD657FB131b28CC34deE6797b66f"
+	},
+	"Ainn": {
+		"ButterRouterV2": {
+			"addr": "0xbB21e441fb738F54e6eC244e435475096E179d66"
+		},
+		"SwapAdapter": "0x002162B2aEe2dD657FB131b28CC34deE6797b66f"
+	},
+	"Base": {
+		"ButterRouterV2": {
+			"addr": "0xbB21e441fb738F54e6eC244e435475096E179d66"
+		},
+		"SwapAdapter": "0x002162B2aEe2dD657FB131b28CC34deE6797b66f"
 	}
 }

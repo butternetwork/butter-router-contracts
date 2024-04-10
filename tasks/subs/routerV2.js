@@ -1,7 +1,7 @@
 let { create, createZk, readFromFile, writeToFile } = require("../../utils/create.js");
 let { task } = require("hardhat/config");
 let { getConfig } = require("../../configs/config");
-let { setAuthorization, setFee } = require("../utils/util.js");
+let { setAuthorization, setFee, transferOwner } = require("../utils/util.js");
 let {
     routerV2,
     deployRouterV2,
@@ -235,6 +235,29 @@ task("routerV2:setAuthFromConfig", "set Authorization from config file")
             }
 
             console.log("RouterV2 sync authorization from config file.");
+        }
+    });
+
+task("routerV2:setOwner", "set setFee")
+    .addParam("router", "router address")
+    .addParam("owner", "owner address")
+    .setAction(async (taskArgs, hre) => {
+        const { deployments, getNamedAccounts, ethers } = hre;
+        const { deploy } = deployments;
+        const { deployer } = await getNamedAccounts();
+        if (network.name === "Tron" || network.name === "TronTest") {
+            await tronSetFee(
+                hre.artifacts,
+                network.name,
+                taskArgs.router,
+                taskArgs.feereceiver,
+                taskArgs.feerate,
+                taskArgs.fixedfee
+            );
+        } else {
+            console.log("\nsetFee owner :", taskArgs.owner);
+
+            await transferOwner(taskArgs.router, taskArgs.owner);
         }
     });
 

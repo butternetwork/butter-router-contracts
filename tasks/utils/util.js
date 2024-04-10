@@ -36,6 +36,38 @@ exports.setAuthorization = async function (router_addr, executors_s, flag) {
     }
 };
 
+exports.transferOwner = async function (router_addr, owner) {
+    // let OwnableContract = await ethers.getContractAt("Ownable2Step", router_addr);
+
+    let ownable = await ethers.getContractAt("Ownable2Step", router_addr);
+
+    let result = await (await ownable.transferOwnership(owner)).wait();
+
+    if (result.status == 1) {
+        console.log(
+            `Router ${router_addr} transferOwnership ${owner} succeed`
+        );
+    } else {
+        console.log("transferOwnership failed");
+    }
+};
+
+exports.acceptOwner = async function (router_addr) {
+    let Router = await ethers.getContractFactory("ButterRouterV2");
+
+    let router = Router.attach(router_addr);
+
+    let result = await (await router.acceptOwnership()).wait();
+
+    if (result.status == 1) {
+        console.log(
+            `Router ${router_addr} acceptOwnership succeed`
+        );
+    } else {
+        console.log("acceptOwnership failed");
+    }
+};
+
 exports.setFee = async function (router_addr, feereceiver, feerate, fixedfee) {
     let Router = await ethers.getContractFactory("ButterRouterV2");
 

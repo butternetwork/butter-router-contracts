@@ -1,6 +1,7 @@
 require("@nomicfoundation/hardhat-toolbox");
 require("dotenv/config");
 require("hardhat-deploy");
+require('@nomiclabs/hardhat-ethers');
 require("@matterlabs/hardhat-zksync-deploy");
 require("@matterlabs/hardhat-zksync-solc");
 require("@matterlabs/hardhat-zksync-verify");
@@ -83,6 +84,7 @@ module.exports = {
     Merlin: {
       url: `https://rpc.merlinchain.io`,
       chainId : 4200,
+      gasPrice: 50000000,
       accounts:
           process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
@@ -90,6 +92,24 @@ module.exports = {
     Bevm: {
       url: `https://rpc-canary-2.bevm.io/`,
       chainId : 1501,
+      accounts:
+          process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    Blast: {
+      url: `https://rpc.blast.io`,
+      chainId : 81457,
+      accounts:
+          process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    Base: {
+      url: `https://mainnet.base.org`,
+      chainId: 8453,
+      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    Ainn: {
+      url: `https://mainnet-rpc.anvm.io`,
+      chainId : 2649,
+      gasPrice: 50000000,
       accounts:
           process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
@@ -158,6 +178,8 @@ module.exports = {
       Eth:  process.env.API_KEY_ETH,
       Bsc:  process.env.API_KEY_BSC,
       Matic: process.env.API_KEY_MATIC,
+      Blast: process.env.API_KEY_BLAST,
+      Base: process.env.API_KEY_BASE,
     },
     customChains: [
       {
@@ -192,13 +214,20 @@ module.exports = {
           browserURL: "https://polygonscan.com/",
         },
       },
-
       {
-        network: "MaticTest",
-        chainId: 80001,
+        network: "Blast",
+        chainId: 81457,
         urls: {
-          apiURL: "https://api-testnet.polygonscan.com/api",
-          browserURL: "https://mumbai.polygonscan.com/",
+          apiURL: "https://api.blastscan.io/api",
+          browserURL: "https://blastscan.io/",
+        },
+      },
+      {
+        network: "Base",
+        chainId: 8453,
+        urls: {
+          apiURL: "https://api.basescan.org/api",
+          browserURL: "https://basescan.org/",
         },
       },
     ],
