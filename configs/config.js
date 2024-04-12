@@ -122,7 +122,7 @@ let config = new Map([
     ["Tron",{
         wToken:"TNUC9Qb1rRpS5CbWLmNMxXBjyFoydXjWFR",
         v2: {
-            mos: "TAR515UoMxTa2ruua6KqnXDwPJQEu66RVU",
+            mos: "TYMpgB8Q9vSoGtkyE3hXsvUrpte3KCDGj6",
             fee: {
                 receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                 feeRate: "0", //denominator is 1000000
