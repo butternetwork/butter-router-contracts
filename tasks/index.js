@@ -4,3 +4,6 @@ task("routerV2", "deploy butter router V2 contract and set", require("./subs/rou
 task("deployFeeReceiver", "deploy feeReceiver", require("./subs/deployFeeReceiver.js"))
     .addParam("payees", "payees address array")
     .addParam("shares", "shares array");
+    
+task("deployOmniAdapter", "deploy OmniAdapter", require("./subs/OmniAdapter.js"))
+
