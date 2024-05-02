@@ -22,6 +22,8 @@ abstract contract Router is Ownable2Step {
 
     mapping(address => bool) public approved;
 
+    uint256 public immutable selfChainId = block.chainid;
+
     event Approve(address indexed executor, bool indexed flag);
     event SetFee(address indexed receiver, uint256 indexed rate, uint256 indexed fixedf);
     event CollectFee(
@@ -208,7 +210,7 @@ abstract contract Router is Ownable2Step {
             _remain = _amount - _fee;
         }
         if (_fee > 0) {
-            Helper._transfer(_token, feeReceiver, _fee);
+            Helper._transfer(selfChainId, _token, feeReceiver, _fee);
             emit CollectFee(_token, feeReceiver, _fee, transferId, _feeType);
         }
     }
@@ -249,6 +251,6 @@ abstract contract Router is Ownable2Step {
     }
 
     function rescueFunds(address _token, uint256 _amount) external onlyOwner {
-        Helper._transfer(_token, msg.sender, _amount);
+        Helper._transfer(selfChainId, _token, msg.sender, _amount);
     }
 }

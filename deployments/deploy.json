@@ -31,9 +31,9 @@
 	},
 	"Tron": {
 		"ButterRouterV2": {
-			"addr": "TKgJ9BPQrwsifuoEZ1aUWV1xHoBRUDvzqN"
+			"addr": "TSBDbe1TB8Ft3KZTdbDcZPLFTkL2BFBiZh"
 		},
-		"SwapAdapter": "TFjMCoPkckebV9NQKNBLTrghprzehCY2sL"
+		"SwapAdapter": "TKUNfz6X5CjrSyR5YwbkSZPx6LGSWygLBK"
 	},
 	"Makalu": {
 		"ButterRouterV2": {
@@ -72,6 +72,48 @@
 		"SwapAdapter": "0x002162B2aEe2dD657FB131b28CC34deE6797b66f"
 	},
 	"Base": {
+		"ButterRouterV2": {
+			"addr": "0xbB21e441fb738F54e6eC244e435475096E179d66"
+		},
+		"SwapAdapter": "0x002162B2aEe2dD657FB131b28CC34deE6797b66f"
+	},
+	"zkSync": {
+		"ButterRouterV2": {
+			"addr": "0x73E0d6E696Fc38DaC6bf68b4A0b06d35Df10492E"
+		},
+		"SwapAdapter": "0x3f2C5b3f2A071Ad6F471393c57cb5D3DB009Fd19"
+	},
+	"B2": {
+		"ButterRouterV2": {
+			"addr": "0xbB21e441fb738F54e6eC244e435475096E179d66"
+		},
+		"SwapAdapter": "0x002162B2aEe2dD657FB131b28CC34deE6797b66f"
+	},
+	"Optimism": {
+		"ButterRouterV2": {
+			"addr": "0xbB21e441fb738F54e6eC244e435475096E179d66"
+		},
+		"SwapAdapter": "0x002162B2aEe2dD657FB131b28CC34deE6797b66f"
+	},
+	"Arbitrum": {
+		"ButterRouterV2": {
+			"addr": "0xbB21e441fb738F54e6eC244e435475096E179d66"
+		},
+		"SwapAdapter": "0x002162B2aEe2dD657FB131b28CC34deE6797b66f"
+	},
+	"Linea": {
+		"ButterRouterV2": {
+			"addr": "0xbB21e441fb738F54e6eC244e435475096E179d66"
+		},
+		"SwapAdapter": "0x002162B2aEe2dD657FB131b28CC34deE6797b66f"
+	},
+	"Scroll": {
+		"ButterRouterV2": {
+			"addr": "0xbB21e441fb738F54e6eC244e435475096E179d66"
+		},
+		"SwapAdapter": "0x002162B2aEe2dD657FB131b28CC34deE6797b66f"
+	},
+	"Mantle": {
 		"ButterRouterV2": {
 			"addr": "0xbB21e441fb738F54e6eC244e435475096E179d66"
 		},

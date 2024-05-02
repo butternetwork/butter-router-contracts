@@ -17,6 +17,8 @@ contract FeeReceiver is Ownable2Step {
     mapping(address => uint256) public totalReleased;
     mapping(address => mapping(address => uint256)) public payeeReleased;
 
+    uint256 public immutable selfChainId = block.chainid;
+
     event PayeeAdded(address account, uint256 shares);
     event AddReleaseToken(address indexed stablecoin);
     event PaymentReceived(address from, uint256 amount);
@@ -82,7 +84,7 @@ contract FeeReceiver is Ownable2Step {
         unchecked {
             payeeReleased[token][account] += payment;
         }
-        Helper._transfer(token, account, payment);
+        Helper._transfer(selfChainId, token, account, payment);
         emit PaymentReleased(token, account, payment);
     }
 

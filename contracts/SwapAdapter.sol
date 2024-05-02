@@ -40,6 +40,8 @@ contract SwapAdapter is Ownable2Step, ReentrancyGuard {
         address receiver
     );
 
+    uint256 public immutable selfChainId = block.chainid;
+
     constructor(address _owner) {
         require(_owner != Helper.ZERO_ADDRESS, "ButterAgg: zero addr");
         _transferOwnership(_owner);
@@ -86,10 +88,10 @@ contract SwapAdapter is Ownable2Step, ReentrancyGuard {
         require(outAmount >= params.minAmount, "ButterAgg: swap received too low");
         uint256 left = Helper._getBalance(params.srcToken, address(this)) - initInputTokenBalance;
         if (left > 0) {
-            Helper._transfer(params.srcToken, params.leftReceiver, left);
+            Helper._transfer(selfChainId, params.srcToken, params.leftReceiver, left);
         }
         address receiver = params.receiver == address(0) ? msg.sender : params.receiver;
-        Helper._transfer(params.dstToken, receiver, outAmount);
+        Helper._transfer(selfChainId, params.dstToken, receiver, outAmount);
         emit SwapComplete(msg.sender, params.srcToken, amount, params.dstToken, outAmount, receiver);
     }
 
@@ -135,7 +137,7 @@ contract SwapAdapter is Ownable2Step, ReentrancyGuard {
 
     function rescueFunds(address _token, address _receiver, uint256 _amount) external onlyOwner {
         require(_receiver != address(0));
-        Helper._transfer(_token, _receiver, _amount);
+        Helper._transfer(selfChainId, _token, _receiver, _amount);
     }
 
     receive() external payable {}

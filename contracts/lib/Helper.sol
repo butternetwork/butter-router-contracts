@@ -41,11 +41,16 @@ library Helper {
         }
     }
 
-    function _transfer(address _token, address _to, uint256 _amount) internal {
+    function _transfer(uint256 _chainId, address _token, address _to, uint256 _amount) internal {
         if (_isNative(_token)) {
             Address.sendValue(payable(_to), _amount);
         } else {
-            IERC20(_token).safeTransfer(_to, _amount);
+            if (_chainId == 728126428 && _token == 0xa614f803B6FD780986A42c78Ec9c7f77e6DeD13C) {
+                // Tron USDT
+                _token.call(abi.encodeWithSelector(0xa9059cbb, _to, _amount));
+            } else {
+                IERC20(_token).safeTransfer(_to, _amount);
+            }
         }
     }
 

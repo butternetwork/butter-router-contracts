@@ -44,9 +44,7 @@ exports.transferOwner = async function (router_addr, owner) {
     let result = await (await ownable.transferOwnership(owner)).wait();
 
     if (result.status == 1) {
-        console.log(
-            `Router ${router_addr} transferOwnership ${owner} succeed`
-        );
+        console.log(`Router ${router_addr} transferOwnership ${owner} succeed`);
     } else {
         console.log("transferOwnership failed");
     }
@@ -60,9 +58,7 @@ exports.acceptOwner = async function (router_addr) {
     let result = await (await router.acceptOwnership()).wait();
 
     if (result.status == 1) {
-        console.log(
-            `Router ${router_addr} acceptOwnership succeed`
-        );
+        console.log(`Router ${router_addr} acceptOwnership succeed`);
     } else {
         console.log("acceptOwnership failed");
     }

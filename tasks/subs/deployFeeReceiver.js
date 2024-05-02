@@ -38,6 +38,6 @@ module.exports = async (taskArgs, hre) => {
             .map((arg) => (typeof arg == "string" ? `'${arg}'` : arg))
             .join(" ");
         console.log(`To verify, run: npx hardhat verify --network ${network.name} ${v2} ${verifyArgs}`);
-        await verify(v2, [payees, shares, deployer], "contracts/FeeReceiver.sol:FeeReceiver", chainId);
+        await verify(v2, [payees, shares, deployer], "contracts/FeeReceiver.sol:FeeReceiver", chainId, true);
     }
 };

@@ -12,8 +12,6 @@ let {
 } = require("../utils/tronV2.js");
 let { verify } = require("../utils/verify.js");
 
-const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
-
 module.exports = async (taskArgs, hre) => {
     const { getNamedAccounts, network } = hre;
     const { deployer } = await getNamedAccounts();
@@ -30,13 +28,11 @@ module.exports = async (taskArgs, hre) => {
         await hre.run("routerV2:deploy", { mos: config.v2.mos, wtoken: config.wToken });
 
         let deploy_json = await readFromFile(network.name);
-
         let router_addr = deploy_json[network.name]["ButterRouterV2"]["addr"];
 
         await hre.run("routerV2:deploySwapAdapter", {});
 
         deploy_json = await readFromFile(network.name);
-
         let adapt_addr = deploy_json[network.name]["SwapAdapter"];
 
         config.v2.executors.push(adapt_addr);
@@ -95,13 +91,12 @@ task("routerV2:deploy", "deploy butterRouterV2")
                 .join(" ");
             console.log(`To verify, run: npx hardhat verify --network ${network.name} ${v2} ${verifyArgs}`);
 
-            await sleep(10000);
-
             await verify(
                 v2,
                 [taskArgs.mos, deployer, taskArgs.wtoken],
                 "contracts/ButterRouterV2.sol:ButterRouterV2",
-                chainId
+                chainId,
+                true
             );
         }
     });
@@ -135,8 +130,8 @@ task("routerV2:deploySwapAdapter", "deploy SwapAdapter").setAction(async (taskAr
 
         const verifyArgs = [deployer].map((arg) => (typeof arg == "string" ? `'${arg}'` : arg)).join(" ");
         console.log(`To verify, run: npx hardhat verify --network ${network.name} ${swapAdapter} ${verifyArgs}`);
-        await sleep(10000);
-        await verify(swapAdapter, [deployer], "contracts/SwapAdapter.sol:SwapAdapter", chainId);
+
+        await verify(swapAdapter, [deployer], "contracts/SwapAdapter.sol:SwapAdapter", chainId, true);
     }
 });
 

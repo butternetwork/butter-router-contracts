@@ -10,7 +10,7 @@ require("./tasks");
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   zksolc: {
-    version: "1.3.10",
+    version: "1.4.0",
     compilerSource: "binary",
     settings: {},
   },
@@ -58,7 +58,6 @@ module.exports = {
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
-
     Bsc: {
       url: `https://rpc.ankr.com/bsc`,
       chainId: 56,
@@ -80,7 +79,6 @@ module.exports = {
       accounts:
           process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
-
     Merlin: {
       url: `https://rpc.merlinchain.io`,
       chainId : 4200,
@@ -88,7 +86,6 @@ module.exports = {
       accounts:
           process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
-
     Bevm: {
       url: `https://rpc-canary-2.bevm.io/`,
       chainId : 1501,
@@ -113,11 +110,55 @@ module.exports = {
       accounts:
           process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
+    zkSync: {
+      url: `https://mainnet.era.zksync.io`,
+      chainId: 324,
+      zksync: true,
+      ethNetwork: "Eth",
+      accounts:
+          process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    B2: {
+      url: `https://rpc.bsquared.network`,
+      chainId : 223,
+      gasPrice: 10000,
+      accounts:
+          process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    Optimism: {
+      url: `https://mainnet.optimism.io`,
+      chainId : 10,
+      accounts:
+          process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    Arbitrum: {
+      url: `https://arb1.arbitrum.io/rpc`,
+      chainId : 42161,
+      accounts:
+          process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    Linea: {
+      url: `https://rpc.linea.build`,
+      chainId : 59144,
+      accounts:
+          process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    Scroll: {
+      url: `https://rpc.scroll.io`,
+      chainId : 534352,
+      accounts:
+          process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    Mantle: {
+      url: `https://rpc.mantle.xyz`,
+      chainId : 5000,
+      accounts:
+          process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
 
     Tron: {
       url: `https://mainnet-rpc.thundertoken.net`,
       chainId: 108, //728126428,
-      zksync: false,
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
@@ -180,6 +221,12 @@ module.exports = {
       Matic: process.env.API_KEY_MATIC,
       Blast: process.env.API_KEY_BLAST,
       Base: process.env.API_KEY_BASE,
+      zkSync: process.env.API_KEY_ZKSYNC,
+      Optimism: process.env.API_KEY_OP,
+      Arbitrum: process.env.API_KEY_ARBITRUM,
+      Linea: process.env.API_KEY_LINEA,
+      Scroll: process.env.API_KEY_SCROLL,
+      Mantle: process.env.API_KEY_MANTLE
     },
     customChains: [
       {
@@ -230,6 +277,54 @@ module.exports = {
           browserURL: "https://basescan.org/",
         },
       },
+      {
+        network: "zkSync",
+        chainId: 324,
+        urls: {
+          apiURL: "https://api-era.zksync.network/api",
+          browserURL: "https://era.zksync.network/",
+        },
+      },
+      {
+        network: "Optimism",
+        chainId: 10,
+        urls: {
+          apiURL: "https://api-optimistic.etherscan.io/api",
+          browserURL: "https://optimistic.etherscan.io/",
+        },
+      },
+      {
+        network: "Arbitrum",
+        chainId: 42161,
+        urls: {
+          apiURL: "https://api.arbiscan.io/api",
+          browserURL: "https://arbiscan.io/",
+        },
+      },
+      {
+        network: "Linea",
+        chainId: 59144,
+        urls: {
+          apiURL: "https://api.lineascan.build/api",
+          browserURL: "https://lineascan.build",
+        },
+      },
+      {
+        network: "Scroll",
+        chainId: 534352,
+        urls: {
+          apiURL: "https://api.scrollscan.com/api",
+          browserURL: "https://scrollscan.com/",
+        },
+      },
+      {
+        network: "Mantle",
+        chainId: 5000,
+        urls: {
+          apiURL: "https://api.mantlescan.xyz/api",
+          browserURL: "https://mantlescan.xyz/",
+        },
+      }
     ],
   },
 };

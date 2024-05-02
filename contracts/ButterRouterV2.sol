@@ -80,7 +80,7 @@ contract ButterRouterV2 is Router, ReentrancyGuard, IButterReceiver {
             require(swapTemp.swapAmount >= swap.minReturnAmount, ErrorMessage.RECEIVE_LOW);
             if (_bridgeData.length == 0 && swapTemp.swapAmount > 0) {
                 receiver = abi.encodePacked(swap.receiver);
-                Helper._transfer(swapTemp.swapToken, swap.receiver, swapTemp.swapAmount);
+                Helper._transfer(selfChainId, swapTemp.swapToken, swap.receiver, swapTemp.swapAmount);
             }
         }
         bytes32 orderId;
@@ -134,7 +134,7 @@ contract ButterRouterV2 is Router, ReentrancyGuard, IButterReceiver {
         ) = _doSwapAndCall(_swapData, _callbackData, swapTemp.srcToken, swapTemp.swapAmount);
 
         if (swapTemp.swapAmount > swapTemp.callAmount) {
-            Helper._transfer(swapTemp.swapToken, swapTemp.receiver, (swapTemp.swapAmount - swapTemp.callAmount));
+            Helper._transfer(selfChainId, swapTemp.swapToken, swapTemp.receiver, (swapTemp.swapAmount - swapTemp.callAmount));
         }
 
         emit SwapAndCall(
@@ -206,7 +206,7 @@ contract ButterRouterV2 is Router, ReentrancyGuard, IButterReceiver {
             }
         }
         if (swapTemp.swapAmount > swapTemp.callAmount) {
-            Helper._transfer(swapTemp.swapToken, swapTemp.receiver, (swapTemp.swapAmount - swapTemp.callAmount));
+            Helper._transfer(selfChainId, swapTemp.swapToken, swapTemp.receiver, (swapTemp.swapAmount - swapTemp.callAmount));
         }
         emit RemoteSwapAndCall(
             _orderId,

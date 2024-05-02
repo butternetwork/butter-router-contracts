@@ -49,6 +49,7 @@ exports.tronSetFee = async function (artifacts, network, router_addr, feereceive
 
 async function deployRouterV2(artifacts, network, mos, wtoken) {
     let tronWeb = await getTronWeb(network);
+    console.log("deploy router v2 ...");
     console.log("deployer :", tronWeb.defaultAddress);
 
     let deployer = tronWeb.defaultAddress.hex.replace(/^(41)/, "0x");
@@ -69,6 +70,8 @@ async function deployRouterV2(artifacts, network, mos, wtoken) {
 }
 
 async function deploySwapAdapter(artifacts, network) {
+    console.log("deploy swap adapter ...");
+
     let tronWeb = await getTronWeb(network);
     let deployer = tronWeb.defaultAddress.base58;
     console.log("deployer :", deployer);

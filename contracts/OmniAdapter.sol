@@ -8,20 +8,19 @@ import "./interface/IMORC20Receiver.sol";
 import "./interface/IMORC20.sol";
 import "./lib/Helper.sol";
 
+contract OmniAdapter is Ownable2Step, ReentrancyGuard, IMORC20Receiver {
+    using SafeERC20 for IERC20;
 
-contract OmniAdapter is Ownable2Step,ReentrancyGuard,IMORC20Receiver{
-   using SafeERC20 for IERC20;
-
-   struct InterTransferParam {
+    struct InterTransferParam {
         uint256 toChainId;
-        bytes  toAddress;
+        bytes toAddress;
         uint256 gasLimit;
-        bytes  refundAddress;
-        bytes  messageData;
+        bytes refundAddress;
+        bytes messageData;
         address feeToken;
         uint256 fee;
         address feePayer;
-   }
+    }
 
     // use to solve deep stack
     struct Temp {
@@ -32,10 +31,10 @@ contract OmniAdapter is Ownable2Step,ReentrancyGuard,IMORC20Receiver{
         address target;
         uint256 callAmount;
     }
-   
-   event EditBackList(bytes4 _func, bool flag);
-   event InterTransferAndCall(address proxy,address token,uint256 amount);
-   event SwapAndCall(
+
+    event EditBackList(bytes4 _func, bool flag);
+    event InterTransferAndCall(address proxy, address token, uint256 amount);
+    event SwapAndCall(
         address indexed from,
         address indexed receiver,
         address indexed target,
@@ -45,8 +44,11 @@ contract OmniAdapter is Ownable2Step,ReentrancyGuard,IMORC20Receiver{
         uint256 originAmount,
         uint256 swapAmount,
         uint256 callAmount
-   );
+    );
     mapping(bytes4 => bool) blackList;
+
+    uint256 public immutable selfChainId = block.chainid;
+
     constructor(address _owner) {
         require(_owner != address(0), "OmniAdapter: zero addr");
         _transferOwnership(_owner);
@@ -82,39 +84,47 @@ contract OmniAdapter is Ownable2Step,ReentrancyGuard,IMORC20Receiver{
         emit EditBackList(_func, _flag);
     }
 
-   function interTransferAndCall(uint256 amount,address proxy,InterTransferParam calldata interTransferParam) external payable{
-        require(amount != 0,"OmniAdapter: zero in");
-        require(proxy != Helper.ZERO_ADDRESS, "OmniAdapter: zero addr"); 
+    function interTransferAndCall(
+        uint256 amount,
+        address proxy,
+        InterTransferParam calldata interTransferParam
+    ) external payable {
+        require(amount != 0, "OmniAdapter: zero in");
+        require(proxy != Helper.ZERO_ADDRESS, "OmniAdapter: zero addr");
         address token = IMORC20(proxy).token();
 
         uint256 value;
-        // transfer token in 
-        if(Helper._isNative(token)){
-           require(msg.value == amount,"OmniAdapter:receive too low"); 
-           value = amount;
+        // transfer token in
+        if (Helper._isNative(token)) {
+            require(msg.value == amount, "OmniAdapter:receive too low");
+            value = amount;
         } else {
-            IERC20(token).safeTransferFrom(msg.sender,address(this),amount);
-            if(token != proxy){
-                IERC20(token).safeIncreaseAllowance(proxy,amount);
+            IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
+            if (token != proxy) {
+                IERC20(token).safeIncreaseAllowance(proxy, amount);
             }
-        } 
-        // fee 
-        if(token == interTransferParam.feeToken){
+        }
+        // fee
+        if (token == interTransferParam.feeToken) {
             // amount must > fee or overflow
             amount -= interTransferParam.fee;
         } else {
-            if(Helper._isNative(interTransferParam.feeToken)){
-                require(msg.value == interTransferParam.fee,"OmniAdapter:fee mismatch");
+            if (Helper._isNative(interTransferParam.feeToken)) {
+                require(msg.value == interTransferParam.fee, "OmniAdapter:fee mismatch");
                 value = interTransferParam.fee;
             } else {
-                require(interTransferParam.feePayer != Helper.ZERO_ADDRESS,"OmniAdapter: zero addr");
-                IERC20(interTransferParam.feeToken).safeTransferFrom(interTransferParam.feePayer,address(this),interTransferParam.fee);
-                IERC20(interTransferParam.feeToken).safeIncreaseAllowance(proxy,interTransferParam.fee);
+                require(interTransferParam.feePayer != Helper.ZERO_ADDRESS, "OmniAdapter: zero addr");
+                IERC20(interTransferParam.feeToken).safeTransferFrom(
+                    interTransferParam.feePayer,
+                    address(this),
+                    interTransferParam.fee
+                );
+                IERC20(interTransferParam.feeToken).safeIncreaseAllowance(proxy, interTransferParam.fee);
             }
         }
         // bridge
-        if(interTransferParam.messageData.length != 0){
-             IMORC20(proxy).interTransferAndCall{value:value}(
+        if (interTransferParam.messageData.length != 0) {
+            IMORC20(proxy).interTransferAndCall{value: value}(
                 address(this),
                 interTransferParam.toChainId,
                 interTransferParam.toAddress,
@@ -122,9 +132,9 @@ contract OmniAdapter is Ownable2Step,ReentrancyGuard,IMORC20Receiver{
                 interTransferParam.gasLimit,
                 interTransferParam.refundAddress,
                 interTransferParam.messageData
-             );
+            );
         } else {
-            IMORC20(proxy).interTransfer{value:value}(
+            IMORC20(proxy).interTransfer{value: value}(
                 address(this),
                 interTransferParam.toChainId,
                 interTransferParam.toAddress,
@@ -132,26 +142,31 @@ contract OmniAdapter is Ownable2Step,ReentrancyGuard,IMORC20Receiver{
                 interTransferParam.gasLimit
             );
         }
-        emit InterTransferAndCall(proxy,token,amount);
-   }
+        emit InterTransferAndCall(proxy, token, amount);
+    }
 
-   function onMORC20Received(uint256,bytes memory, uint256 _amount, bytes32 _orderId, bytes calldata _message) external override returns(bool){
+    function onMORC20Received(
+        uint256,
+        bytes memory,
+        uint256 _amount,
+        bytes32 _orderId,
+        bytes calldata _message
+    ) external override returns (bool) {
         Temp memory t;
         address proxy = msg.sender;
         t.token = IMORC20(proxy).token();
         require(Helper._getBalance(t.token, address(this)) >= _amount, "OmniAdapter:receive too low");
         (bytes memory _swapData, bytes memory _callbackData) = abi.decode(_message, (bytes, bytes));
         require(_swapData.length + _callbackData.length > 0, "OmniAdapter:data empty");
-        (
-            t.receiver,
-            t.target,
-            t.swapToken,
-            t.swapAmount,
-            t.callAmount
-        ) = _doSwapAndCall(_swapData, _callbackData, t.token, _amount);
+        (t.receiver, t.target, t.swapToken, t.swapAmount, t.callAmount) = _doSwapAndCall(
+            _swapData,
+            _callbackData,
+            t.token,
+            _amount
+        );
 
         if (t.swapAmount > t.callAmount) {
-            Helper._transfer(t.swapToken, t.receiver, (t.swapAmount - t.callAmount));
+            Helper._transfer(selfChainId, t.swapToken, t.receiver, (t.swapAmount - t.callAmount));
         }
         emit SwapAndCall(
             msg.sender,
@@ -165,10 +180,14 @@ contract OmniAdapter is Ownable2Step,ReentrancyGuard,IMORC20Receiver{
             t.callAmount
         );
         return true;
-   }
+    }
 
-    function estimateFee(address proxy,uint256 toChain, uint256 gasLimit) external view returns (address feeToken, uint256 fee){
-        return IMORC20(proxy).estimateFee(toChain,gasLimit);
+    function estimateFee(
+        address proxy,
+        uint256 toChain,
+        uint256 gasLimit
+    ) external view returns (address feeToken, uint256 fee) {
+        return IMORC20(proxy).estimateFee(toChain, gasLimit);
     }
 
     function _doSwapAndCall(
@@ -197,7 +216,7 @@ contract OmniAdapter is Ownable2Step,ReentrancyGuard,IMORC20Receiver{
             target = callParam.target;
         }
     }
-    
+
     function _makeSwap(
         uint256 _amount,
         address _srcToken,
@@ -216,7 +235,6 @@ contract OmniAdapter is Ownable2Step,ReentrancyGuard,IMORC20Receiver{
         (_result, _callAmount) = Helper._callBack(_amount, _token, _callParam);
     }
 
-
     function _checkCallFunction(bytes memory callDatas) internal view returns (bool) {
         if (callDatas.length < 4) {
             return false;
@@ -229,6 +247,6 @@ contract OmniAdapter is Ownable2Step,ReentrancyGuard,IMORC20Receiver{
     }
 
     function rescueFunds(address _token, uint256 _amount) external onlyOwner {
-        Helper._transfer(_token, msg.sender, _amount);
+        Helper._transfer(selfChainId, _token, msg.sender, _amount);
     }
 }

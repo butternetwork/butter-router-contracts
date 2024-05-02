@@ -119,22 +119,25 @@ let config = new Map([
         },
     ],
 
-    ["Tron",{
-        wToken:"TNUC9Qb1rRpS5CbWLmNMxXBjyFoydXjWFR",
-        v2: {
-            mos: "TYMpgB8Q9vSoGtkyE3hXsvUrpte3KCDGj6",
-            fee: {
-                receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
-                feeRate: "0", //denominator is 1000000
-                fixedFee: "0",
+    [
+        "Tron",
+        {
+            wToken: "TNUC9Qb1rRpS5CbWLmNMxXBjyFoydXjWFR",
+            v2: {
+                mos: "TYMpgB8Q9vSoGtkyE3hXsvUrpte3KCDGj6",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [
+                    "TFVisXFaijZfeyeSjCEVkHfex7HGdTxzF9", // sun smart router
+                    "TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ax", // sun v2 route
+                    "TQAvWQpT9H916GckwWDJNhYZvQMkuRL7PN", // sun v3 route
+                ],
             },
-            executors: [
-                "TFVisXFaijZfeyeSjCEVkHfex7HGdTxzF9",   // sun smart router
-                "TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ax",   // sun v2 route
-                "TQAvWQpT9H916GckwWDJNhYZvQMkuRL7PN",   // sun v3 route
-            ],
-        }
-    }],
+        },
+    ],
 
     [
         "Merlin",
@@ -189,6 +192,86 @@ let config = new Map([
         },
     ],
     [
+        "Optimism",
+        {
+            wToken: "0x4200000000000000000000000000000000000006",
+            v2: {
+                mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [
+                ],
+            },
+        },
+    ],
+    [
+        "Arbitrum",
+        {
+            wToken: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
+            v2: {
+                mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [
+                ],
+            },
+        },
+    ],
+    [
+        "Linea",
+        {
+            wToken: "0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f",
+            v2: {
+                mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [
+                ],
+            },
+        },
+    ],
+    [
+        "Scroll",
+        {
+            wToken: "0x5300000000000000000000000000000000000004",
+            v2: {
+                mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [
+                ],
+            },
+        },
+    ],
+    [
+        "Mantle",
+        {
+            wToken: "0xdEAddEaDdeadDEadDEADDEAddEADDEAddead1111",
+            v2: {
+                mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [
+                ],
+            },
+        },
+    ],
+    [
         "Ainn",
         {
             wToken: "0x1470a4831F76954686BfB4dE8180F7469EA8dE6F",
@@ -199,8 +282,7 @@ let config = new Map([
                     feeRate: "0", //denominator is 1000000
                     fixedFee: "0",
                 },
-                executors: [
-                ],
+                executors: [],
             },
         },
     ],
@@ -215,8 +297,37 @@ let config = new Map([
                     feeRate: "0", //denominator is 1000000
                     fixedFee: "0",
                 },
-                executors: [
-                ],
+                executors: [],
+            },
+        },
+    ],
+    [
+        "zkSync",
+        {
+            wToken: "0x5AEa5775959fBC2557Cc8789bC1bf90A239D9a91",
+            v2: {
+                mos: "0xBEf06a32166C4B819fF04cCfa887733B8bb67eB5",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [],
+            },
+        },
+    ],
+    [
+        "B2",
+        {
+            wToken: "0x4200000000000000000000000000000000000006",
+            v2: {
+                mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [],
             },
         },
     ],

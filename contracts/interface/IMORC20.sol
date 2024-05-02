@@ -7,14 +7,31 @@ import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 /**
  * @dev Interface of the IMORC20 core standard
  */
-interface IMORC20  is IERC165 {
+interface IMORC20 is IERC165 {
+    event InterTransfer(
+        bytes32 indexed orderId,
+        address indexed fromAddress,
+        uint256 indexed toChainId,
+        bytes toAddress,
+        uint256 fromAmount
+    );
 
-    event InterTransfer(bytes32 indexed orderId, address indexed fromAddress, uint256 indexed toChainId, bytes toAddress, uint256 fromAmount);
+    event InterReceive(
+        bytes32 indexed orderId,
+        uint256 indexed fromChain,
+        bytes fromAddress,
+        address toAddress,
+        uint256 amount
+    );
 
-    event InterReceive(bytes32 indexed orderId, uint256 indexed fromChain, bytes fromAddress, address toAddress, uint256 amount);
-
-    event InterReceiveAndExecute(bytes32 indexed orderId, uint256 indexed fromchain, bytes srcAddress, address toAddress, bool result, bytes reason);
-
+    event InterReceiveAndExecute(
+        bytes32 indexed orderId,
+        uint256 indexed fromchain,
+        bytes srcAddress,
+        address toAddress,
+        bool result,
+        bytes reason
+    );
 
     /**
      * estimate interchain transfer fee
@@ -30,7 +47,6 @@ interface IMORC20  is IERC165 {
      *  returns the address of the ERC20 token
      */
     function token() external view returns (address);
-
 
     function interTransfer(
         address _fromAddress,
@@ -49,5 +65,4 @@ interface IMORC20  is IERC165 {
         bytes memory _refundAddress,
         bytes memory _messageData
     ) external payable;
-
 }
