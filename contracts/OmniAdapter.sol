@@ -48,7 +48,8 @@ contract OmniAdapter is Ownable2Step, ReentrancyGuard, IMORC20Receiver {
     mapping(bytes4 => bool) blackList;
 
     uint256 public immutable selfChainId = block.chainid;
-
+    
+    receive() external payable{}
     constructor(address _owner) {
         require(_owner != address(0), "OmniAdapter: zero addr");
         _transferOwnership(_owner);
@@ -88,7 +89,7 @@ contract OmniAdapter is Ownable2Step, ReentrancyGuard, IMORC20Receiver {
         uint256 amount,
         address proxy,
         InterTransferParam calldata interTransferParam
-    ) external payable {
+    ) external nonReentrant payable {
         require(amount != 0, "OmniAdapter: zero in");
         require(proxy != Helper.ZERO_ADDRESS, "OmniAdapter: zero addr");
         address token = IMORC20(proxy).token();
@@ -151,7 +152,7 @@ contract OmniAdapter is Ownable2Step, ReentrancyGuard, IMORC20Receiver {
         uint256 _amount,
         bytes32 _orderId,
         bytes calldata _message
-    ) external override returns (bool) {
+    ) external nonReentrant override returns (bool) {
         Temp memory t;
         address proxy = msg.sender;
         t.token = IMORC20(proxy).token();
