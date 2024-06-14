@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable2Step.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-import "@butternetwork/bridge/contracts/interface/IButterMosV2.sol";
+import "@butternetwork/bridge/contracts/interface/IButterBridgeV3.sol";
 import "@butternetwork/bridge/contracts/interface/IButterReceiver.sol";
 import "./lib/ErrorMessage.sol";
 import "./abstract/Router.sol";
@@ -16,17 +16,18 @@ contract ButterRouterV2 is Router, ReentrancyGuard, IButterReceiver {
     using SafeERC20 for IERC20;
     using Address for address;
 
-    address public mosAddress;
+    address public bridgeAddress;
 
     uint256 public gasForReFund = 80000;
 
     struct BridgeParam {
         uint256 toChain;
+        uint256 nativeFee;
         bytes receiver;
         bytes data;
     }
 
-    event SetMos(address indexed mos);
+    event SetBridgeAddress(address indexed _bridgeAddress);
     event SetGasForReFund(uint256 indexed _gasForReFund);
     event SwapAndBridge(
         bytes32 indexed orderId,
@@ -54,8 +55,8 @@ contract ButterRouterV2 is Router, ReentrancyGuard, IButterReceiver {
         bytes from
     );
 
-    constructor(address _mosAddress, address _owner, address _wToken) payable Router(_owner, _wToken) {
-        _setMosAddress(_mosAddress);
+    constructor(address _bridgeAddress, address _owner, address _wToken) payable Router(_owner, _wToken) {
+        _setBridgeAddress(_bridgeAddress);
     }
 
     function swapAndBridge(
@@ -168,7 +169,7 @@ contract ButterRouterV2 is Router, ReentrancyGuard, IButterReceiver {
         swapTemp.toChain = block.chainid;
         swapTemp.from = _from;
         nativeBalanceBeforeExec = address(this).balance;
-        require(msg.sender == mosAddress, ErrorMessage.MOS_ONLY);
+        require(msg.sender == bridgeAddress, ErrorMessage.BRIDGE_ONLY);
         require(Helper._getBalance(swapTemp.srcToken, address(this)) >= _amount, ErrorMessage.RECEIVE_LOW);
         (bytes memory _swapData, bytes memory _callbackData) = abi.decode(_swapAndCall, (bytes, bytes));
         require(_swapData.length + _callbackData.length > 0, ErrorMessage.DATA_EMPTY);
@@ -251,27 +252,25 @@ contract ButterRouterV2 is Router, ReentrancyGuard, IButterReceiver {
     function _doBridge(
         address _sender,
         address _token,
-        uint256 _value,
+        uint256 _amount,
         BridgeParam memory _bridge
     ) internal returns (bytes32 _orderId) {
+        uint256 value;
         if (Helper._isNative(_token)) {
-            _orderId = IButterMosV2(mosAddress).swapOutNative{value: _value}(
-                _sender,
-                _bridge.receiver,
-                _bridge.toChain,
-                _bridge.data
-            );
+            value = _amount + _bridge.nativeFee;
         } else {
-            IERC20(_token).safeApprove(mosAddress, _value);
-            _orderId = IButterMosV2(mosAddress).swapOutToken(
-                _sender,
-                _token,
-                _bridge.receiver,
-                _value,
-                _bridge.toChain,
-                _bridge.data
-            );
+            value = _bridge.nativeFee;
+            IERC20(_token).forceApprove(bridgeAddress, _amount);
         }
+        _orderId = IButterBridgeV3(bridgeAddress).swapOutToken{value:value}(
+            _sender,
+            _token,
+            _bridge.receiver,
+            _amount,
+            _bridge.toChain,
+            _bridge.data
+        );
+        require(address(this).balance >= nativeBalanceBeforeExec, ErrorMessage.FEE_MISMATCH);
     }
 
     function setGasForReFund(uint256 _gasForReFund) external onlyOwner {
@@ -280,15 +279,15 @@ contract ButterRouterV2 is Router, ReentrancyGuard, IButterReceiver {
         emit SetGasForReFund(_gasForReFund);
     }
 
-    function setMosAddress(address _mosAddress) public onlyOwner returns (bool) {
-        _setMosAddress(_mosAddress);
+    function setBridgeAddress(address _bridgeAddress) public onlyOwner returns (bool) {
+        _setBridgeAddress(_bridgeAddress);
         return true;
     }
 
-    function _setMosAddress(address _mosAddress) internal returns (bool) {
-        require(_mosAddress.isContract(), ErrorMessage.NOT_CONTRACT);
-        mosAddress = _mosAddress;
-        emit SetMos(_mosAddress);
+    function _setBridgeAddress(address _bridgeAddress) internal returns (bool) {
+        require(_bridgeAddress.isContract(), ErrorMessage.NOT_CONTRACT);
+        bridgeAddress = _bridgeAddress;
+        emit SetBridgeAddress(_bridgeAddress);
         return true;
     }
 
