@@ -1,5 +1,5 @@
 let { create, createZk, readFromFile, writeToFile } = require("../../utils/create.js");
-let { deployFeeReceiver } = require("../utils/tronV2.js");
+let { deployFeeReceiver } = require("../utils/tron.js");
 let { verify } = require("../utils/verify.js");
 
 module.exports = async (taskArgs, hre) => {

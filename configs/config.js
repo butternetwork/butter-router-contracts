@@ -19,6 +19,21 @@ let config = new Map([
                     "0xE592427A0AEce92De3Edee1F18E0157C05861564", //univ3
                 ],
             },
+            v3: {
+                bridge: "",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [
+                    "0x0000000022D53366457F9d5E68Ec105046FC4383", //curve
+                    "0x1111111254eeb25477b68fb85ed929f73a960582", //1inch
+                    "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F", //sushi
+                    "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D", //univ2
+                    "0xE592427A0AEce92De3Edee1F18E0157C05861564", //univ3
+                ],
+            },
         },
     ],
 
@@ -28,6 +43,19 @@ let config = new Map([
             wToken: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
             v2: {
                 mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [
+                    "0x1111111254eeb25477b68fb85ed929f73a960582", //1inch
+                    "0x10ED43C718714eb63d5aA57B78B54704E256024E", //pancake
+                    "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506", //sushi
+                ],
+            },
+            v3: {
+                bridge: "",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
@@ -61,6 +89,21 @@ let config = new Map([
                     "0xE592427A0AEce92De3Edee1F18E0157C05861564", //univ3
                 ],
             },
+            v3: {
+                bridge: "",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [
+                    "0x1111111254eeb25477b68fb85ed929f73a960582", //1inch
+                    "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff", //quick
+                    "0xf5b509bB0909a69B1c207E495f687a596C168E12", //quickv3
+                    "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506", //sushi
+                    "0xE592427A0AEce92De3Edee1F18E0157C05861564", //univ3
+                ],
+            },
         },
     ],
 
@@ -70,6 +113,18 @@ let config = new Map([
             wToken: "0x19aac5f612f524b754ca7e7c41cbfa2e981a4432",
             v2: {
                 mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [
+                    "0xEf71750C100f7918d6Ded239Ff1CF09E81dEA92D", //claimswap
+                    "0xe0fbB27D0E7F3a397A67a9d4864D4f4DD7cF8cB9", // klayswap
+                ],
+            },
+            v3: {
+                bridge: "",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
@@ -98,6 +153,17 @@ let config = new Map([
                     "0x62b0873055bf896dd869e172119871ac24aea305", //Swappi
                 ],
             },
+            v3: {
+                bridge: "",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [
+                    "0x62b0873055bf896dd869e172119871ac24aea305", //Swappi
+                ],
+            },
         },
     ],
 
@@ -107,6 +173,17 @@ let config = new Map([
             wToken: "0x13cb04d4a5dfb6398fc5ab005a6c84337256ee23",
             v2: {
                 mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [
+                    "0x0bce9e0ebd4fd4d6562495af45c4aaa0c1f7f3d7", //hiveswap
+                ],
+            },
+            v3: {
+                bridge: "",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
@@ -136,6 +213,19 @@ let config = new Map([
                     "TQAvWQpT9H916GckwWDJNhYZvQMkuRL7PN", // sun v3 route
                 ],
             },
+            v3: {
+                bridge: "",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [
+                    "TFVisXFaijZfeyeSjCEVkHfex7HGdTxzF9", // sun smart router
+                    "TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ax", // sun v2 route
+                    "TQAvWQpT9H916GckwWDJNhYZvQMkuRL7PN", // sun v3 route
+                ],
+            },
         },
     ],
 
@@ -154,6 +244,17 @@ let config = new Map([
                     "0x6628a22D9E16E42225a46ceaDd93dACFefAcfE1b", //hiveswap
                 ],
             },
+            v3: {
+                bridge: "",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [
+                    "0x6628a22D9E16E42225a46ceaDd93dACFefAcfE1b", //hiveswap
+                ],
+            },
         },
     ],
     [
@@ -162,6 +263,17 @@ let config = new Map([
             wToken: "0x4300000000000000000000000000000000000004",
             v2: {
                 mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [
+                    "0x44889b52b71E60De6ed7dE82E2939fcc52fB2B4E", //Thruster
+                ],
+            },
+            v3: {
+                bridge: "",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
@@ -189,6 +301,18 @@ let config = new Map([
                     "0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD", // UniSwap UniversalRouter
                 ],
             },
+            v3: {
+                bridge: "",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [
+                    "0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43", //Aerodrome Router
+                    "0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD", // UniSwap UniversalRouter
+                ],
+            },
         },
     ],
     [
@@ -197,6 +321,16 @@ let config = new Map([
             wToken: "0x4200000000000000000000000000000000000006",
             v2: {
                 mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [
+                ],
+            },
+            v3: {
+                bridge: "",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
@@ -221,6 +355,16 @@ let config = new Map([
                 executors: [
                 ],
             },
+            v3: {
+                bridge: "",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [
+                ],
+            },
         },
     ],
     [
@@ -229,6 +373,16 @@ let config = new Map([
             wToken: "0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f",
             v2: {
                 mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [
+                ],
+            },
+            v3: {
+                bridge: "",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
@@ -253,6 +407,16 @@ let config = new Map([
                 executors: [
                 ],
             },
+            v3: {
+                bridge: "",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [
+                ],
+            },
         },
     ],
     [
@@ -261,6 +425,16 @@ let config = new Map([
             wToken: "0xdEAddEaDdeadDEadDEADDEAddEADDEAddead1111",
             v2: {
                 mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [
+                ],
+            },
+            v3: {
+                bridge: "",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
@@ -284,6 +458,15 @@ let config = new Map([
                 },
                 executors: [],
             },
+            v3: {
+                bridge: "",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [],
+            },
         },
     ],
     [
@@ -292,6 +475,15 @@ let config = new Map([
             wToken: "0x09Ff8E49D0EA411A3422ed95E8f5497D4241F532",
             v2: {
                 mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [],
+            },
+            v3: {
+                bridge: "",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
@@ -314,6 +506,15 @@ let config = new Map([
                 },
                 executors: [],
             },
+            v3: {
+                bridge: "",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [],
+            },
         },
     ],
     [
@@ -322,6 +523,15 @@ let config = new Map([
             wToken: "0x4200000000000000000000000000000000000006",
             v2: {
                 mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [],
+            },
+            v2: {
+                bridge: "",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
@@ -351,6 +561,19 @@ let config = new Map([
                     "0x6710b000cc6728e068C095B66535E1A8b552e816",
                 ],
             },
+            v3: {
+                bridge: "",
+                fee: {
+                    receiver: "0xCBdb1Da4f99276b0c427776BDE93838Bc19386Cc",
+                    feeRate: "7000", //denominator is 1000000
+                    fixedFee: "100000000",
+                },
+                executors: [
+                    "0xD99D1c33F9fC3444f8101754aBC46c52416550D1",
+                    "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",
+                    "0x6710b000cc6728e068C095B66535E1A8b552e816",
+                ],
+            },
         },
     ],
 
@@ -360,6 +583,15 @@ let config = new Map([
             wToken: "0x2eD27dF9B4c903aB53666CcA59AFB431F7D15e91",
             v2: {
                 mos: "0x3D8da6f43e35E05162d874BdaF93f61995A34D81",
+                fee: {
+                    receiver: "0xCBdb1Da4f99276b0c427776BDE93838Bc19386Cc",
+                    feeRate: "7000", //denominator is 1000000
+                    fixedFee: "100000000",
+                },
+                executors: ["0xf479BD49E55cf47474056Ef168B0E0709DDF1830"],
+            },
+            v3: {
+                bridge: "",
                 fee: {
                     receiver: "0xCBdb1Da4f99276b0c427776BDE93838Bc19386Cc",
                     feeRate: "7000", //denominator is 1000000
@@ -388,6 +620,20 @@ let config = new Map([
                     "0x15e6c86a9ac9a32f91125794fda82eeb807ed818",
                 ],
             },
+            v3: {
+                bridge: "",
+                fee: {
+                    receiver: "0xCBdb1Da4f99276b0c427776BDE93838Bc19386Cc",
+                    feeRate: "7000", //denominator is 1000000
+                    fixedFee: "1000000000000000000",
+                },
+                executors: [
+                    "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff",
+                    "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",
+                    "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45",
+                    "0x15e6c86a9ac9a32f91125794fda82eeb807ed818",
+                ],
+            },
         },
     ],
 
@@ -397,6 +643,15 @@ let config = new Map([
             wToken: "0xFB3B3134F13CCD2C81F4012E53024E8135D58FEE",
             v2: {
                 mos: "0xFB3B3134F13CCD2C81F4012E53024E8135D58FEE",
+                fee: {
+                    receiver: "0xCBdb1Da4f99276b0c427776BDE93838Bc19386Cc",
+                    feeRate: "7000", //denominator is 1000000
+                    fixedFee: "1000000000000000000",
+                },
+                executors: ["0xFB3B3134F13CCD2C81F4012E53024E8135D58FEE"],
+            },
+            v3: {
+                bridge: "",
                 fee: {
                     receiver: "0xCBdb1Da4f99276b0c427776BDE93838Bc19386Cc",
                     feeRate: "7000", //denominator is 1000000

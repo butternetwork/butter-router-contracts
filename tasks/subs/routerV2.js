@@ -1,15 +1,14 @@
 let { create, createZk, readFromFile, writeToFile } = require("../../utils/create.js");
 let { task } = require("hardhat/config");
 let { getConfig } = require("../../configs/config");
-let { setAuthorization, setFee, transferOwner } = require("../utils/util.js");
+let { setAuthorizationV2, setFeeV2, transferOwner } = require("../utils/util.js");
 let {
     routerV2,
     deployRouterV2,
-    deploySwapAdapter,
-    tronSetAuthorization,
-    tronSetFee,
-    tronSetAuthFromConfig,
-} = require("../utils/tronV2.js");
+    tronSetAuthorizationV2,
+    tronSetFeeV2,
+    tronSetAuthFromConfigV2,
+} = require("../utils/tron.js");
 let { verify } = require("../utils/verify.js");
 
 module.exports = async (taskArgs, hre) => {
@@ -29,8 +28,6 @@ module.exports = async (taskArgs, hre) => {
 
         let deploy_json = await readFromFile(network.name);
         let router_addr = deploy_json[network.name]["ButterRouterV2"]["addr"];
-
-        await hre.run("routerV2:deploySwapAdapter", {});
 
         deploy_json = await readFromFile(network.name);
         let adapt_addr = deploy_json[network.name]["SwapAdapter"];
@@ -66,7 +63,7 @@ task("routerV2:deploy", "deploy butterRouterV2")
             if (chainId === 324 || chainId === 280) {
                 v2 = await createZk("ButterRouterV2", [taskArgs.mos, deployer, taskArgs.wtoken], hre);
             } else {
-                let salt = process.env.ROUTER_DEPLOY_SALT;
+                let salt = process.env.ROUTER_V2_DEPLOY_SALT;
                 let ButterRouterV2 = await ethers.getContractFactory("ButterRouterV2");
                 let param = ethers.utils.defaultAbiCoder.encode(
                     ["address", "address", "address"],
@@ -101,39 +98,6 @@ task("routerV2:deploy", "deploy butterRouterV2")
         }
     });
 
-task("routerV2:deploySwapAdapter", "deploy SwapAdapter").setAction(async (taskArgs, hre) => {
-    const { deployments, getNamedAccounts, ethers } = hre;
-    const { deployer } = await getNamedAccounts();
-    if (network.name === "Tron" || network.name === "TronTest") {
-        await deploySwapAdapter(hre.artifacts, network.name);
-    } else {
-        console.log("\ndeploySwapAdapter deployer :", deployer);
-        let chainId = await hre.network.config.chainId;
-
-        let swapAdapter;
-        if (chainId === 324 || chainId === 280) {
-            swapAdapter = await createZk("SwapAdapter", [deployer], hre);
-        } else {
-            let salt = process.env.SWAP_ADAPTER_DEPLOY_SALT;
-            let SwapAdapter = await ethers.getContractFactory("SwapAdapter");
-            let param = ethers.utils.defaultAbiCoder.encode(["address"], [deployer]);
-            let result = await create(salt, SwapAdapter.bytecode, param);
-            swapAdapter = result[0];
-        }
-        console.log("SwapAdapter address :", swapAdapter);
-
-        let deploy = await readFromFile(network.name);
-
-        deploy[network.name]["SwapAdapter"] = swapAdapter;
-
-        await writeToFile(deploy);
-
-        const verifyArgs = [deployer].map((arg) => (typeof arg == "string" ? `'${arg}'` : arg)).join(" ");
-        console.log(`To verify, run: npx hardhat verify --network ${network.name} ${swapAdapter} ${verifyArgs}`);
-
-        await verify(swapAdapter, [deployer], "contracts/SwapAdapter.sol:SwapAdapter", chainId, true);
-    }
-});
 
 task("routerV2:setAuthorization", "set Authorization")
     .addParam("router", "router address")
@@ -145,11 +109,11 @@ task("routerV2:setAuthorization", "set Authorization")
         const { deployer } = await getNamedAccounts();
 
         if (network.name === "Tron" || network.name === "TronTest") {
-            await tronSetAuthorization(hre.artifacts, network.name, taskArgs.router, taskArgs.executors, taskArgs.flag);
+            await tronSetAuthorizationV2(hre.artifacts, network.name, taskArgs.router, taskArgs.executors, taskArgs.flag);
         } else {
             console.log("\nsetAuthorization deployer :", deployer);
 
-            await setAuthorization(taskArgs.router, taskArgs.executors, taskArgs.flag);
+            await setAuthorizationV2(taskArgs.router, taskArgs.executors, taskArgs.flag);
         }
     });
 
@@ -163,7 +127,7 @@ task("routerV2:setFee", "set setFee")
         const { deploy } = deployments;
         const { deployer } = await getNamedAccounts();
         if (network.name === "Tron" || network.name === "TronTest") {
-            await tronSetFee(
+            await tronSetFeeV2(
                 hre.artifacts,
                 network.name,
                 taskArgs.router,
@@ -174,7 +138,7 @@ task("routerV2:setFee", "set setFee")
         } else {
             console.log("\nsetFee deployer :", deployer);
 
-            await setFee(taskArgs.router, taskArgs.feereceiver, taskArgs.feerate, taskArgs.fixedfee);
+            await setFeeV2(taskArgs.router, taskArgs.feereceiver, taskArgs.feerate, taskArgs.fixedfee);
         }
     });
 
@@ -189,7 +153,7 @@ task("routerV2:setAuthFromConfig", "set Authorization from config file")
             throw "config not set";
         }
         if (network.name === "Tron" || network.name === "TronTest") {
-            await tronSetAuthFromConfig(hre.artifacts, network.name, taskArgs.router, config);
+            await tronSetAuthFromConfigV2(hre.artifacts, network.name, taskArgs.router, config);
         } else {
             console.log("\nset Authorization from config file deployer :", deployer);
             let deploy_json = await readFromFile(network.name);
