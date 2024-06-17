@@ -17,7 +17,7 @@ let ERC1155 = ["function balanceOf(address account, uint256 id) external view re
 //// fork mainnet
 describe("ButterRouterV2", function () {
     let router;
-    let brdige;
+    let mos;
     let swapAdapter;
     // beforeEach(async () => {
 
@@ -25,17 +25,17 @@ describe("ButterRouterV2", function () {
 
     async function deployFixture(_wToken) {
         let [wallet, other] = await ethers.getSigners();
-        BridgeMock = await ethers.getContractFactory("BridgeMock");
-        brdige = await BridgeMock.deploy();
-        await brdige.deployed();
+        MosMock = await ethers.getContractFactory("MosMock");
+        mos = await MosMock.deploy();
+        await mos.deployed();
         let SwapAdapter = await ethers.getContractFactory("SwapAdapter");
         swapAdapter = await SwapAdapter.deploy(wallet.address);
         await swapAdapter.deployed();
         ButterRouterV2 = await ethers.getContractFactory("ButterRouterV2");
         if (!_wToken) {
-            _wToken = brdige.address;
+            _wToken = mos.address;
         }
-        router = await ButterRouterV2.deploy(brdige.address, wallet.address, _wToken);
+        router = await ButterRouterV2.deploy(mos.address, wallet.address, _wToken);
         await router.deployed();
         await (await router.setAuthorization([swapAdapter.address], true)).wait();
     }
@@ -48,10 +48,10 @@ describe("ButterRouterV2", function () {
         );
     });
 
-    it("setBridgeAddress only owner", async () => {
+    it("setMosAddress only owner", async () => {
         let [wallet, other] = await ethers.getSigners();
         await deployFixture();
-        await expect(router.connect(other).setBridgeAddress(brdige.address)).to.be.revertedWith(
+        await expect(router.connect(other).setMosAddress(mos.address)).to.be.revertedWith(
             "Ownable: caller is not the owner"
         );
     });
@@ -59,7 +59,7 @@ describe("ButterRouterV2", function () {
     it("setAuthorization only owner", async () => {
         let [wallet, other] = await ethers.getSigners();
         await deployFixture();
-        await expect(router.connect(other).setAuthorization([brdige.address], true)).to.be.revertedWith(
+        await expect(router.connect(other).setAuthorization([mos.address], true)).to.be.revertedWith(
             "Ownable: caller is not the owner"
         );
     });
@@ -108,20 +108,20 @@ describe("ButterRouterV2", function () {
         expect(fee._fee).eq(1000);
     });
 
-    it("setBridgeAddress _bridgeAddress must be contract", async () => {
+    it("setMosAddress _mosAddress must be contract", async () => {
         let [wallet, other] = await ethers.getSigners();
         await deployFixture();
-        await expect(router.connect(wallet).setBridgeAddress(wallet.address)).to.be.revertedWith(
+        await expect(router.connect(wallet).setMosAddress(wallet.address)).to.be.revertedWith(
             "ButterRouterV2: not contract"
         );
     });
 
-    it("setBridgeAddress correct", async () => {
+    it("setMosAddress correct", async () => {
         let [wallet, other] = await ethers.getSigners();
         await deployFixture();
-        await expect(router.connect(wallet).setBridgeAddress(brdige.address)).to.be.emit(router, "SetBridgeAddress");
-        let m = await router.bridgeAddress();
-        expect(m).eq(brdige.address);
+        await expect(router.connect(wallet).setMosAddress(mos.address)).to.be.emit(router, "SetMos");
+        let m = await router.mosAddress();
+        expect(m).eq(mos.address);
     });
 
     it("setAuthorization only owner", async () => {
@@ -135,11 +135,11 @@ describe("ButterRouterV2", function () {
     it("setAuthorization correct", async () => {
         let [wallet, other] = await ethers.getSigners();
         await deployFixture();
-        await expect(router.connect(wallet).setAuthorization([brdige.address], true)).to.be.emit(router, "Approve");
-        let p = await router.approved(brdige.address);
+        await expect(router.connect(wallet).setAuthorization([mos.address], true)).to.be.emit(router, "Approve");
+        let p = await router.approved(mos.address);
         expect(p).to.be.true;
-        await expect(router.connect(wallet).setAuthorization([brdige.address], false)).to.be.emit(router, "Approve");
-        p = await router.approved(brdige.address);
+        await expect(router.connect(wallet).setAuthorization([mos.address], false)).to.be.emit(router, "Approve");
+        p = await router.approved(mos.address);
         expect(p).to.be.false;
     });
     // call rubic
@@ -327,17 +327,17 @@ describe("ButterRouterV2", function () {
         );
 
         let _bridgeData = ethers.utils.defaultAbiCoder.encode(
-            ["tuple(uint256,uint256,bytes,bytes)"],
-            [[56,0,user.address, remote]]
+            ["tuple(uint256,bytes,bytes)"],
+            [[56, user.address, remote]]
         );
         let _permitData = "0x";
         let token = await ethers.getContractAt(ERC20, _srcToken, user);
         await (await token.approve(router.address, _amount)).wait();
         // await(await router.connect(user).swapAndBridge(_amount,_srcToken,_swapData,_bridgeData,_permitData)).wait();
         await expect(router.connect(user).swapAndBridge(_srcToken, _amount, _swapData, _bridgeData, _permitData))
-            .to.be.emit(brdige, "SwapOut")
+            .to.be.emit(mos, "SwapOut")
             .emit(router, "SwapAndBridge");
-        let result = await ethers.provider.getBalance(brdige.address);
+        let result = await ethers.provider.getBalance(mos.address);
         expect(result).gt(0);
     });
 
@@ -445,8 +445,8 @@ describe("ButterRouterV2", function () {
 
         let swapAndCall = ethers.utils.defaultAbiCoder.encode(["bytes", "bytes"], [_swapData, _payData]);
         let token = await ethers.getContractAt(ERC20, _srcToken, user);
-        await (await token.approve(brdige.address, _amount)).wait();
-        await expect(brdige.connect(user).mockRemoteSwapAndCall(router.address, _srcToken, _amount, swapAndCall))
+        await (await token.approve(mos.address, _amount)).wait();
+        await expect(mos.connect(user).mockRemoteSwapAndCall(router.address, _srcToken, _amount, swapAndCall))
             .to.be.emit(pay, "Pay")
             .emit(router, "RemoteSwapAndCall");
         let result = await ethers.provider.getBalance(pay.address);
@@ -523,7 +523,7 @@ describe("ButterRouterV2", function () {
         let token = await ethers.getContractAt(ERC20, dstToken, user);
         let balanceBefore = await token.balanceOf(user.address);
         await expect(
-            brdige.connect(user).mockRemoteSwapAndCall(router.address, _srcToken, amount, swapAndCall, {
+            mos.connect(user).mockRemoteSwapAndCall(router.address, _srcToken, amount, swapAndCall, {
                 value: amount,
             })
         ).to.be.emit(router, "RemoteSwapAndCall");
@@ -604,9 +604,9 @@ describe("ButterRouterV2", function () {
 
         let swapAndCall = ethers.utils.defaultAbiCoder.encode(["bytes", "bytes"], [swap, _payData]);
         let token = await ethers.getContractAt(ERC20, _srcToken, user);
-        await (await token.approve(brdige.address, amount)).wait();
+        await (await token.approve(mos.address, amount)).wait();
         let balanceBefore = await ethers.provider.getBalance(user.address);
-        await expect(brdige.connect(user).mockRemoteSwapAndCall(router.address, _srcToken, amount, swapAndCall))
+        await expect(mos.connect(user).mockRemoteSwapAndCall(router.address, _srcToken, amount, swapAndCall))
             .to.be.emit(pay, "Pay")
             .emit(router, "RemoteSwapAndCall");
         let balanceAfter = await ethers.provider.getBalance(user.address);
@@ -681,10 +681,10 @@ describe("ButterRouterV2", function () {
         let swapAndCall = ethers.utils.defaultAbiCoder.encode(["bytes", "bytes"], [swap, "0x"]);
         let token = await ethers.getContractAt(ERC20, _srcToken, user);
         let dstTokenContract = await ethers.getContractAt(ERC20, dstToken, user);
-        await (await token.approve(brdige.address, amount)).wait();
+        await (await token.approve(mos.address, amount)).wait();
         let balanceBefore = await dstTokenContract.balanceOf(user.address);
         await expect(
-            brdige.connect(user).mockRemoteSwapAndCall(router.address, _srcToken, amount, swapAndCall)
+            mos.connect(user).mockRemoteSwapAndCall(router.address, _srcToken, amount, swapAndCall)
         ).to.be.emit(router, "RemoteSwapAndCall");
         let balanceAfter = await dstTokenContract.balanceOf(user.address);
         expect(balanceAfter).gt(balanceBefore);
@@ -756,10 +756,10 @@ describe("ButterRouterV2", function () {
 
         let swapAndCall = ethers.utils.defaultAbiCoder.encode(["bytes", "bytes"], [swap, "0x"]);
         let token = await ethers.getContractAt(ERC20, _srcToken, user);
-        await (await token.approve(brdige.address, amount)).wait();
+        await (await token.approve(mos.address, amount)).wait();
         let balanceBefore = await ethers.provider.getBalance(user.address);
         await expect(
-            brdige.connect(user).mockRemoteSwapAndCall(router.address, _srcToken, amount, swapAndCall)
+            mos.connect(user).mockRemoteSwapAndCall(router.address, _srcToken, amount, swapAndCall)
         ).to.be.emit(router, "RemoteSwapAndCall");
         let balanceAfter = await ethers.provider.getBalance(user.address);
         expect(balanceAfter).gt(balanceBefore);
@@ -832,10 +832,10 @@ describe("ButterRouterV2", function () {
         let swapAndCall = ethers.utils.defaultAbiCoder.encode(["bytes", "bytes"], [swap, "0x"]);
         let token = await ethers.getContractAt(ERC20, _srcToken, user);
         let dstTokenContract = await ethers.getContractAt(ERC20, dstToken, user);
-        await (await token.approve(brdige.address, amount)).wait();
+        await (await token.approve(mos.address, amount)).wait();
         let balanceBefore = await dstTokenContract.balanceOf(user.address);
         await expect(
-            brdige.connect(user).mockRemoteSwapAndCall(router.address, _srcToken, amount, swapAndCall)
+            mos.connect(user).mockRemoteSwapAndCall(router.address, _srcToken, amount, swapAndCall)
         ).to.be.emit(router, "RemoteSwapAndCall");
         let balanceAfter = await dstTokenContract.balanceOf(user.address);
         expect(balanceAfter).gt(balanceBefore);
@@ -919,10 +919,10 @@ describe("ButterRouterV2", function () {
         let swapAndCall = ethers.utils.defaultAbiCoder.encode(["bytes", "bytes"], [swap, "0x"]);
         let token = await ethers.getContractAt(ERC20, _srcToken, user);
         let dstTokenContract = await ethers.getContractAt(ERC20, dstToken, user);
-        await (await token.approve(brdige.address, amount)).wait();
+        await (await token.approve(mos.address, amount)).wait();
         let balanceBefore = await dstTokenContract.balanceOf(user.address);
         await expect(
-            brdige.connect(user).mockRemoteSwapAndCall(router.address, _srcToken, amount, swapAndCall)
+            mos.connect(user).mockRemoteSwapAndCall(router.address, _srcToken, amount, swapAndCall)
         ).to.be.emit(router, "RemoteSwapAndCall");
         let balanceAfter = await dstTokenContract.balanceOf(user.address);
         expect(balanceAfter).gt(balanceBefore);
@@ -996,7 +996,7 @@ describe("ButterRouterV2", function () {
         let token = await ethers.getContractAt(ERC20, dstToken, user);
         let balanceBefore = await token.balanceOf(user.address);
         await expect(
-            brdige.connect(user).mockRemoteSwapAndCall(router.address, _srcToken, amount, swapAndCall, {
+            mos.connect(user).mockRemoteSwapAndCall(router.address, _srcToken, amount, swapAndCall, {
                 value: amount,
             })
         ).to.be.emit(router, "RemoteSwapAndCall");
@@ -1097,10 +1097,10 @@ describe("ButterRouterV2", function () {
 
         let swapAndCall = ethers.utils.defaultAbiCoder.encode(["bytes", "bytes"], [swap, "0x"]);
         let token = await ethers.getContractAt(ERC20, _srcToken, user);
-        await (await token.approve(brdige.address, amount)).wait();
+        await (await token.approve(mos.address, amount)).wait();
         let balanceBefore = await ethers.provider.getBalance(user.address);
         await expect(
-            brdige.connect(user).mockRemoteSwapAndCall(router.address, _srcToken, amount, swapAndCall)
+            mos.connect(user).mockRemoteSwapAndCall(router.address, _srcToken, amount, swapAndCall)
         ).to.be.emit(router, "RemoteSwapAndCall");
         let balanceAfter = await ethers.provider.getBalance(user.address);
         expect(balanceAfter).gt(balanceBefore);
@@ -1145,7 +1145,7 @@ describe("ButterRouterV2", function () {
         let token = await ethers.getContractAt(ERC1155, "0x5Ea64E0723eB5f44aEb1995D2029702B8855463e", user);
         let balanceBefore = await token.balanceOf(receiver, 0);
         await expect(
-            brdige.connect(user).mockRemoteSwapAndCall(router.address, _srcToken, amount, swapAndCall, {
+            mos.connect(user).mockRemoteSwapAndCall(router.address, _srcToken, amount, swapAndCall, {
                 value: amount,
             })
         ).to.be.emit(router, "RemoteSwapAndCall");
