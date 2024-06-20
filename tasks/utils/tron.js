@@ -3,12 +3,12 @@ let { getTronWeb, deploy_contract } = require("./tronUtils.js");
 
 exports.routerV2 = async function (artifacts, network, config) {
     let tronWeb = await getTronWeb(network);
-    let router = await deployRouter("ButterRouterV2",artifacts, network, config.v2.mos, config.wToken);
+    let router = await deployRouter("ButterRouterV2", artifacts, network, config.v2.mos, config.wToken);
     let deploy = await readFromFile(network);
     let adapt = deploy[network]["SwapAdapter"];
     config.v2.executors.push(tronWeb.address.toHex(adapt).replace(/^(41)/, "0x"));
     let executors_s = config.v2.executors.join(",");
-    await setAuthorization("ButterRouterV2",tronWeb, artifacts, network, router, executors_s, true);
+    await setAuthorization("ButterRouterV2", tronWeb, artifacts, network, router, executors_s, true);
     await setFee(
         "ButterRouterV2",
         tronWeb,
@@ -21,14 +21,13 @@ exports.routerV2 = async function (artifacts, network, config) {
     );
 };
 
-
 exports.routerV3 = async function (artifacts, network, config) {
     let tronWeb = await getTronWeb(network);
-    let router = await deployRouter("ButterRouterV3",artifacts, network, config.v3.bridge, config.wToken);
+    let router = await deployRouter("ButterRouterV3", artifacts, network, config.v3.bridge, config.wToken);
     let adapt = deploy[network]["SwapAdapter"];
     config.v3.executors.push(tronWeb.address.toHex(adapt).replace(/^(41)/, "0x"));
     let executors_s = config.v3.executors.join(",");
-    await setAuthorization("ButterRouterV3",tronWeb, artifacts, network, router, executors_s, true);
+    await setAuthorization("ButterRouterV3", tronWeb, artifacts, network, router, executors_s, true);
     await setFee(
         "ButterRouterV3",
         tronWeb,
@@ -53,11 +52,11 @@ exports.deployFeeReceiver = async function (artifacts, network, payees, shares) 
 };
 
 exports.deployRouterV2 = async function (artifacts, network, mos, wtoken) {
-    await deployRouter('ButterRouterV2',artifacts, network, mos, wtoken);
+    await deployRouter("ButterRouterV2", artifacts, network, mos, wtoken);
 };
 
 exports.deployRouterV3 = async function (artifacts, network, bridge, wtoken) {
-    await deployRouter('ButterRouterV3',artifacts, network, bridge, wtoken);
+    await deployRouter("ButterRouterV3", artifacts, network, bridge, wtoken);
 };
 
 exports.deploySwapAdapter = async function (artifacts, network) {
@@ -66,14 +65,14 @@ exports.deploySwapAdapter = async function (artifacts, network) {
 
 exports.tronSetAuthorizationV2 = async function (artifacts, network, router_addr, executors, flag) {
     let tronWeb = await getTronWeb(network);
-    await setAuthorization("ButterRouterV2",tronWeb, artifacts, network, router_addr, executors, flag);
+    await setAuthorization("ButterRouterV2", tronWeb, artifacts, network, router_addr, executors, flag);
 };
 
 exports.tronSetAuthorizationV3 = async function (artifacts, network, router_addr, executors, flag) {
     let tronWeb = await getTronWeb(network);
-    await setAuthorization("ButterRouterV3",tronWeb, artifacts, network, router_addr, executors, flag);
+    await setAuthorization("ButterRouterV3", tronWeb, artifacts, network, router_addr, executors, flag);
 };
-async function setAuthorization(contractName,tronWeb, artifacts, network, router_addr, executors, flag) {
+async function setAuthorization(contractName, tronWeb, artifacts, network, router_addr, executors, flag) {
     let Router = await artifacts.readArtifact(contractName);
     if (router_addr.startsWith("0x")) {
         router_addr = tronWeb.address.fromHex(router_addr);
@@ -90,20 +89,19 @@ async function setAuthorization(contractName,tronWeb, artifacts, network, router
     }
     await router.setAuthorization(executorsHex, flag).send();
     console.log(`${contractName} ${router_addr} setAuthorization ${executorList} succeed`);
-};
-
+}
 
 exports.tronSetFeeV2 = async function (artifacts, network, router_addr, feereceiver, feerate, fixedfee) {
     let tronWeb = await getTronWeb(network);
-    await setFee("ButterRouterV2",tronWeb, artifacts, network, router_addr, feereceiver, feerate, fixedfee);
+    await setFee("ButterRouterV2", tronWeb, artifacts, network, router_addr, feereceiver, feerate, fixedfee);
 };
 
 exports.tronSetFeeV3 = async function (artifacts, network, router_addr, feereceiver, feerate, fixedfee) {
     let tronWeb = await getTronWeb(network);
-    await setFee("ButterRouterV3",tronWeb, artifacts, network, router_addr, feereceiver, feerate, fixedfee);
+    await setFee("ButterRouterV3", tronWeb, artifacts, network, router_addr, feereceiver, feerate, fixedfee);
 };
 
-async function setFee(contractName,tronWeb, artifacts, network, router_addr, feereceiver, feerate, fixedfee) {
+async function setFee(contractName, tronWeb, artifacts, network, router_addr, feereceiver, feerate, fixedfee) {
     let Router = await artifacts.readArtifact(contractName);
     if (router_addr.startsWith("0x")) {
         router_addr = tronWeb.address.fromHex(router_addr);
@@ -114,10 +112,12 @@ async function setFee(contractName,tronWeb, artifacts, network, router_addr, fee
 
     await router.setFee(receiver, feerate, fixedfee).send();
 
-    console.log(`${contractName} ${router_addr} setFee rate(${feerate}), fixed(${fixedfee}), receiver(${feereceiver}) succeed`);
-};
+    console.log(
+        `${contractName} ${router_addr} setFee rate(${feerate}), fixed(${fixedfee}), receiver(${feereceiver}) succeed`
+    );
+}
 
-async function deployRouter(contractName,artifacts, network, mosOrBridge, wtoken) {
+async function deployRouter(contractName, artifacts, network, mosOrBridge, wtoken) {
     let tronWeb = await getTronWeb(network);
     console.log(`deploy ${contractName} ...`);
     console.log("deployer :", tronWeb.defaultAddress);
@@ -152,8 +152,6 @@ async function deploySwapAdapter(artifacts, network) {
     await writeToFile(deploy);
     return adapt;
 }
-
-
 
 exports.tronSetAuthFromConfigV2 = async function (artifacts, network, router_addr, config) {
     let deploy_json = await readFromFile(network);

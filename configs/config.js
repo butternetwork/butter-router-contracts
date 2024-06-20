@@ -326,8 +326,7 @@ let config = new Map([
                     feeRate: "0", //denominator is 1000000
                     fixedFee: "0",
                 },
-                executors: [
-                ],
+                executors: [],
             },
             v3: {
                 bridge: "",
@@ -336,8 +335,7 @@ let config = new Map([
                     feeRate: "0", //denominator is 1000000
                     fixedFee: "0",
                 },
-                executors: [
-                ],
+                executors: [],
             },
         },
     ],
@@ -352,8 +350,7 @@ let config = new Map([
                     feeRate: "0", //denominator is 1000000
                     fixedFee: "0",
                 },
-                executors: [
-                ],
+                executors: [],
             },
             v3: {
                 bridge: "",
@@ -362,8 +359,7 @@ let config = new Map([
                     feeRate: "0", //denominator is 1000000
                     fixedFee: "0",
                 },
-                executors: [
-                ],
+                executors: [],
             },
         },
     ],
@@ -378,8 +374,7 @@ let config = new Map([
                     feeRate: "0", //denominator is 1000000
                     fixedFee: "0",
                 },
-                executors: [
-                ],
+                executors: [],
             },
             v3: {
                 bridge: "",
@@ -388,8 +383,7 @@ let config = new Map([
                     feeRate: "0", //denominator is 1000000
                     fixedFee: "0",
                 },
-                executors: [
-                ],
+                executors: [],
             },
         },
     ],
@@ -404,8 +398,7 @@ let config = new Map([
                     feeRate: "0", //denominator is 1000000
                     fixedFee: "0",
                 },
-                executors: [
-                ],
+                executors: [],
             },
             v3: {
                 bridge: "",
@@ -414,8 +407,7 @@ let config = new Map([
                     feeRate: "0", //denominator is 1000000
                     fixedFee: "0",
                 },
-                executors: [
-                ],
+                executors: [],
             },
         },
     ],
@@ -430,8 +422,7 @@ let config = new Map([
                     feeRate: "0", //denominator is 1000000
                     fixedFee: "0",
                 },
-                executors: [
-                ],
+                executors: [],
             },
             v3: {
                 bridge: "",
@@ -440,8 +431,7 @@ let config = new Map([
                     feeRate: "0", //denominator is 1000000
                     fixedFee: "0",
                 },
-                executors: [
-                ],
+                executors: [],
             },
         },
     ],

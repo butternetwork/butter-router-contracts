@@ -34,4 +34,4 @@ module.exports = async (taskArgs, hre) => {
 
         await verify(swapAdapter, [deployer], "contracts/SwapAdapter.sol:SwapAdapter", chainId, true);
     }
-}
+};

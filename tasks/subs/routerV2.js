@@ -98,7 +98,6 @@ task("routerV2:deploy", "deploy butterRouterV2")
         }
     });
 
-
 task("routerV2:setAuthorization", "set Authorization")
     .addParam("router", "router address")
     .addParam("executors", "executors address array")
@@ -109,7 +108,13 @@ task("routerV2:setAuthorization", "set Authorization")
         const { deployer } = await getNamedAccounts();
 
         if (network.name === "Tron" || network.name === "TronTest") {
-            await tronSetAuthorizationV2(hre.artifacts, network.name, taskArgs.router, taskArgs.executors, taskArgs.flag);
+            await tronSetAuthorizationV2(
+                hre.artifacts,
+                network.name,
+                taskArgs.router,
+                taskArgs.executors,
+                taskArgs.flag
+            );
         } else {
             console.log("\nsetAuthorization deployer :", deployer);
 

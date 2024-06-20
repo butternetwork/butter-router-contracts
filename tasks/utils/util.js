@@ -16,14 +16,14 @@ exports.setMos = async function (router_addr, mos) {
 };
 
 exports.setAuthorizationV2 = async function (router_addr, executors_s, flag) {
-    await setAuthorization("ButterRouterV2",router_addr, executors_s, flag)
+    await setAuthorization("ButterRouterV2", router_addr, executors_s, flag);
 };
 
 exports.setAuthorizationV3 = async function (router_addr, executors_s, flag) {
-    await setAuthorization("ButterRouterV3",router_addr, executors_s, flag)
+    await setAuthorization("ButterRouterV3", router_addr, executors_s, flag);
 };
 
-async function setAuthorization(contractName,router_addr, executors_s, flag) {
+async function setAuthorization(contractName, router_addr, executors_s, flag) {
     let executors = executors_s.split(",");
 
     if (executors.length < 1) {
@@ -45,14 +45,14 @@ async function setAuthorization(contractName,router_addr, executors_s, flag) {
 }
 
 exports.setFeeV2 = async function (router_addr, feereceiver, feerate, fixedfee) {
-      await setFee("ButterRouterV2",router_addr, feereceiver, feerate, fixedfee)
-}
+    await setFee("ButterRouterV2", router_addr, feereceiver, feerate, fixedfee);
+};
 
 exports.setFeeV3 = async function (router_addr, feereceiver, feerate, fixedfee) {
-    await setFee("ButterRouterV3",router_addr, feereceiver, feerate, fixedfee)
-}
+    await setFee("ButterRouterV3", router_addr, feereceiver, feerate, fixedfee);
+};
 
-async function setFee(contractName,router_addr, feereceiver, feerate, fixedfee) {
+async function setFee(contractName, router_addr, feereceiver, feerate, fixedfee) {
     let Router = await ethers.getContractFactory(contractName);
 
     let router = Router.attach(router_addr);
@@ -66,7 +66,7 @@ async function setFee(contractName,router_addr, feereceiver, feerate, fixedfee) 
     } else {
         console.log("setFee failed");
     }
-};
+}
 
 exports.transferOwner = async function (router_addr, owner) {
     // let OwnableContract = await ethers.getContractAt("Ownable2Step", router_addr);
@@ -95,5 +95,3 @@ exports.acceptOwner = async function (router_addr) {
         console.log("acceptOwnership failed");
     }
 };
-
-
