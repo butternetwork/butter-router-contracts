@@ -134,7 +134,12 @@ contract ButterRouterV2 is Router, ReentrancyGuard, IButterReceiver {
         ) = _doSwapAndCall(_swapData, _callbackData, swapTemp.srcToken, swapTemp.swapAmount);
 
         if (swapTemp.swapAmount > swapTemp.callAmount) {
-            Helper._transfer(selfChainId, swapTemp.swapToken, swapTemp.receiver, (swapTemp.swapAmount - swapTemp.callAmount));
+            Helper._transfer(
+                selfChainId,
+                swapTemp.swapToken,
+                swapTemp.receiver,
+                (swapTemp.swapAmount - swapTemp.callAmount)
+            );
         }
 
         emit SwapAndCall(
@@ -206,7 +211,12 @@ contract ButterRouterV2 is Router, ReentrancyGuard, IButterReceiver {
             }
         }
         if (swapTemp.swapAmount > swapTemp.callAmount) {
-            Helper._transfer(selfChainId, swapTemp.swapToken, swapTemp.receiver, (swapTemp.swapAmount - swapTemp.callAmount));
+            Helper._transfer(
+                selfChainId,
+                swapTemp.swapToken,
+                swapTemp.receiver,
+                (swapTemp.swapAmount - swapTemp.callAmount)
+            );
         }
         emit RemoteSwapAndCall(
             _orderId,

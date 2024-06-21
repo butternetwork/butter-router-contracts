@@ -48,12 +48,7 @@ contract BridgeMock is IButterBridgeV3 {
         if (_srcToken == address(0)) {
             require(msg.value == _amount);
         } else {
-            SafeERC20.safeTransferFrom(
-                IERC20(_srcToken),
-                msg.sender,
-                _router,
-                _amount
-            );
+            SafeERC20.safeTransferFrom(IERC20(_srcToken), msg.sender, _router, _amount);
         }
 
         IButterRouterV2(_router).onReceived{value: msg.value}(
@@ -66,11 +61,7 @@ contract BridgeMock is IButterBridgeV3 {
         );
     }
 
-    function depositToken(
-        address _token,
-        address to,
-        uint256 _amount
-    ) external payable override {}
+    function depositToken(address _token, address to, uint256 _amount) external payable override {}
 
     function getNativeFee(
         address _token,

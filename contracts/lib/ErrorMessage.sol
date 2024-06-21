@@ -24,8 +24,6 @@ library ErrorMessage {
 
     string internal constant CALL_FAIL = "ButterRouter: callback failed";
 
-    string internal constant BRIDGE_ONLY = "ButterRouter: bridge only";
-
     string internal constant MOS_ONLY = "ButterRouter: mos only";
 
     string internal constant DATA_EMPTY = "ButterRouter: data empty";
