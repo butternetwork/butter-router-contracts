@@ -13,16 +13,32 @@ import "./abstract/SwapCall.sol";
 contract ButterRouterV3 is Ownable2Step, SwapCall, ReentrancyGuard, IButterReceiver {
     using SafeERC20 for IERC20;
     using Address for address;
+    uint256 private constant FEE_DENOMINATOR = 1000000;
 
     address public bridgeAddress;
     IFeeManager public feeManager;
     uint256 public gasForReFund = 80000;
+
+    uint256 public feeRate;
+    uint256 public fixedFee;
+    address public feeReceiver;
+
+    enum FeeType {
+        FIXED,
+        PROPORTION
+    }
 
     struct BridgeParam {
         uint256 toChain;
         uint256 nativeFee;
         bytes receiver;
         bytes data;
+    }
+
+    struct Fee {
+        FeeType feeType;
+        address referrer;
+        uint256 fee;
     }
 
     // use to solve deep stack
@@ -53,8 +69,17 @@ contract ButterRouterV3 is Ownable2Step, SwapCall, ReentrancyGuard, IButterRecei
         bytes32 transferId
     );
 
+    event CollectFeeV2(
+        address indexed token,
+        address indexed receiver,
+        uint256 indexed amount,
+        bytes32 transferId,
+        FeeType feeType
+    );
+
     event SetBridgeAddress(address indexed _bridgeAddress);
     event SetGasForReFund(uint256 indexed _gasForReFund);
+    event SetFee(address indexed receiver, uint256 indexed rate, uint256 indexed fixedf);
     event SwapAndBridge(
         bytes32 indexed orderId,
         address indexed from,
@@ -122,14 +147,27 @@ contract ButterRouterV3 is Ownable2Step, SwapCall, ReentrancyGuard, IButterRecei
         emit SetFeeManager(_feeManager);
     }
 
+    function setFee(address _feeReceiver, uint256 _feeRate, uint256 _fixedFee) external onlyOwner {
+        if (_feeReceiver == ZERO_ADDRESS) revert Errors.ZERO_ADDRESS();
+
+        require(_feeRate < FEE_DENOMINATOR);
+
+        feeReceiver = _feeReceiver;
+
+        feeRate = _feeRate;
+
+        fixedFee = _fixedFee;
+
+        emit SetFee(_feeReceiver, _feeRate, fixedFee);
+    }
+
     function swapAndBridge(
         address _srcToken,
         uint256 _amount,
         bytes calldata _swapData,
         bytes calldata _bridgeData,
         bytes calldata _permitData,
-        address _referrer,
-        uint256 _fee
+        Fee calldata _fee
     ) external payable nonReentrant transferIn(_srcToken, _amount, _permitData) {
         if ((_swapData.length + _bridgeData.length) == 0) revert Errors.DATA_EMPTY();
         SwapTemp memory swapTemp;
@@ -138,7 +176,7 @@ contract ButterRouterV3 is Ownable2Step, SwapCall, ReentrancyGuard, IButterRecei
         swapTemp.swapToken = _srcToken;
         swapTemp.swapAmount = _amount;
         bytes memory receiver;
-        swapTemp.swapAmount = _collectFee(swapTemp.srcToken, swapTemp.srcAmount, swapTemp.transferId, _referrer, _fee);
+        swapTemp.swapAmount = _collectFee(swapTemp.srcToken, swapTemp.srcAmount, swapTemp.transferId, _fee);
         if (_swapData.length != 0) {
             SwapParam memory swapParam = abi.decode(_swapData, (SwapParam));
             (swapTemp.swapToken, swapTemp.swapAmount) = _swap(swapTemp.swapAmount, swapTemp.srcToken, swapParam);
@@ -174,15 +212,14 @@ contract ButterRouterV3 is Ownable2Step, SwapCall, ReentrancyGuard, IButterRecei
         bytes calldata _swapData,
         bytes calldata _callbackData,
         bytes calldata _permitData,
-        address _referrer,
-        uint256 _fee
+        Fee calldata _fee
     ) external payable nonReentrant transferIn(_srcToken, _amount, _permitData) {
         SwapTemp memory swapTemp;
         swapTemp.srcToken = _srcToken;
         swapTemp.srcAmount = _amount;
         swapTemp.transferId = _transferId;
         if ((_swapData.length + _callbackData.length) == 0) revert Errors.DATA_EMPTY();
-        swapTemp.swapAmount = _collectFee(swapTemp.srcToken, swapTemp.srcAmount, swapTemp.transferId, _referrer, _fee);
+        swapTemp.swapAmount = _collectFee(swapTemp.srcToken, swapTemp.srcAmount, swapTemp.transferId, _fee);
 
         (
             swapTemp.receiver,
@@ -291,11 +328,12 @@ contract ButterRouterV3 is Ownable2Step, SwapCall, ReentrancyGuard, IButterRecei
     function getFee(
         address inputToken,
         uint256 inputAmount,
-        address referrer,
-        uint256 fee
+        Fee calldata fee
     ) external view returns (address feeToken, uint256 amount, uint256 nativeAmount) {
-        if (address(feeManager) == ZERO_ADDRESS) return (ZERO_ADDRESS, 0, 0);
-        IFeeManager.FeeDetail memory fd = feeManager.getFee(referrer, inputToken, inputAmount, fee);
+        if (address(feeManager) == ZERO_ADDRESS) {
+            return _getFee(inputAmount, inputToken, fee.feeType);
+        }
+        IFeeManager.FeeDetail memory fd = feeManager.getFee(fee.referrer, inputToken, inputAmount, fee.fee);
         feeToken = fd.feeToken;
         if (_isNative(inputToken)) {
             amount = 0;
@@ -306,14 +344,53 @@ contract ButterRouterV3 is Ownable2Step, SwapCall, ReentrancyGuard, IButterRecei
         }
     }
 
+    function _getFee(
+        uint256 _amount,
+        address _token,
+        FeeType _feeType
+    ) internal view returns (address feeToken, uint256 amount, uint256 nativeAmount) {
+        if (feeReceiver == ZERO_ADDRESS) {
+            return (ZERO_ADDRESS, 0, 0);
+        }
+        if (_feeType == FeeType.FIXED) {
+            feeToken = ZERO_ADDRESS;
+            nativeAmount = fixedFee;
+        } else {
+            feeToken = _token;
+            amount = (_amount * feeRate) / FEE_DENOMINATOR;
+        }
+    }
+
     function getAmountBeforeFee(
         address inputToken,
         uint256 inputAmount,
-        address referrer,
-        uint256 fee
+        Fee calldata fee
     ) external view returns (address feeToken, uint256 beforeAmount) {
-        if (address(feeManager) == ZERO_ADDRESS) return (ZERO_ADDRESS, 0);
-        return feeManager.getAmountBeforeFee(referrer, inputToken, inputAmount, fee);
+        if (address(feeManager) == ZERO_ADDRESS) {
+            return _getAmountBeforeFee(inputToken, inputAmount, fee.feeType);
+        }
+        return feeManager.getAmountBeforeFee(fee.referrer, inputToken, inputAmount, fee.fee);
+    }
+
+    function _getAmountBeforeFee(
+        address _token,
+        uint256 _amountAfterFee,
+        FeeType _feeType
+    ) internal view returns (address feeToken, uint256 beforeAmount) {
+        if (feeReceiver == ZERO_ADDRESS) {
+            return (ZERO_ADDRESS, _amountAfterFee);
+        }
+        if (_feeType == FeeType.FIXED) {
+            feeToken = ZERO_ADDRESS;
+            if (!_isNative(_token)) {
+                beforeAmount = _amountAfterFee;
+            } else {
+                beforeAmount = _amountAfterFee + fixedFee;
+            }
+        } else {
+            feeToken = _token;
+            beforeAmount = (_amountAfterFee * FEE_DENOMINATOR) / (FEE_DENOMINATOR - feeRate) + 1;
+        }
     }
 
     function doRemoteSwap(
@@ -321,7 +398,7 @@ contract ButterRouterV3 is Ownable2Step, SwapCall, ReentrancyGuard, IButterRecei
         address _srcToken,
         uint256 _amount
     ) external returns (address dstToken, uint256 dstAmount) {
-        if(msg.sender != address(this)) revert Errors.SELF_ONLY();
+        if (msg.sender != address(this)) revert Errors.SELF_ONLY();
         (dstToken, dstAmount) = _swap(_amount, _srcToken, swapParam);
     }
 
@@ -330,7 +407,7 @@ contract ButterRouterV3 is Ownable2Step, SwapCall, ReentrancyGuard, IButterRecei
         address _callToken,
         uint256 _amount
     ) external returns (address target, uint256 callAmount) {
-        if(msg.sender != address(this)) revert Errors.SELF_ONLY();
+        if (msg.sender != address(this)) revert Errors.SELF_ONLY();
         target = _callbackParam.target;
         callAmount = _callBack(_amount, _callToken, _callbackParam);
     }
@@ -383,12 +460,14 @@ contract ButterRouterV3 is Ownable2Step, SwapCall, ReentrancyGuard, IButterRecei
         address _token,
         uint256 _amount,
         bytes32 _transferId,
-        address _referrer,
-        uint256 _fee
+        Fee calldata fee
     ) internal returns (uint256 _remain) {
         // _token == fd.feeToken
-        if (address(feeManager) == ZERO_ADDRESS) return (_amount);
-        IFeeManager.FeeDetail memory fd = feeManager.getFee(_referrer, _token, _amount, _fee);
+        if (address(feeManager) == ZERO_ADDRESS) {
+            (, _remain) = _collectFeeV2(_token, _amount, _transferId, fee.feeType);
+            return _remain;
+        }
+        IFeeManager.FeeDetail memory fd = feeManager.getFee(fee.referrer, _token, _amount, fee.fee);
         if (_isNative(_token)) {
             uint256 native = fd.routerNative + fd.routerToken;
             if (native > 0) {
@@ -396,7 +475,7 @@ contract ButterRouterV3 is Ownable2Step, SwapCall, ReentrancyGuard, IButterRecei
             }
             uint256 integratorNative = fd.integratorToken + fd.integratorNative;
             if (fd.integratorToken > 0) {
-                _transfer(_token, _referrer, integratorNative);
+                _transfer(_token, fee.referrer, integratorNative);
             }
             _remain = _amount - native - integratorNative;
         } else {
@@ -407,23 +486,52 @@ contract ButterRouterV3 is Ownable2Step, SwapCall, ReentrancyGuard, IButterRecei
                 _transfer(_token, fd.routerReceiver, fd.routerToken);
             }
             if (fd.integratorNative > 0) {
-                _transfer(ZERO_ADDRESS, _referrer, fd.integratorNative);
+                _transfer(ZERO_ADDRESS, fee.referrer, fd.integratorNative);
             }
             if (fd.integratorToken > 0) {
-                _transfer(_token, _referrer, fd.integratorToken);
+                _transfer(_token, fee.referrer, fd.integratorToken);
             }
             _remain = _amount - fd.routerToken - fd.integratorToken;
         }
         emit CollectFee(
             _token,
             fd.routerReceiver,
-            _referrer,
+            fee.referrer,
             fd.routerToken,
             fd.routerToken,
             fd.routerNative,
             fd.integratorNative,
             _transferId
         );
+    }
+
+    function _collectFeeV2(
+        address _token,
+        uint256 _amount,
+        bytes32 transferId,
+        FeeType _feeType
+    ) internal returns (uint256 _fee, uint256 _remain) {
+        if (feeReceiver == ZERO_ADDRESS) {
+            _remain = _amount;
+            return (_fee, _remain);
+        }
+        if (_feeType == FeeType.FIXED) {
+            _fee = fixedFee;
+            if (msg.value < fixedFee) revert Errors.FEE_MISMATCH();
+            if (_isNative(_token)) {
+                _remain = _amount - _fee;
+            } else {
+                _remain = _amount;
+            }
+            _token = NATIVE_ADDRESS;
+        } else {
+            _fee = (_amount * feeRate) / FEE_DENOMINATOR;
+            _remain = _amount - _fee;
+        }
+        if (_fee > 0) {
+            _transfer(_token, feeReceiver, _fee);
+            emit CollectFeeV2(_token, feeReceiver, _fee, transferId, _feeType);
+        }
     }
 
     function _setBridgeAddress(address _bridgeAddress) internal returns (bool) {

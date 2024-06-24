@@ -18,7 +18,7 @@ abstract contract SwapCall {
     mapping(address => bool) public approved;
 
     enum DexType {
-        AGG,  
+        AGG,
         UNIV2,
         UNIV3,
         CURVE,
@@ -56,7 +56,7 @@ abstract contract SwapCall {
         uint256 amount,
         bytes memory permitData
     ) {
-        if(amount == 0) revert Errors.ZERO_IN();
+        if (amount == 0) revert Errors.ZERO_IN();
 
         if (permitData.length != 0) {
             _permit(permitData);
@@ -76,7 +76,7 @@ abstract contract SwapCall {
     }
 
     constructor(address _wToken) payable {
-        if (_wToken.isContract()) revert Errors.NOT_CONTRACT();
+        if (!_wToken.isContract()) revert Errors.NOT_CONTRACT();
         wToken = _wToken;
     }
 
@@ -165,7 +165,6 @@ abstract contract SwapCall {
         }
     }
 
-
     function _reBuildSwaps(
         uint256 _amount,
         uint256 _len,
@@ -180,7 +179,7 @@ abstract contract SwapCall {
             }
         }
         if (total > _amount) {
-            if(count == 0) revert Errors.CANNOT_ADJUST();
+            if (count == 0) revert Errors.CANNOT_ADJUST();
             isUp = false;
             uint256 margin = total - _amount;
             amountAdjust = margin / count;
@@ -206,9 +205,7 @@ abstract contract SwapCall {
     ) internal {
         bool _result;
         DexType dexType = DexType(_dexType);
-        if(dexType == DexType.AGG){
-
-        }else if (dexType == DexType.UNIV2) {
+        if (dexType == DexType.AGG) {} else if (dexType == DexType.UNIV2) {
             (_result) = _makeUniV2Swap(_router, _dstToken, _amount, _native, _swapData);
         } else if (dexType == DexType.UNIV3) {
             (_result) = _makeUniV3Swap(_router, _dstToken, _amount, _native, _swapData);
@@ -223,7 +220,6 @@ abstract contract SwapCall {
         }
         if (!_result) revert Errors.SWAP_FAIL();
     }
-
 
     function _makeAggSwap(
         address _router,
@@ -261,7 +257,7 @@ abstract contract SwapCall {
                     mstore(add(callDatas, offset), _amount)
                 }
             }
-            _checkApprove(mixSwaps[i].callTo,callDatas);
+            _checkApprove(mixSwaps[i].callTo, callDatas);
             if (_isNative(_srcToken)) {
                 (_result, ) = mixSwaps[i].callTo.call{value: _amount}(callDatas);
             } else {
@@ -312,7 +308,7 @@ abstract contract SwapCall {
         bool _native,
         bytes memory _swapData
     ) internal returns (bool _result) {
-        _checkApprove(_router,bytes(""));
+        _checkApprove(_router, bytes(""));
         (uint256 amountOutMin, address[] memory path) = abi.decode(_swapData, (uint256, address[]));
         if (_native) {
             (_result, ) = _router.call{value: _amount}(
@@ -363,7 +359,7 @@ abstract contract SwapCall {
         bool _native,
         bytes memory _swapData
     ) internal returns (bool _result) {
-        _checkApprove(_router,bytes(""));
+        _checkApprove(_router, bytes(""));
         (uint256 amountOutMin, bytes memory path) = abi.decode(_swapData, (uint256, bytes));
         address receiver = _isNative(_dstToken) ? _router : address(this);
         ExactInputParams memory params = ExactInputParams(path, receiver, _amount, amountOutMin);
@@ -385,7 +381,7 @@ abstract contract SwapCall {
         bool _native,
         bytes memory _swapData
     ) internal returns (bool _result) {
-        _checkApprove(_router,bytes(""));
+        _checkApprove(_router, bytes(""));
         (uint256 expected, address[9] memory routes, uint256[3][4] memory swap_params, address[4] memory pools) = abi
             .decode(_swapData, (uint256, address[9], uint256[3][4], address[4]));
         uint256 value = _native ? _amount : 0;

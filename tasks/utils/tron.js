@@ -101,6 +101,19 @@ exports.tronSetFeeV3 = async function (artifacts, network, router_addr, feerecei
     await setFee("ButterRouterV3", tronWeb, artifacts, network, router_addr, feereceiver, feerate, fixedfee);
 };
 
+exports.tronSetFeeManager = async function (artifacts, network, router_addr, manager) {
+    let tronWeb = await getTronWeb(network);
+    let Router = await artifacts.readArtifact("ButterRouterV3");
+    if (router_addr.startsWith("0x")) {
+        router_addr = tronWeb.address.fromHex(router_addr);
+    }
+    let router = await tronWeb.contract(Router.abi, router_addr);
+
+    let manager_hex = tronWeb.address.toHex(manager).replace(/^(41)/, "0x");
+
+    await router.setFeeManager(manager_hex).send();
+};
+
 async function setFee(contractName, tronWeb, artifacts, network, router_addr, feereceiver, feerate, fixedfee) {
     let Router = await artifacts.readArtifact(contractName);
     if (router_addr.startsWith("0x")) {
