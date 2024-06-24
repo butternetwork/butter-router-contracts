@@ -8,6 +8,7 @@ let {
     tronSetAuthorizationV3,
     tronSetFeeV3,
     tronSetAuthFromConfigV3,
+    tronSetFeeManager,
 } = require("../utils/tron.js");
 let { verify } = require("../utils/verify.js");
 
@@ -24,7 +25,7 @@ module.exports = async (taskArgs, hre) => {
     } else {
         console.log("routerV3 deployer :", deployer);
 
-        await hre.run("routerV3:deploy", { mos: config.v3.bridge, wtoken: config.wToken });
+        await hre.run("routerV3:deploy", { bridge: config.v3.bridge, wtoken: config.wToken });
 
         let deploy_json = await readFromFile(network.name);
         let router_addr = deploy_json[network.name]["ButterRouterV3"]["addr"];
@@ -119,6 +120,33 @@ task("routerV3:setAuthorization", "set Authorization")
             console.log("\nsetAuthorization deployer :", deployer);
 
             await setAuthorizationV3(taskArgs.router, taskArgs.executors, taskArgs.flag);
+        }
+    });
+
+task("routerV3:setFeeManager", "set fee manager")
+    .addParam("router", "router address")
+    .addParam("manager", "manage address")
+    .setAction(async (taskArgs, hre) => {
+        const { deployments, getNamedAccounts, ethers } = hre;
+        const { deploy } = deployments;
+        const { deployer } = await getNamedAccounts();
+
+        if (network.name === "Tron" || network.name === "TronTest") {
+            await tronSetFeeManager(hre.artifacts, network.name, taskArgs.router, taskArgs.manager);
+        } else {
+            console.log("\nsetAuthorization deployer :", deployer);
+
+            let Router = await ethers.getContractFactory("ButterRouterV3");
+
+            let router = Router.attach(taskArgs.router);
+
+            let result = await (await router.setFeeManager(taskArgs.manager)).wait();
+
+            if (result.status == 1) {
+                console.log(`ButterRouterV3 ${router.address} setFeeManager ${taskArgs.manager} succeed`);
+            } else {
+                console.log("setFeeManager failed");
+            }
         }
     });
 
