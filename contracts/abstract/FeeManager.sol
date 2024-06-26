@@ -36,18 +36,21 @@ abstract contract FeeManager is Ownable2Step, IFeeManager {
     }
 
     function getFeeDetail(
-        address inputToken,
-        uint256 inputAmount,
+        address _inputToken,
+        uint256 _inputAmount,
         bytes calldata _feeData
     ) external view override virtual returns (FeeDetail memory feeDetail) {
         IButterRouterV3.Fee memory fee = _checkFeeData(_feeData);
         if (feeReceiver == address(0) && fee.referrer == address(0)) {
             return feeDetail;
         }
+        feeDetail.feeToken = _inputToken;
         if (feeReceiver != address(0)) {
             feeDetail.routerReceiver = feeReceiver;
             feeDetail.routerNativeFee = routerFixedFee;
-            feeDetail.routerTokenFee = (inputAmount * routerFeeRate) / FEE_DENOMINATOR;
+            if (_inputToken == address(0)) {
+                feeDetail.routerNativeFee += (_inputAmount * routerFeeRate) / FEE_DENOMINATOR;
+            }
         }
 
         if (fee.referrer != address(0)) {
@@ -55,7 +58,11 @@ abstract contract FeeManager is Ownable2Step, IFeeManager {
             if (fee.feeType == IButterRouterV3.FeeType.FIXED) {
                 feeDetail.integratorNativeFee = fee.rateOrNativeFee;
             } else {
-                feeDetail.integratorTokenFee = (inputAmount * fee.rateOrNativeFee) / FEE_DENOMINATOR;
+                if (_inputToken == address(0)) {
+                    feeDetail.integratorNativeFee += (_inputAmount * fee.rateOrNativeFee) / FEE_DENOMINATOR;
+                } else {
+                    feeDetail.integratorTokenFee = (_inputAmount * fee.rateOrNativeFee) / FEE_DENOMINATOR;
+                }
             }
         }
 
