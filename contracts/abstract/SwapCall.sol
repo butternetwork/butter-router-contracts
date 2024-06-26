@@ -18,6 +18,10 @@ abstract contract SwapCall {
     mapping(address => bool) public approved;
 
     enum DexType {
+        AGG,
+        UNIV2,
+        UNIV3,
+        CURVE,
         FILL,
         MIX
     }
@@ -191,9 +195,11 @@ abstract contract SwapCall {
         DexType dexType = DexType(_dexType);
         if (dexType == DexType.FILL) {
             (_result) = _makeAggFill(_router, _amount, _native, _swapData);
-        } else {
+        } else if(dexType == DexType.MIX){
             (_result) = _makeMixSwap(_srcToken, _amount, _swapData);
-        } 
+        } else {
+            revert Errors.UNSUPPORT_DEX_TYPE();
+        }
         if (!_result) revert Errors.SWAP_FAIL();
     }
 
