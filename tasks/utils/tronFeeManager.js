@@ -8,10 +8,10 @@ exports.deployFeeManager = async function (artifacts, network) {
 
     let deployer = tronWeb.defaultAddress.hex.replace(/^(41)/, "0x");
 
-    let feeManager = await deploy_contract(artifacts, "FeeManager", [deployer], tronWeb);
-    console.log("FeeManager address :", feeManager);
+    let feeManager = await deploy_contract(artifacts, "IntegratorManager", [deployer], tronWeb);
+    console.log("IntegratorManager address :", feeManager);
     let deploy = await readFromFile(network);
-    deploy[network]["FeeManager"] = feeManager;
+    deploy[network]["IntegratorManager"] = feeManager;
     await writeToFile(deploy);
     return feeManager;
 };

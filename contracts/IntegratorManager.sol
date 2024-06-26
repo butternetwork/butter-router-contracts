@@ -9,7 +9,6 @@ import "./lib/Helper.sol";
 import "./abstract/FeeManager.sol";
 
 contract IntegratorManager is FeeManager {
-    // uint256 constant FEE_DENOMINATOR = 10000;
 
     struct FeeInfo {
         address receiver;
@@ -33,7 +32,6 @@ contract IntegratorManager is FeeManager {
 
     constructor(address _owner) FeeManager(_owner) payable {
         require(_owner != Helper.ZERO_ADDRESS, ErrorMessage.ZERO_ADDR);
-       //  _transferOwnership(_owner);
     }
 
     function setRouterFee(
@@ -69,7 +67,6 @@ contract IntegratorManager is FeeManager {
             return feeDetail;
         }
 
-        // require(_feeRate < FEE_DENOMINATOR, "FeeManager: invalid feeRate");
         feeDetail.feeToken = _inputToken;
 
         FeeInfo memory info = feeInfoList[fee.referrer];
