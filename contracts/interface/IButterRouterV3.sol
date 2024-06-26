@@ -24,6 +24,7 @@ interface IButterRouterV3 {
         address indexed referrer,
         address indexed initiator,
         address indexed from,
+        bytes32 transferId,
         bytes32 orderId,
         address originToken,
         address bridgeToken,
@@ -77,6 +78,7 @@ interface IButterRouterV3 {
     // 1. bridge:  _swapData.length == 0 and _bridgeData.length > 0
     // 2. swap and bridge: _swapData.length > 0 and _bridgeData.length > 0
     function swapAndBridge(
+        bytes32 _transferId,
         address _initiator,
         address _srcToken,
         uint256 _amount,
@@ -84,7 +86,7 @@ interface IButterRouterV3 {
         bytes calldata _bridgeData,
         bytes calldata _permitData,
         bytes calldata _feeData
-    ) external payable returns (bytes32 orderId);
+    ) external payable returns(bytes32 orderId);
 
     function getFee(
         address _inputToken,
