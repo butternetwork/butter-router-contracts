@@ -118,6 +118,14 @@ module.exports = {
       accounts:
           process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
+    zkLink: {
+      url: `https://rpc.zklink.io`,
+      chainId : 810180,
+      zksync: true,
+      ethNetwork: "Eth",
+      accounts:
+          process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
     B2: {
       url: `https://rpc.bsquared.network`,
       chainId : 223,
@@ -157,59 +165,47 @@ module.exports = {
     },
 
     Tron: {
-      url: `https://mainnet-rpc.thundertoken.net`,
-      chainId: 108, //728126428,
+      url: `https://api.trongrid.io/jsonrpc`,
+      chainId: 728126428,
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
-    MaticTest: {
-      url: `https://polygon-mumbai.blockpi.network/v1/rpc/public`,
-      chainId: 80001,
-      zksync: false,
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-    },
-    BscTest: {
-      url: "https://endpoints.omniatech.io/v1/bsc/testnet/public",
-      chainId: 97,
-      zksync: false,
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-    },
+
+
     Makalu: {
       chainId: 212,
       url: "https://testnet-rpc.maplabs.io",
-      zksync: false,
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+      accounts: process.env.TESTNET_PRIVATE_KEY !== undefined ? [process.env.TESTNET_PRIVATE_KEY] : [],
     },
-    Goerli: {
-      url: "https://rpc.ankr.com/eth_goerli",
-      chainId: 5,
-      zksync: false,
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    Sepolia: {
+      url: `https://1rpc.io/sepolia`,
+      chainId: 11155111,
+      accounts: process.env.TESTNET_PRIVATE_KEY !== undefined ? [process.env.TESTNET_PRIVATE_KEY] : [],
+    },
+    ArbitrumSepolia: {
+      chainId: 421614,
+      url: `https://arbitrum-sepolia.blockpi.network/v1/rpc/public`,
+      accounts: process.env.TESTNET_PRIVATE_KEY !== undefined ? [process.env.TESTNET_PRIVATE_KEY] : [],
+    },
+    BscTest: {
+      url: `https://data-seed-prebsc-2-s1.binance.org:8545/`,
+      chainId: 97,
+      accounts: process.env.TESTNET_PRIVATE_KEY !== undefined ? [process.env.TESTNET_PRIVATE_KEY] : [],
     },
     KlayTest: {
       url: `https://api.baobab.klaytn.net:8651/`,
       chainId: 1001,
-      zksync: false,
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+      accounts: process.env.TESTNET_PRIVATE_KEY !== undefined ? [process.env.TESTNET_PRIVATE_KEY] : [],
     },
     ConfluxTest: {
       url: `https://evmtestnet.confluxrpc.com`,
       chainId: 71,
-      zksync: false,
-      accounts:
-          process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+      accounts: process.env.TESTNET_PRIVATE_KEY !== undefined ? [process.env.TESTNET_PRIVATE_KEY] : [],
     },
     TronTest: {
       url: `https://mainnet-rpc.thundertoken.net`,
       chainId: 108,
-      zksync: false,
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+      accounts: process.env.TRON_TESTNET_PRIVATE_KEY !== undefined ? [process.env.TRON_TESTNET_PRIVATE_KEY] : [],
     },
   },
 

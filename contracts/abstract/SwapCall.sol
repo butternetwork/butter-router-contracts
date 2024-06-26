@@ -136,20 +136,20 @@ abstract contract SwapCall {
     ) internal returns (uint256 _callAmount) {
         _callAmount = _getBalance(_token, address(this));
         uint256 offset = callParam.offset;
-        bytes memory callDatas = callParam.data;
+        bytes memory callPayload = callParam.data;
         if (offset != 0) {
             assembly {
-                mstore(add(callDatas, offset), _amount)
+                mstore(add(callPayload, offset), _amount)
             }
         }
         _checkApprove(callParam.target, callParam.data);
         bool _result;
         if (_isNative(_token)) {
-            (_result, ) = callParam.target.call{value: _amount}(callDatas);
+            (_result, ) = callParam.target.call{value: _amount}(callPayload);
         } else {
             if (_amount != 0) IERC20(_token).safeIncreaseAllowance(callParam.approveTo, _amount);
             // this contract not save money make sure send value can cover this
-            (_result, ) = callParam.target.call{value: callParam.extraNativeAmount}(callDatas);
+            (_result, ) = callParam.target.call{value: callParam.extraNativeAmount}(callPayload);
             if (_amount != 0) IERC20(_token).safeApprove(callParam.approveTo, 0);
         }
         if (!_result) revert Errors.CALL_BACK_FAIL();

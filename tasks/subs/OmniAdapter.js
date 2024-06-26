@@ -19,7 +19,7 @@ module.exports = async (taskArgs, hre) => {
         console.log("deployer :", deployer);
         let chainId = await hre.network.config.chainId;
         let omniAdapter;
-        if (chainId === 324 || chainId === 280) {
+        if (hre.network.zksync === true) {
             omniAdapter = await createZk("OmniAdapter", [deployer], hre);
         } else {
             let salt = process.env.OMNI_ADPTER_SAlT;

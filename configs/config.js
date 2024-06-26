@@ -20,7 +20,7 @@ let config = new Map([
                 ],
             },
             v3: {
-                bridge: "",
+                bridge: "0xBB030b0aB399B77866c9DE1a513E4513164e0bf3",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
@@ -32,6 +32,7 @@ let config = new Map([
                     "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F", //sushi
                     "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D", //univ2
                     "0xE592427A0AEce92De3Edee1F18E0157C05861564", //univ3
+                    "0x3321dE36B6C29A6fa102A67bd5C48E5756Baa596", // omni adapter
                 ],
             },
         },
@@ -55,7 +56,7 @@ let config = new Map([
                 ],
             },
             v3: {
-                bridge: "",
+                bridge: "0xBB030b0aB399B77866c9DE1a513E4513164e0bf3",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
@@ -65,6 +66,7 @@ let config = new Map([
                     "0x1111111254eeb25477b68fb85ed929f73a960582", //1inch
                     "0x10ED43C718714eb63d5aA57B78B54704E256024E", //pancake
                     "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506", //sushi
+                    "0x3321dE36B6C29A6fa102A67bd5C48E5756Baa596", // omni adapter
                 ],
             },
         },
@@ -90,7 +92,7 @@ let config = new Map([
                 ],
             },
             v3: {
-                bridge: "",
+                bridge: "0xBB030b0aB399B77866c9DE1a513E4513164e0bf3",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
@@ -183,7 +185,7 @@ let config = new Map([
                 ],
             },
             v3: {
-                bridge: "",
+                bridge: "0xBB030b0aB399B77866c9DE1a513E4513164e0bf3",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
@@ -191,6 +193,7 @@ let config = new Map([
                 },
                 executors: [
                     "0x0bce9e0ebd4fd4d6562495af45c4aaa0c1f7f3d7", //hiveswap
+                    "0x3321dE36B6C29A6fa102A67bd5C48E5756Baa596", // omni adapter
                 ],
             },
         },
@@ -414,7 +417,7 @@ let config = new Map([
     [
         "Mantle",
         {
-            wToken: "0xdEAddEaDdeadDEadDEADDEAddEADDEAddead1111",
+            wToken: "0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8",
             v2: {
                 mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
@@ -522,6 +525,21 @@ let config = new Map([
             },
             v2: {
                 bridge: "",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    feeRate: "0", //denominator is 1000000
+                    fixedFee: "0",
+                },
+                executors: [],
+            },
+        },
+    ],
+    [
+        "zkLink",
+        {
+            wToken: "0x8280a4e7D5B3B658ec4580d3Bc30f5e50454F169",
+            v2: {
+                mos: "0xB666A84a94E5459cC47874aD9774935ba0DdF614",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000

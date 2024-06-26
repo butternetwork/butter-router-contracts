@@ -1,27 +1,26 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity ^0.8.0;
 
 interface IFeeManager {
     struct FeeDetail {
         address feeToken;
         address routerReceiver;
-        uint256 routerNative;
-        uint256 integratorNative;
-        uint256 routerToken;
-        uint256 integratorToken;
+        address integrator;
+        uint256 routerNativeFee;
+        uint256 integratorNativeFee;
+        uint256 routerTokenFee;
+        uint256 integratorTokenFee;
     }
 
-    function getFee(
-        address integrator,
+    function getFeeDetail(
         address inputToken,
         uint256 inputAmount,
-        uint256 feeRate
-    ) external view returns (FeeDetail memory returnFee);
+        bytes calldata _feeData
+    ) external view returns (FeeDetail memory feeDetail);
 
     function getAmountBeforeFee(
-        address integrator,
         address inputToken,
         uint256 inputAmount,
-        uint256 feeRate
-    ) external view returns (address feeToken, uint256 beforeAmount);
+        bytes calldata _feeData
+    ) external view returns (address feeToken, uint256 beforeAmount, uint256 nativeFeeAmount);
 }

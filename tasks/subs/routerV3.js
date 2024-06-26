@@ -52,51 +52,26 @@ task("routerV3:deploy", "deploy butterRouterV3")
     .addParam("bridge", "bridge address")
     .addParam("wtoken", "wtoken address")
     .setAction(async (taskArgs, hre) => {
-        const { getNamedAccounts, ethers } = hre;
-        const { deployer } = await getNamedAccounts();
+        const accounts = await ethers.getSigners();
+        const deployer = accounts[0];
 
-        if (network.name === "Tron" || network.name === "TronTest") {
-            await deployRouterV3(hre.artifacts, network.name, taskArgs.bridge, taskArgs.wtoken);
-        } else {
-            console.log("\ndeploy deployer :", deployer);
-            let chainId = await hre.network.config.chainId;
-            let v3;
-            if (chainId === 324 || chainId === 280) {
-                v3 = await createZk("ButterRouterV3", [taskArgs.bridge, deployer, taskArgs.wtoken], hre);
-            } else {
-                let salt = process.env.ROUTER_V3_DEPLOY_SALT;
-                let ButterRouterV3 = await ethers.getContractFactory("ButterRouterV3");
-                let param = ethers.utils.defaultAbiCoder.encode(
-                    ["address", "address", "address"],
-                    [taskArgs.bridge, deployer, taskArgs.wtoken]
-                );
-                let result = await create(salt, ButterRouterV3.bytecode, param);
-                v3 = result[0];
-            }
-            console.log("router v3 address :", v3);
-            let deploy = await readFromFile(network.name);
+        let salt = process.env.ROUTER_V3_DEPLOY_SALT;
+        let routerAddr = await create(hre, deployer, "ButterRouterV3",
+            ["address", "address", "address"],
+            [taskArgs.bridge, deployer.address, taskArgs.wtoken],
+            salt);
 
-            if (!deploy[network.name]["ButterRouterV3"]) {
-                deploy[network.name]["ButterRouterV3"] = {};
-            }
+        console.log("router v3 address :", routerAddr);
 
-            deploy[network.name]["ButterRouterV3"]["addr"] = v3;
+        let deployments = await readFromFile(hre.network.name);
+        deployments[hre.network.name]["ButterRouterV3"] = routerAddr;
+        await writeToFile(deployments);
 
-            await writeToFile(deploy);
-
-            const verifyArgs = [taskArgs.bridge, deployer, taskArgs.wtoken]
-                .map((arg) => (typeof arg == "string" ? `'${arg}'` : arg))
-                .join(" ");
-            console.log(`To verify, run: npx hardhat verify --network ${network.name} ${v3} ${verifyArgs}`);
-
-            await verify(
-                v3,
-                [taskArgs.bridge, deployer, taskArgs.wtoken],
-                "contracts/ButterRouterV3.sol:ButterRouterV3",
-                chainId,
-                true
-            );
-        }
+        await verify(hre, routerAddr,
+            [taskArgs.bridge, deployer.address, taskArgs.wtoken],
+            "contracts/ButterRouterV3.sol:ButterRouterV3",
+            true
+        );
     });
 
 task("routerV3:setAuthorization", "set Authorization")
@@ -286,7 +261,7 @@ task("routerV3:withdraw", "rescueFunds from router")
 
             result = await (await router.rescueFunds(taskArgs.token, taskArgs.amount)).wait();
 
-            if (result.status == 1) {
+            if (result.status === 1) {
                 console.log(`Router ${router.address} rescueFunds ${taskArgs.token} ${taskArgs.amount} succeed`);
             } else {
                 console.log("rescueFunds failed");

@@ -8,11 +8,45 @@ let IDeployFactory_abi = [
     "function deploy(bytes32 salt, bytes memory creationCode, uint256 value) external",
     "function getAddress(bytes32 salt) external view returns (address)",
 ];
-async function create(salt, bytecode, param) {
+
+
+async function create(hre, deployer, contract, paramTypes, args, salt) {
+    // todo contract verify
+    console.log(`deploy contract ${contract} ...`);
+    const { deploy } = hre.deployments;
+
+    let contractAddr;
+    if (hre.network.name === "Tron" || hre.network.name === "TronTest") {
+        contractAddr = await createTron(contract, args, hre.artifacts, hre.network.name);
+    } else if (hre.network.zksync === true) {
+        contractAddr = await createZk(contract, args, hre);
+    } else if (salt !== "") {
+        let contractFactory = await ethers.getContractFactory(contract);
+        let params = ethers.utils.defaultAbiCoder.encode(paramTypes, args);
+        let createResult = await createFactory(salt, contractFactory.bytecode, params);
+        if (!createResult[1]) {
+            throw "deploy failed...";
+        }
+        contractAddr = createResult[0];
+    } else {
+        let impl = await deploy(contract, {
+            from: deployer.address,
+            args: args,
+            log: true,
+            contract: contract,
+        });
+
+        contractAddr = impl.address;
+    }
+    console.log(`deploy contract [${contract}] address: ${contractAddr}`);
+    return contractAddr;
+}
+
+async function createFactory(salt, bytecode, param) {
     let [wallet] = await ethers.getSigners();
     let factory = await ethers.getContractAt(IDeployFactory_abi, DEPLOY_FACTORY, wallet);
     let salt_hash = await ethers.utils.keccak256(await ethers.utils.toUtf8Bytes(salt));
-    console.log("deploy factory address:", factory.address);
+    // console.log("deploy factory address:", factory.address);
     console.log("deploy salt:", salt);
     let addr = await factory.getAddress(salt_hash);
     console.log("deployed to :", addr);
@@ -41,6 +75,23 @@ async function createZk(contractName, args, hre) {
     const c = await deployer.deploy(c_artifact, args);
     return c.address;
 }
+
+async function createTron(contractName, args, artifacts, network) {
+    let c = await artifacts.readArtifact(contractName);
+    let tronWeb = await getTronWeb(network);
+    console.log("deploy address is:", tronWeb.defaultAddress);
+    let contract_instance = await tronWeb.contract().new({
+        abi: c.abi,
+        bytecode: c.bytecode,
+        feeLimit: 15000000000,
+        callValue: 0,
+        parameters: args,
+    });
+    let contract_address = tronWeb.address.fromHex(contract_instance.address);
+    console.log(`${contractName} deployed on: ${contract_address} (${contract_instance.address})`);
+    return "0x" + contract_instance.address.substring(2);
+}
+
 
 async function readFromFile(network) {
     let p = path.join(__dirname, "../deployments/deploy.json");

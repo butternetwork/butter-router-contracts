@@ -3,19 +3,22 @@
 		"ButterRouterV2": {
 			"addr": "0xbB21e441fb738F54e6eC244e435475096E179d66"
 		},
-		"SwapAdapter": "0x002162B2aEe2dD657FB131b28CC34deE6797b66f"
+		"SwapAdapter": "0x002162B2aEe2dD657FB131b28CC34deE6797b66f",
+		"omniAdapter": "0x3321dE36B6C29A6fa102A67bd5C48E5756Baa596"
 	},
 	"Bsc": {
 		"ButterRouterV2": {
 			"addr": "0xbB21e441fb738F54e6eC244e435475096E179d66"
 		},
-		"SwapAdapter": "0x002162B2aEe2dD657FB131b28CC34deE6797b66f"
+		"SwapAdapter": "0x002162B2aEe2dD657FB131b28CC34deE6797b66f",
+		"omniAdapter": "0x3321dE36B6C29A6fa102A67bd5C48E5756Baa596"
 	},
 	"Matic": {
 		"ButterRouterV2": {
 			"addr": "0xbB21e441fb738F54e6eC244e435475096E179d66"
 		},
-		"SwapAdapter": "0x002162B2aEe2dD657FB131b28CC34deE6797b66f"
+		"SwapAdapter": "0x002162B2aEe2dD657FB131b28CC34deE6797b66f",
+		"ButterRouterV3": "0xFEaf6C9D1a06FE2E224D5f50768102211D9153D6"
 	},
 	"Klaytn": {
 		"ButterRouterV2": {
@@ -27,7 +30,9 @@
 		"ButterRouterV2": {
 			"addr": "0xbB21e441fb738F54e6eC244e435475096E179d66"
 		},
-		"SwapAdapter": "0x002162B2aEe2dD657FB131b28CC34deE6797b66f"
+		"SwapAdapter": "0x002162B2aEe2dD657FB131b28CC34deE6797b66f",
+		"omniAdapter": "0x3321dE36B6C29A6fa102A67bd5C48E5756Baa596",
+		"ButterRouterV3": "0xf107469A5F6916E4e5cAD370DE696591CF0515DF"
 	},
 	"Tron": {
 		"ButterRouterV2": {
@@ -115,8 +120,14 @@
 	},
 	"Mantle": {
 		"ButterRouterV2": {
-			"addr": "0xbB21e441fb738F54e6eC244e435475096E179d66"
+			"addr": "0x34cE8cD2820f8186209bcC73cB36410c9BD8541b"
 		},
 		"SwapAdapter": "0x002162B2aEe2dD657FB131b28CC34deE6797b66f"
+	},
+	"zkLink": {
+		"ButterRouterV2": {
+			"addr": "0xc8B11e02b16ED56ffeC67457A6A5b73488f4D74b"
+		},
+		"SwapAdapter": "0x6Dc84673D89A2c782CFd3cFB26D9F84179AC5bDD"
 	}
 }

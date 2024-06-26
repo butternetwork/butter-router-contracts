@@ -3,11 +3,13 @@ pragma solidity 0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable2Step.sol";
 import "./interface/IFeeManager.sol";
+import "./interface/IButterRouterV3.sol";
 import "./lib/ErrorMessage.sol";
 import "./lib/Helper.sol";
+import "./abstract/FeeManager.sol";
 
-contract FeeManager is Ownable2Step, IFeeManager {
-    uint256 constant FEE_DENOMINATOR = 10000;
+contract IntegratorManager is FeeManager {
+    // uint256 constant FEE_DENOMINATOR = 10000;
 
     struct FeeInfo {
         address receiver;
@@ -29,9 +31,9 @@ contract FeeManager is Ownable2Step, IFeeManager {
         uint256 routerNativeShare
     );
 
-    constructor(address _owner) payable {
+    constructor(address _owner) FeeManager(_owner) payable {
         require(_owner != Helper.ZERO_ADDRESS, ErrorMessage.ZERO_ADDR);
-        _transferOwnership(_owner);
+       //  _transferOwnership(_owner);
     }
 
     function setRouterFee(
@@ -57,49 +59,53 @@ contract FeeManager is Ownable2Step, IFeeManager {
         _setFeeRate(_integrator, _receiver, _fixedNative, _tokenRate, _routerShare, _routerNativeShare);
     }
 
-    function getFee(
-        address _integrator,
+    function getFeeDetail(
         address _inputToken,
         uint256 _inputAmount,
-        uint256 _feeRate
-    ) external view returns (FeeDetail memory feeDetail) {
-        require(_feeRate < FEE_DENOMINATOR, "FeeManager: invalid feeRate");
+        bytes calldata _feeData
+    ) external view override returns (FeeDetail memory feeDetail) {
+        IButterRouterV3.Fee memory fee = _checkFeeData(_feeData);
+        if (feeReceiver == address(0) && fee.referrer == address(0)) {
+            return feeDetail;
+        }
+
+        // require(_feeRate < FEE_DENOMINATOR, "FeeManager: invalid feeRate");
         feeDetail.feeToken = _inputToken;
 
-        FeeInfo memory info = feeInfoList[_integrator];
+        FeeInfo memory info = feeInfoList[fee.referrer];
         if (info.receiver == Helper.ZERO_ADDRESS) {
             // not integrator
             info = feeInfoList[Helper.ZERO_ADDRESS];
             if (info.receiver == Helper.ZERO_ADDRESS) {
                 // no router fee
-                feeDetail.integratorToken = (_inputAmount * _feeRate) / FEE_DENOMINATOR;
+                feeDetail.integratorTokenFee = (_inputAmount * fee.rateOrNativeFee) / FEE_DENOMINATOR;
                 return feeDetail;
             }
             if (info.tokenFeeRate == 0) {
                 if (info.fixedNative != 0) {
-                    feeDetail.routerNative = (info.fixedNative * info.routerNativeShare) / FEE_DENOMINATOR;
-                    feeDetail.integratorNative = info.fixedNative - feeDetail.routerNative;
+                    feeDetail.routerNativeFee = (info.fixedNative * info.routerNativeShare) / FEE_DENOMINATOR;
+                    feeDetail.integratorNativeFee = info.fixedNative - feeDetail.routerNativeFee;
                 }
             } else {
-                feeDetail.routerNative = info.fixedNative;
+                feeDetail.routerNativeFee = info.fixedNative;
             }
         } else {
             if (info.fixedNative != 0) {
-                feeDetail.routerNative = (info.fixedNative * info.routerNativeShare) / FEE_DENOMINATOR;
-                feeDetail.integratorNative = info.fixedNative - feeDetail.routerNative;
+                feeDetail.routerNativeFee = (info.fixedNative * info.routerNativeShare) / FEE_DENOMINATOR;
+                feeDetail.integratorNativeFee = info.fixedNative - feeDetail.routerNativeFee;
             }
         }
 
         uint256 feeRate;
         uint256 routerRate;
-        if (_feeRate == 0) {
+        if (fee.rateOrNativeFee == 0) {
             feeRate = info.tokenFeeRate * FEE_DENOMINATOR;
             routerRate = info.tokenFeeRate * info.routerShare;
-        } else if (_feeRate >= info.tokenFeeRate) {
-            feeRate = _feeRate * FEE_DENOMINATOR;
-            routerRate = _feeRate * info.routerShare;
+        } else if (fee.rateOrNativeFee >= info.tokenFeeRate) {
+            feeRate = fee.rateOrNativeFee * FEE_DENOMINATOR;
+            routerRate = fee.rateOrNativeFee * info.routerShare;
         } else {
-            feeRate = _feeRate * FEE_DENOMINATOR;
+            feeRate = fee.rateOrNativeFee * FEE_DENOMINATOR;
             routerRate = info.tokenFeeRate * info.routerShare;
             if (feeRate < routerRate) {
                 feeRate = routerRate;
@@ -107,37 +113,37 @@ contract FeeManager is Ownable2Step, IFeeManager {
         }
 
         if (feeRate > 0) {
-            uint256 fee = (_inputAmount * feeRate) / FEE_DENOMINATOR / FEE_DENOMINATOR;
-            feeDetail.routerToken = (_inputAmount * routerRate) / FEE_DENOMINATOR / FEE_DENOMINATOR;
-            feeDetail.integratorToken = fee - feeDetail.routerToken;
+            uint256 totalFee = (_inputAmount * feeRate) / FEE_DENOMINATOR / FEE_DENOMINATOR;
+            feeDetail.routerTokenFee = (_inputAmount * routerRate) / FEE_DENOMINATOR / FEE_DENOMINATOR;
+            feeDetail.integratorTokenFee = totalFee - feeDetail.routerTokenFee;
         }
         feeDetail.routerReceiver = info.receiver;
     }
 
     function getAmountBeforeFee(
-        address _integrator,
         address _inputToken,
         uint256 _inputAmount,
-        uint256 _feeRate
-    ) external view returns (address feeToken, uint256 beforeAmount) {
-        require(_feeRate < FEE_DENOMINATOR);
+        bytes calldata _feeData
+    ) external view override returns (address feeToken, uint256 beforeAmount, uint256 nativeFeeAmount) {
+        IButterRouterV3.Fee memory fee = _checkFeeData(_feeData);
+        require(fee.feeType == IButterRouterV3.FeeType.PROPORTION, "Only proportion");
         feeToken = _inputToken;
 
         uint256 feeRate;
 
-        FeeInfo memory info = feeInfoList[_integrator];
+        FeeInfo memory info = feeInfoList[fee.referrer];
         if (info.receiver == Helper.ZERO_ADDRESS) {
             info = feeInfoList[Helper.ZERO_ADDRESS];
         }
         if (info.receiver == Helper.ZERO_ADDRESS) {
-            feeRate = _feeRate * FEE_DENOMINATOR;
+            feeRate = fee.rateOrNativeFee * FEE_DENOMINATOR;
         } else {
-            if (_feeRate == 0) {
+            if (fee.rateOrNativeFee == 0) {
                 feeRate = info.tokenFeeRate * FEE_DENOMINATOR;
-            } else if (_feeRate >= info.tokenFeeRate) {
-                feeRate = _feeRate * FEE_DENOMINATOR;
+            } else if (fee.rateOrNativeFee >= info.tokenFeeRate) {
+                feeRate = fee.rateOrNativeFee * FEE_DENOMINATOR;
             } else {
-                feeRate = _feeRate * FEE_DENOMINATOR;
+                feeRate = fee.rateOrNativeFee * FEE_DENOMINATOR;
                 uint256 routerRate = (info.tokenFeeRate * info.routerShare);
                 if (feeRate < routerRate) {
                     feeRate = routerRate;
