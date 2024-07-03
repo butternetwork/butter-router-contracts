@@ -209,7 +209,7 @@ contract ButterRouterV3 is SwapCall, FeeManager, ReentrancyGuard, IButterReceive
         uint256 _fromChain,
         bytes calldata _from,
         bytes calldata _swapAndCall
-    ) external nonReentrant {
+    ) external override nonReentrant {
         SwapTemp memory swapTemp;
         swapTemp.srcToken = _srcToken;
         swapTemp.srcAmount = _amount;
@@ -228,7 +228,7 @@ contract ButterRouterV3 is SwapCall, FeeManager, ReentrancyGuard, IButterReceive
         (bytes memory _swapData, bytes memory _callbackData) = abi.decode(_swapAndCall, (bytes, bytes));
         if ((_swapData.length + _callbackData.length) == 0) revert Errors.DATA_EMPTY();
         bool result = true;
-        uint256 minExecGas = gasForReFund * 2;
+        uint256 minExecGas = gasForReFund;
         if (_swapData.length > 0) {
             SwapParam memory swap = abi.decode(_swapData, (SwapParam));
             swapTemp.receiver = swap.receiver;
@@ -416,7 +416,7 @@ contract ButterRouterV3 is SwapCall, FeeManager, ReentrancyGuard, IButterReceive
             }
             remain = _amount - fd.routerTokenFee - fd.integratorTokenFee;
 
-            if (fd.routerNativeFee + fd.integratorNativeFee <= msg.value) revert Errors.ZERO_IN();
+            if (fd.routerNativeFee + fd.integratorNativeFee > msg.value) revert Errors.FEE_MISMATCH();
         }
         if (remain == 0) revert Errors.ZERO_IN();
     }
