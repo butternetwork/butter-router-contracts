@@ -90,6 +90,7 @@ abstract contract SwapCall {
         (uint256 amountAdjust, uint256 firstAdjust, bool isUp) = _reBuildSwaps(_amount, len, swapParam.swaps);
         uint256 finalTokenAmount = _getBalance(swapParam.dstToken, address(this));
         SwapData[] memory _swaps = swapParam.swaps;
+        bool isNative = _isNative(_token);
         for (uint i = 0; i < len; ) {
             if (firstAdjust != 0) {
                 if (i == 0) {
@@ -97,24 +98,23 @@ abstract contract SwapCall {
                 } else {
                     isUp ? _swaps[i].fromAmount += amountAdjust : _swaps[i].fromAmount -= amountAdjust;
                 }
-                bool isNative = _isNative(_token);
-                if (!isNative) {
-                    IERC20(_token).safeIncreaseAllowance(_swaps[i].approveTo, _swaps[i].fromAmount);
-                }
-                _execute(
-                    _swaps[i].dexType,
-                    isNative,
-                    _swaps[i].callTo,
-                    _token,
-                    _swaps[i].fromAmount,
-                    _swaps[i].callData
-                );
-                if (!isNative) {
-                    IERC20(_token).safeApprove(_swaps[i].approveTo, 0);
-                }
-                unchecked {
-                    i++;
-                }
+            }
+            if (!isNative) {
+                IERC20(_token).safeIncreaseAllowance(_swaps[i].approveTo, _swaps[i].fromAmount);
+            }
+            _execute(
+                _swaps[i].dexType,
+                isNative,
+                _swaps[i].callTo,
+                _token,
+                _swaps[i].fromAmount,
+                _swaps[i].callData
+            );
+            if (!isNative) {
+                IERC20(_token).safeApprove(_swaps[i].approveTo, 0);
+            }
+            unchecked {
+                i++;
             }
         }
         _dstAmount = _getBalance(swapParam.dstToken, address(this)) - finalTokenAmount;
@@ -192,10 +192,9 @@ abstract contract SwapCall {
         bytes memory _swapData
     ) internal {
         bool _result;
-        DexType dexType = DexType(_dexType);
-        if (dexType == DexType.FILL) {
+        if (_dexType == DexType.FILL) {
             (_result) = _makeAggFill(_router, _amount, _native, _swapData);
-        } else if(dexType == DexType.MIX){
+        } else if(_dexType == DexType.MIX){
             (_result) = _makeMixSwap(_srcToken, _amount, _swapData);
         } else {
             revert Errors.UNSUPPORT_DEX_TYPE();

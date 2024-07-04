@@ -59,7 +59,7 @@ contract SwapAdapter is Ownable2Step, ReentrancyGuard {
         bool isFirst = true;
         SwapData[] memory _swaps = params.swaps;
         for (uint256 i = 0; i < _swaps.length; i++) {
-            if (_swaps[i].dexType > 0 && amountAdjust > 0) {
+            if (_swaps[i].dexType > 0 && firstAdjust > 0) {
                 if (isFirst) {
                     isUp ? _swaps[i].fromAmount += firstAdjust : _swaps[i].fromAmount -= firstAdjust;
                     isFirst = false;

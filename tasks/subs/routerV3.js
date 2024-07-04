@@ -5,6 +5,7 @@ let { setAuthorizationV3, setFeeV3, transferOwner } = require("../utils/util.js"
 let {
     routerV3,
     deployRouterV3,
+    tronSetReferrerMaxFee,
     tronSetAuthorizationV3,
     tronSetFeeV3,
     tronSetAuthFromConfigV3,
@@ -122,6 +123,30 @@ task("routerV3:setFeeManager", "set fee manager")
             } else {
                 console.log("setFeeManager failed");
             }
+        }
+    });
+
+task("routerV3:setReferrerMaxFee", "set referrer max fee")
+    .addParam("router", "router address")
+    .addParam("rate", "max fee rate")
+    .addParam("native", "max native fee")
+    .setAction(async (taskArgs, hre) => {
+        const { deployments, getNamedAccounts, ethers } = hre;
+        const { deploy } = deployments;
+        const { deployer } = await getNamedAccounts();
+        if (network.name === "Tron" || network.name === "TronTest") {
+            await tronSetReferrerMaxFee(
+                hre.artifacts,
+                network.name,
+                taskArgs.router,
+                taskArgs.rate,
+                taskArgs.native
+            );
+        } else {
+            console.log("\nsetFee deployer :", deployer);
+            let Router = await ethers.getContractFactory("ButterRouterV3");
+            let router = Router.attach(taskArgs.router);
+            await (await router.setReferrerMaxFee(taskArgs.rate,taskArgs.native)).wait();
         }
     });
 

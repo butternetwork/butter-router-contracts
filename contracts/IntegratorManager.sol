@@ -66,7 +66,7 @@ contract IntegratorManager is FeeManager {
         if (feeReceiver == address(0) && fee.referrer == address(0)) {
             return feeDetail;
         }
-
+        require(fee.feeType == IButterRouterV3.FeeType.PROPORTION, "Only proportion");
         feeDetail.feeToken = _inputToken;
 
         FeeInfo memory info = feeInfoList[fee.referrer];

@@ -101,6 +101,16 @@ exports.tronSetFeeV3 = async function (artifacts, network, router_addr, feerecei
     await setFee("ButterRouterV3", tronWeb, artifacts, network, router_addr, feereceiver, feerate, fixedfee);
 };
 
+exports.tronSetReferrerMaxFee = async function (artifacts, network, router_addr, maxFeeRate, maxNativeFee) {
+    let tronWeb = await getTronWeb(network);
+    let Router = await artifacts.readArtifact("ButterRouterV3");
+    if (router_addr.startsWith("0x")) {
+        router_addr = tronWeb.address.fromHex(router_addr);
+    }
+    let router = await tronWeb.contract(Router.abi, router_addr);
+    await router.setReferrerMaxFee(maxFeeRate,maxNativeFee).send();
+};
+
 exports.tronSetFeeManager = async function (artifacts, network, router_addr, manager) {
     let tronWeb = await getTronWeb(network);
     let Router = await artifacts.readArtifact("ButterRouterV3");
