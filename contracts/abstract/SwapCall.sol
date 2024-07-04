@@ -65,7 +65,8 @@ abstract contract SwapCall {
         nativeBalanceBeforeExec = address(this).balance - msg.value;
         if (_isNative(token)) {
             if (msg.value < amount) revert Errors.FEE_MISMATCH();
-            initInputTokenBalance = nativeBalanceBeforeExec;
+            //extra value maybe used for call native or bridge native fee
+            initInputTokenBalance = address(this).balance - amount;
         } else {
             initInputTokenBalance = _getBalance(token, address(this));
             SafeERC20.safeTransferFrom(IERC20(token), msg.sender, address(this), amount);
