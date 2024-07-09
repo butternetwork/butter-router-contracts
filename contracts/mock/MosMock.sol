@@ -7,16 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract BridgeMock is IButterBridgeV3 {
-    event SwapOut(
-        uint256 indexed fromChain, // from chain
-        uint256 indexed toChain, // to chain
-        bytes32 orderId, // order id
-        bytes token, // token to transfer
-        bytes from, // source chain from address
-        bytes to,
-        uint256 amount,
-        bytes swapData // swap data, used on target chain dex.
-    );
+
 
     function swapOutToken(
         address _initiatorAddress,
@@ -27,14 +18,16 @@ contract BridgeMock is IButterBridgeV3 {
         bytes calldata swapData
     ) external payable override returns (bytes32 orderId) {
         emit SwapOut(
-            block.chainid,
-            _toChain,
             bytes32(0),
-            abi.encodePacked(_token),
-            abi.encodePacked(_initiatorAddress),
-            _to,
+            _toChain,
+            _token,
             _amount,
-            swapData
+            _initiatorAddress,
+            msg.sender,
+            _to,
+            abi.encodePacked(_token),
+            _amount,
+            _amount
         );
         return bytes32(0);
     }

@@ -9,13 +9,15 @@ abstract contract SwapCall {
     using SafeERC20 for IERC20;
     using Address for address;
 
-    address internal immutable wToken;
     address internal constant ZERO_ADDRESS = address(0);
     address internal constant NATIVE_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
+    address public wToken;
     uint256 internal nativeBalanceBeforeExec;
     uint256 internal initInputTokenBalance;
     mapping(address => bool) public approved;
+
+    event SetWToken(address indexed _wToken);
 
     enum DexType {
         AGG,
@@ -52,9 +54,14 @@ abstract contract SwapCall {
     }
 
     constructor(address _wToken) payable {
+        _setWToken(_wToken);
+    }
+
+    function _setWToken(address _wToken) internal {
         if (!_wToken.isContract()) revert Errors.NOT_CONTRACT();
         wToken = _wToken;
-    }
+        emit SetWToken(_wToken);
+    } 
 
     function _transferIn(address token,uint256 amount,bytes memory permitData) internal {
         if (amount == 0) revert Errors.ZERO_IN();
