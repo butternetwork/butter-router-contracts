@@ -75,6 +75,10 @@ contract ButterRouterV3 is SwapCall, FeeManager, ReentrancyGuard, IButterReceive
         _setBridgeAddress(_bridgeAddress);
         return true;
     }
+ 
+    function setWToken(address _wToken) external onlyOwner {
+        _setWToken(_wToken);
+    }
 
     function setFeeManager(address _feeManager) public onlyOwner {
         if (!_feeManager.isContract()) revert Errors.NOT_CONTRACT();
@@ -123,7 +127,7 @@ contract ButterRouterV3 is SwapCall, FeeManager, ReentrancyGuard, IButterReceive
             fd.routerReceiver,
             fd.integrator,
             fd.routerTokenFee,
-            fd.routerTokenFee,
+            fd.integratorTokenFee,
             fd.routerNativeFee,
             fd.integratorNativeFee,
             orderId
@@ -168,7 +172,7 @@ contract ButterRouterV3 is SwapCall, FeeManager, ReentrancyGuard, IButterReceive
             fd.routerReceiver,
             fd.integrator,
             fd.routerTokenFee,
-            fd.routerTokenFee,
+            fd.integratorTokenFee,
             fd.routerNativeFee,
             fd.integratorNativeFee,
             swapTemp.transferId
@@ -397,7 +401,7 @@ contract ButterRouterV3 is SwapCall, FeeManager, ReentrancyGuard, IButterReceive
                 _transfer(_token, fd.routerReceiver, routerNative);
             }
             uint256 integratorNative = fd.integratorTokenFee + fd.integratorNativeFee;
-            if (fd.integratorTokenFee > 0) {
+            if (integratorNative > 0) {
                 _transfer(_token, fd.integrator, integratorNative);
             }
             remain = _amount - routerNative - integratorNative;
@@ -427,6 +431,10 @@ contract ButterRouterV3 is SwapCall, FeeManager, ReentrancyGuard, IButterReceive
         bridgeAddress = _bridgeAddress;
         emit SetBridgeAddress(_bridgeAddress);
         return true;
+    }
+
+    function rescueFunds(address _token, uint256 _amount) external onlyOwner {
+        _transfer(_token, msg.sender, _amount);
     }
 
     receive() external payable {}
