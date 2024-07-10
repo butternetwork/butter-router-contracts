@@ -61,9 +61,9 @@ abstract contract SwapCall {
         if (!_wToken.isContract()) revert Errors.NOT_CONTRACT();
         wToken = _wToken;
         emit SetWToken(_wToken);
-    } 
+    }
 
-    function _transferIn(address token,uint256 amount,bytes memory permitData) internal {
+    function _transferIn(address token, uint256 amount, bytes memory permitData) internal {
         if (amount == 0) revert Errors.ZERO_IN();
 
         if (permitData.length != 0) {
@@ -110,14 +110,7 @@ abstract contract SwapCall {
             if (!isNative) {
                 IERC20(_token).safeIncreaseAllowance(_swaps[i].approveTo, _swaps[i].fromAmount);
             }
-            _execute(
-                _swaps[i].dexType,
-                isNative,
-                _swaps[i].callTo,
-                _token,
-                _swaps[i].fromAmount,
-                _swaps[i].callData
-            );
+            _execute(_swaps[i].dexType, isNative, _swaps[i].callTo, _token, _swaps[i].fromAmount, _swaps[i].callData);
             if (!isNative) {
                 IERC20(_token).safeApprove(_swaps[i].approveTo, 0);
             }
@@ -184,10 +177,10 @@ abstract contract SwapCall {
             amountAdjust = margin / _len;
             firstAdjust = amountAdjust + (margin - amountAdjust * _len);
         } else if (total < _amount) {
-                isUp = true;
-                uint256 margin = _amount - total;
-                amountAdjust = margin / _len;
-                firstAdjust = amountAdjust + (margin - amountAdjust * _len);
+            isUp = true;
+            uint256 margin = _amount - total;
+            amountAdjust = margin / _len;
+            firstAdjust = amountAdjust + (margin - amountAdjust * _len);
         }
     }
 
@@ -202,14 +195,13 @@ abstract contract SwapCall {
         bool _result;
         if (_dexType == DexType.FILL) {
             (_result) = _makeAggFill(_router, _amount, _native, _swapData);
-        } else if(_dexType == DexType.MIX){
+        } else if (_dexType == DexType.MIX) {
             (_result) = _makeMixSwap(_srcToken, _amount, _swapData);
         } else {
             revert Errors.UNSUPPORT_DEX_TYPE();
         }
         if (!_result) revert Errors.SWAP_FAIL();
     }
-
 
     struct MixSwap {
         uint256 offset;

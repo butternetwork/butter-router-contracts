@@ -86,7 +86,7 @@ interface IButterRouterV3 {
         bytes calldata _bridgeData,
         bytes calldata _permitData,
         bytes calldata _feeData
-    ) external payable returns(bytes32 orderId);
+    ) external payable returns (bytes32 orderId);
 
     function getFee(
         address _inputToken,

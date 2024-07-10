@@ -108,7 +108,7 @@ exports.tronSetReferrerMaxFee = async function (artifacts, network, router_addr,
         router_addr = tronWeb.address.fromHex(router_addr);
     }
     let router = await tronWeb.contract(Router.abi, router_addr);
-    await router.setReferrerMaxFee(maxFeeRate,maxNativeFee).send();
+    await router.setReferrerMaxFee(maxFeeRate, maxNativeFee).send();
 };
 
 exports.tronSetFeeManager = async function (artifacts, network, router_addr, manager) {

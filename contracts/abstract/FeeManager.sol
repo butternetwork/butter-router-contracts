@@ -13,11 +13,11 @@ abstract contract FeeManager is Ownable2Step, IFeeManager {
     uint256 public routerFixedFee;
     address public feeReceiver;
 
-    uint256 public maxFeeRate;      // referrer max fee rate
-    uint256 public maxNativeFee;    // referrer max fixed native fee
+    uint256 public maxFeeRate; // referrer max fee rate
+    uint256 public maxNativeFee; // referrer max fixed native fee
 
     event SetFee(address indexed receiver, uint256 indexed rate, uint256 indexed fixedf);
-    event SetReferrerMaxFee(uint256 indexed _maxFeeRate,uint256 indexed _maxNativeFee);
+    event SetReferrerMaxFee(uint256 indexed _maxFeeRate, uint256 indexed _maxNativeFee);
 
     constructor(address _owner) payable {
         if (_owner == address(0)) revert Errors.ZERO_ADDRESS();
@@ -36,18 +36,18 @@ abstract contract FeeManager is Ownable2Step, IFeeManager {
         emit SetFee(_feeReceiver, _feeRate, routerFixedFee);
     }
 
-    function setReferrerMaxFee(uint256 _maxFeeRate,uint256 _maxNativeFee) external onlyOwner {
+    function setReferrerMaxFee(uint256 _maxFeeRate, uint256 _maxNativeFee) external onlyOwner {
         require(_maxFeeRate < FEE_DENOMINATOR);
         maxFeeRate = _maxFeeRate;
         maxNativeFee = _maxNativeFee;
-        emit SetReferrerMaxFee(_maxFeeRate,_maxNativeFee);
+        emit SetReferrerMaxFee(_maxFeeRate, _maxNativeFee);
     }
 
     function getFeeDetail(
         address _inputToken,
         uint256 _inputAmount,
         bytes calldata _feeData
-    ) external view override virtual returns (FeeDetail memory feeDetail) {
+    ) external view virtual override returns (FeeDetail memory feeDetail) {
         IButterRouterV3.Fee memory fee = _checkFeeData(_feeData);
         if (feeReceiver == address(0) && fee.referrer == address(0)) {
             return feeDetail;
@@ -78,7 +78,6 @@ abstract contract FeeManager is Ownable2Step, IFeeManager {
 
         return feeDetail;
     }
-
 
     function getAmountBeforeFee(
         address _token,

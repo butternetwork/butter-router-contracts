@@ -1,6 +1,5 @@
-
 async function sleep(delay) {
-    return new Promise((resolve) =>setTimeout(resolve, delay));
+    return new Promise((resolve) => setTimeout(resolve, delay));
 }
 
 exports.verify = async function (addr, args, code, chainId, wait) {
@@ -18,7 +17,7 @@ exports.verify = async function (addr, args, code, chainId, wait) {
         await run("verify:verify", {
             contract: code,
             address: addr,
-            constructorArguments: args
+            constructorArguments: args,
         });
     }
 };

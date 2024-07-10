@@ -57,10 +57,14 @@ task("routerV3:deploy", "deploy butterRouterV3")
         const deployer = accounts[0];
 
         let salt = process.env.ROUTER_V3_DEPLOY_SALT;
-        let routerAddr = await create(hre, deployer, "ButterRouterV3",
+        let routerAddr = await create(
+            hre,
+            deployer,
+            "ButterRouterV3",
             ["address", "address", "address"],
             [taskArgs.bridge, deployer.address, taskArgs.wtoken],
-            salt);
+            salt
+        );
 
         console.log("router v3 address :", routerAddr);
 
@@ -68,10 +72,11 @@ task("routerV3:deploy", "deploy butterRouterV3")
         deployments[hre.network.name]["ButterRouterV3"] = routerAddr;
         await writeToFile(deployments);
 
-        await verify(routerAddr,
+        await verify(
+            hre,
+            routerAddr,
             [taskArgs.bridge, deployer.address, taskArgs.wtoken],
             "contracts/ButterRouterV3.sol:ButterRouterV3",
-            hre.network.config.chainId,
             true
         );
     });
@@ -136,18 +141,12 @@ task("routerV3:setReferrerMaxFee", "set referrer max fee")
         const { deploy } = deployments;
         const { deployer } = await getNamedAccounts();
         if (network.name === "Tron" || network.name === "TronTest") {
-            await tronSetReferrerMaxFee(
-                hre.artifacts,
-                network.name,
-                taskArgs.router,
-                taskArgs.rate,
-                taskArgs.native
-            );
+            await tronSetReferrerMaxFee(hre.artifacts, network.name, taskArgs.router, taskArgs.rate, taskArgs.native);
         } else {
             console.log("\nsetFee deployer :", deployer);
             let Router = await ethers.getContractFactory("ButterRouterV3");
             let router = Router.attach(taskArgs.router);
-            await (await router.setReferrerMaxFee(taskArgs.rate,taskArgs.native)).wait();
+            await (await router.setReferrerMaxFee(taskArgs.rate, taskArgs.native)).wait();
         }
     });
 

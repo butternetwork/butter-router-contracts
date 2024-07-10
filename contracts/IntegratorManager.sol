@@ -9,7 +9,6 @@ import "./lib/Helper.sol";
 import "./abstract/FeeManager.sol";
 
 contract IntegratorManager is FeeManager {
-
     struct FeeInfo {
         address receiver;
         uint256 fixedNative;
@@ -30,7 +29,7 @@ contract IntegratorManager is FeeManager {
         uint256 routerNativeShare
     );
 
-    constructor(address _owner) FeeManager(_owner) payable {
+    constructor(address _owner) payable FeeManager(_owner) {
         require(_owner != Helper.ZERO_ADDRESS, ErrorMessage.ZERO_ADDR);
     }
 

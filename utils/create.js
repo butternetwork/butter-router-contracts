@@ -9,7 +9,6 @@ let IDeployFactory_abi = [
     "function getAddress(bytes32 salt) external view returns (address)",
 ];
 
-
 async function create(hre, deployer, contract, paramTypes, args, salt) {
     // todo contract verify
     console.log(`deploy contract ${contract} ...`);
@@ -91,7 +90,6 @@ async function createTron(contractName, args, artifacts, network) {
     console.log(`${contractName} deployed on: ${contract_address} (${contract_instance.address})`);
     return "0x" + contract_instance.address.substring(2);
 }
-
 
 async function readFromFile(network) {
     let p = path.join(__dirname, "../deployments/deploy.json");

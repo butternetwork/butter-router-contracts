@@ -18,7 +18,7 @@
 			"addr": "0xbB21e441fb738F54e6eC244e435475096E179d66"
 		},
 		"SwapAdapter": "0x002162B2aEe2dD657FB131b28CC34deE6797b66f",
-		"ButterRouterV3": "0xFEaf6C9D1a06FE2E224D5f50768102211D9153D6"
+		"ButterRouterV3": "0xFB9D0E7d7c34Be51f232426C006B82bc1Ef5F420"
 	},
 	"Klaytn": {
 		"ButterRouterV2": {

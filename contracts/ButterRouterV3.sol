@@ -75,7 +75,7 @@ contract ButterRouterV3 is SwapCall, FeeManager, ReentrancyGuard, IButterReceive
         _setBridgeAddress(_bridgeAddress);
         return true;
     }
- 
+
     function setWToken(address _wToken) external onlyOwner {
         _setWToken(_wToken);
     }
@@ -95,7 +95,7 @@ contract ButterRouterV3 is SwapCall, FeeManager, ReentrancyGuard, IButterReceive
         bytes calldata _bridgeData,
         bytes calldata _permitData,
         bytes calldata _feeData
-    ) external payable override nonReentrant returns(bytes32 orderId) {
+    ) external payable override nonReentrant returns (bytes32 orderId) {
         if ((_swapData.length + _bridgeData.length) == 0) revert Errors.DATA_EMPTY();
         SwapTemp memory swapTemp;
         swapTemp.initiator = _initiator;
@@ -157,7 +157,7 @@ contract ButterRouterV3 is SwapCall, FeeManager, ReentrancyGuard, IButterReceive
         bytes calldata _callbackData,
         bytes calldata _permitData,
         bytes calldata _feeData
-    ) external payable override nonReentrant  {
+    ) external payable override nonReentrant {
         SwapTemp memory swapTemp;
         swapTemp.initiator = _initiator;
         swapTemp.srcToken = _srcToken;
@@ -312,7 +312,6 @@ contract ButterRouterV3 is SwapCall, FeeManager, ReentrancyGuard, IButterReceive
         }
     }
 
-
     function getInputBeforeFee(
         address _token,
         uint256 _amountAfterFee,
@@ -323,7 +322,6 @@ contract ButterRouterV3 is SwapCall, FeeManager, ReentrancyGuard, IButterReceive
         }
         return feeManager.getAmountBeforeFee(_token, _amountAfterFee, _feeData);
     }
-
 
     function doRemoteSwap(
         SwapParam memory swapParam,
@@ -392,7 +390,7 @@ contract ButterRouterV3 is SwapCall, FeeManager, ReentrancyGuard, IButterReceive
         address _token,
         uint256 _amount,
         bytes calldata _feeData
-    ) internal returns (FeeDetail memory fd,uint256 remain, address referrer) {
+    ) internal returns (FeeDetail memory fd, uint256 remain, address referrer) {
         fd = _getFee(_token, _amount, _feeData);
         referrer = fd.integrator;
         if (_isNative(_token)) {
@@ -424,7 +422,6 @@ contract ButterRouterV3 is SwapCall, FeeManager, ReentrancyGuard, IButterReceive
         }
         if (remain == 0) revert Errors.ZERO_IN();
     }
-
 
     function _setBridgeAddress(address _bridgeAddress) internal returns (bool) {
         if (!_bridgeAddress.isContract()) revert Errors.NOT_CONTRACT();
