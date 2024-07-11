@@ -68,9 +68,10 @@ task("routerV3:deploy", "deploy butterRouterV3")
         deployments[hre.network.name]["ButterRouterV3"] = routerAddr;
         await writeToFile(deployments);
 
-        await verify(hre, routerAddr,
+        await verify(routerAddr,
             [taskArgs.bridge, deployer.address, taskArgs.wtoken],
             "contracts/ButterRouterV3.sol:ButterRouterV3",
+            hre.network.config.chainId,
             true
         );
     });
