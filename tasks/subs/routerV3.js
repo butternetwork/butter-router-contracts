@@ -12,6 +12,7 @@ let {
     tronSetFeeManager,
 } = require("../utils/tron.js");
 let { verify } = require("../utils/verify.js");
+const {setBridge} = require("../utils/util");
 
 module.exports = async (taskArgs, hre) => {
     const { getNamedAccounts, network } = hre;
@@ -29,10 +30,10 @@ module.exports = async (taskArgs, hre) => {
         await hre.run("routerV3:deploy", { bridge: config.v3.bridge, wtoken: config.wToken });
 
         let deploy_json = await readFromFile(network.name);
-        let router_addr = deploy_json[network.name]["ButterRouterV3"]["addr"];
+        let router_addr = deploy_json[network.name]["ButterRouterV3"];
 
         deploy_json = await readFromFile(network.name);
-        let adapt_addr = deploy_json[network.name]["SwapAdapter"];
+        let adapt_addr = deploy_json[network.name]["SwapAdapterV3"];
 
         config.v3.executors.push(adapt_addr);
 
@@ -200,7 +201,7 @@ task("routerV3:setAuthFromConfig", "set Authorization from config file")
             }
             console.log("router: ", router_addr);
 
-            let adapter_address = deploy_json[network.name]["SwapAdapter"];
+            let adapter_address = deploy_json[network.name]["SwapAdapterV3"];
             if (adapter_address != undefined) {
                 console.log("SwapAdapter: ", adapter_address);
                 config.v3.executors.push(adapter_address);
@@ -227,6 +228,27 @@ task("routerV3:setAuthFromConfig", "set Authorization from config file")
             }
 
             console.log("RouterV3 sync authorization from config file.");
+        }
+    });
+
+task("routerV3:setBridge", "set setFee")
+    .addParam("router", "router address")
+    .addParam("bridge", "bridge address")
+    .setAction(async (taskArgs, hre) => {
+        const { deployments, getNamedAccounts, ethers } = hre;
+        const { deploy } = deployments;
+        const { deployer } = await getNamedAccounts();
+        if (network.name === "Tron" || network.name === "TronTest") {
+            await tronSetFeeV3(
+                hre.artifacts,
+                network.name,
+                taskArgs.router,
+                taskArgs.bridge
+            );
+        } else {
+            console.log("\nset bridge :", taskArgs.bridge);
+
+            await setBridge(taskArgs.router, taskArgs.bridge);
         }
     });
 

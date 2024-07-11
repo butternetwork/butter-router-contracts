@@ -20,7 +20,7 @@ let config = new Map([
                 ],
             },
             v3: {
-                bridge: "0xBB030b0aB399B77866c9DE1a513E4513164e0bf3",
+                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
@@ -32,6 +32,7 @@ let config = new Map([
                     "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F", //sushi
                     "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D", //univ2
                     "0xE592427A0AEce92De3Edee1F18E0157C05861564", //univ3
+                    "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64", // open ocean
                     "0x3321dE36B6C29A6fa102A67bd5C48E5756Baa596", // omni adapter
                 ],
             },
@@ -56,7 +57,7 @@ let config = new Map([
                 ],
             },
             v3: {
-                bridge: "0xBB030b0aB399B77866c9DE1a513E4513164e0bf3",
+                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
@@ -66,6 +67,7 @@ let config = new Map([
                     "0x1111111254eeb25477b68fb85ed929f73a960582", //1inch
                     "0x10ED43C718714eb63d5aA57B78B54704E256024E", //pancake
                     "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506", //sushi
+                    "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64", // openocean
                     "0x3321dE36B6C29A6fa102A67bd5C48E5756Baa596", // omni adapter
                 ],
             },
@@ -92,7 +94,7 @@ let config = new Map([
                 ],
             },
             v3: {
-                bridge: "0xBB030b0aB399B77866c9DE1a513E4513164e0bf3",
+                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
@@ -104,6 +106,7 @@ let config = new Map([
                     "0xf5b509bB0909a69B1c207E495f687a596C168E12", //quickv3
                     "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506", //sushi
                     "0xE592427A0AEce92De3Edee1F18E0157C05861564", //univ3
+                    "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64", // openocean
                 ],
             },
         },
@@ -126,7 +129,7 @@ let config = new Map([
                 ],
             },
             v3: {
-                bridge: "",
+                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
@@ -156,7 +159,7 @@ let config = new Map([
                 ],
             },
             v3: {
-                bridge: "",
+                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
@@ -185,7 +188,7 @@ let config = new Map([
                 ],
             },
             v3: {
-                bridge: "0xBB030b0aB399B77866c9DE1a513E4513164e0bf3",
+                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
@@ -217,7 +220,7 @@ let config = new Map([
                 ],
             },
             v3: {
-                bridge: "",
+                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
@@ -244,18 +247,16 @@ let config = new Map([
                     fixedFee: "0",
                 },
                 executors: [
-                    "0x6628a22D9E16E42225a46ceaDd93dACFefAcfE1b", //hiveswap
                 ],
             },
             v3: {
-                bridge: "",
+                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
                     fixedFee: "0",
                 },
                 executors: [
-                    "0x6628a22D9E16E42225a46ceaDd93dACFefAcfE1b", //hiveswap
                 ],
             },
         },
@@ -276,7 +277,7 @@ let config = new Map([
                 ],
             },
             v3: {
-                bridge: "",
+                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
@@ -305,7 +306,7 @@ let config = new Map([
                 ],
             },
             v3: {
-                bridge: "",
+                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
@@ -332,13 +333,16 @@ let config = new Map([
                 executors: [],
             },
             v3: {
-                bridge: "",
+                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
                     fixedFee: "0",
                 },
-                executors: [],
+                executors: [
+                    "0x1111111254eeb25477b68fb85ed929f73a960582", //1inch
+                    "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64", // openocean
+                ],
             },
         },
     ],
@@ -356,13 +360,18 @@ let config = new Map([
                 executors: [],
             },
             v3: {
-                bridge: "",
+                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
                     fixedFee: "0",
                 },
-                executors: [],
+                executors: [
+                    "0x1111111254eeb25477b68fb85ed929f73a960582", //1inch
+                    "0xE592427A0AEce92De3Edee1F18E0157C05861564", //univ3
+                    "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64", // openocean
+
+                ],
             },
         },
     ],
@@ -380,7 +389,7 @@ let config = new Map([
                 executors: [],
             },
             v3: {
-                bridge: "",
+                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
@@ -404,7 +413,7 @@ let config = new Map([
                 executors: [],
             },
             v3: {
-                bridge: "",
+                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
@@ -428,7 +437,7 @@ let config = new Map([
                 executors: [],
             },
             v3: {
-                bridge: "",
+                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
@@ -452,7 +461,7 @@ let config = new Map([
                 executors: [],
             },
             v3: {
-                bridge: "",
+                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
@@ -476,7 +485,7 @@ let config = new Map([
                 executors: [],
             },
             v3: {
-                bridge: "",
+                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
@@ -500,13 +509,16 @@ let config = new Map([
                 executors: [],
             },
             v3: {
-                bridge: "",
+                bridge: "0xBEf06a32166C4B819fF04cCfa887733B8bb67eB5",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     feeRate: "0", //denominator is 1000000
                     fixedFee: "0",
                 },
-                executors: [],
+                executors: [
+                    "0x6e2B76966cbD9cF4cC2Fa0D76d24d5241E0ABC2F", //1inch
+                    "0x2da10A1e27bF85cEdD8FFb1AbBe97e53391C0295", //sync-swap
+                ],
             },
         },
     ],

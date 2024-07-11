@@ -2,20 +2,22 @@ async function sleep(delay) {
     return new Promise((resolve) => setTimeout(resolve, delay));
 }
 
-exports.verify = async function (addr, args, code, chainId, wait) {
-    if (needVerify(chainId)) {
+exports.verify = async function (hre, addr, args, contract, wait) {
+    if (needVerify(hre.network.config.chainId)) {
         if (wait) {
             await sleep(20000);
         }
-        console.log(`verify ${code} ...`);
+        console.log(`verify ${contract} ...`);
         console.log("addr:", addr);
         console.log("args:", args);
 
         const verifyArgs = args.map((arg) => (typeof arg == "string" ? `'${arg}'` : arg)).join(" ");
-        console.log(`To verify, run: npx hardhat verify --network Network --contract ${code} ${addr} ${verifyArgs}`);
+        console.log(
+            `To verify, run: npx hardhat verify --network ${hre.network.name} --contract ${contract} ${addr} ${verifyArgs}`
+        );
 
         await run("verify:verify", {
-            contract: code,
+            contract: contract,
             address: addr,
             constructorArguments: args,
         });

@@ -101,6 +101,11 @@ exports.tronSetFeeV3 = async function (artifacts, network, router_addr, feerecei
     await setFee("ButterRouterV3", tronWeb, artifacts, network, router_addr, feereceiver, feerate, fixedfee);
 };
 
+exports.tronSetBridge = async function (artifacts, network, router_addr, bridge) {
+    let tronWeb = await getTronWeb(network);
+    await setBridge("ButterRouterV3", tronWeb, artifacts, network, bridge);
+};
+
 exports.tronSetReferrerMaxFee = async function (artifacts, network, router_addr, maxFeeRate, maxNativeFee) {
     let tronWeb = await getTronWeb(network);
     let Router = await artifacts.readArtifact("ButterRouterV3");
@@ -137,6 +142,22 @@ async function setFee(contractName, tronWeb, artifacts, network, router_addr, fe
 
     console.log(
         `${contractName} ${router_addr} setFee rate(${feerate}), fixed(${fixedfee}), receiver(${feereceiver}) succeed`
+    );
+}
+
+async function setBridge(contractName, tronWeb, artifacts, network, router_addr, bridge) {
+    let Router = await artifacts.readArtifact(contractName);
+    if (router_addr.startsWith("0x")) {
+        router_addr = tronWeb.address.fromHex(router_addr);
+    }
+    let router = await tronWeb.contract(Router.abi, router_addr);
+
+    let bridgeHex = tronWeb.address.toHex(bridge).replace(/^(41)/, "0x");
+
+    await router.setBridge(bridgeHex).send();
+
+    console.log(
+        `${contractName} ${router_addr} set bridge (${bridge}) succeed`
     );
 }
 

@@ -52,6 +52,24 @@ exports.setFeeV3 = async function (router_addr, feereceiver, feerate, fixedfee) 
     await setFee("ButterRouterV3", router_addr, feereceiver, feerate, fixedfee);
 };
 
+exports.setBridge = async function (router_addr, bridge) {
+    await setBridge("ButterRouterV3", router_addr, bridge);
+};
+
+async function setBridge(contractName, router_addr, bridge) {
+    let Router = await ethers.getContractFactory(contractName);
+
+    let router = Router.attach(router_addr);
+    let result = await (await router.setBridgeAddress(bridge)).wait();
+    if (result.status == 1) {
+        console.log(
+            `${contractName} ${router_addr} set bridge (${bridge}) succeed`
+        );
+    } else {
+        console.log("set bridge failed");
+    }
+}
+
 async function setFee(contractName, router_addr, feereceiver, feerate, fixedfee) {
     let Router = await ethers.getContractFactory(contractName);
 
