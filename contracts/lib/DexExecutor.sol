@@ -106,9 +106,15 @@ library DexExecutor {
         bool _isNative,
         bytes memory _swap
     ) internal returns (bool _result) {
-        (uint256 offset, bytes memory callDatas) = abi.decode(_swap, (uint256, bytes));
-        assembly {
-            mstore(add(callDatas, offset), _amount)
+        (uint256[] memory offsets, bytes memory callDatas) = abi.decode(_swap, (uint256[], bytes));
+        uint256 len = offsets.length;
+        for (uint i = 0; i < len; i++) {
+            uint256 offset = offsets[i];
+            if (offset != 0) {
+                assembly {
+                    mstore(add(callDatas, offset), _amount)
+                }
+            }
         }
         if (_isNative) {
             (_result, ) = _router.call{value: _amount}(callDatas);
