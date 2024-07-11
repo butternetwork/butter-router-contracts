@@ -6,29 +6,15 @@ let { getFeeManagerConfig } = require("../../configs/FeeManagerConfig.js");
 task("IntegratorManager:deploy", "deploy IntegratorManager").setAction(async (taskArgs, hre) => {
     const { getNamedAccounts, ethers } = hre;
     const { deployer } = await getNamedAccounts();
-    if (network.name === "Tron" || network.name === "TronTest") {
-        await deployFeeManager(hre.artifacts, network.name);
-    } else {
-        console.log("deployer :", deployer);
-        let chainId = hre.network.config.chainId;
-        let feeManager;
-        if (chainId === 324 || chainId === 280) {
-            feeManager = await createZk("IntegratorManager", [deployer], hre);
-        } else {
-            let salt = process.env.FEE_MANAGER_SALT;
-            let FeeManager = await ethers.getContractFactory("IntegratorManager");
-            let param = ethers.utils.defaultAbiCoder.encode(["address"], [deployer]);
-            let result = await create(salt, FeeManager.bytecode, param);
-            feeManager = result[0];
-        }
-        console.log("IntegratorManager  address :", feeManager);
-        let deploy = await readFromFile(network.name);
-        deploy[network.name]["IntegratorManager"] = feeManager;
-        await writeToFile(deploy);
-        const verifyArgs = [deployer].map((arg) => (typeof arg == "string" ? `'${arg}'` : arg)).join(" ");
-        console.log(`To verify, run: npx hardhat verify --network ${network.name} ${feeManager} ${verifyArgs}`);
-        await hre.run("IntegratorManager:setRouterFeeFromConfig", {});
-    }
+    let salt = process.env.FEE_MANAGER_SALT;
+    let integratorManager = await create(hre,deployer,"IntegratorManager",["address"],[deployer],salt)
+    console.log("IntegratorManager address :", integratorManager);
+    let deploy = await readFromFile(network.name);
+    deploy[network.name]["IntegratorManager"] = integratorManager;
+    await writeToFile(deploy);
+    const verifyArgs = [deployer].map((arg) => (typeof arg == "string" ? `'${arg}'` : arg)).join(" ");
+    console.log(`To verify, run: npx hardhat verify --network ${network.name} ${integratorManager} ${verifyArgs}`);
+    await hre.run("IntegratorManager:setRouterFeeFromConfig", {});
 });
 
 task("IntegratorManager:setRouterFeeFromConfig", "setRouterFee feeManager").setAction(async (taskArgs, hre) => {
