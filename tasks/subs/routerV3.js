@@ -1,18 +1,17 @@
-let { create, createZk, readFromFile, writeToFile } = require("../../utils/create.js");
+let { create, readFromFile, writeToFile } = require("../../utils/create.js");
 let { task } = require("hardhat/config");
 let { getConfig } = require("../../configs/config");
-let { setAuthorizationV3, setFeeV3, transferOwner } = require("../utils/util.js");
+let { setAuthorizationV3, setFeeV3, transferOwner, setBridge } = require("../utils/util.js");
 let {
     routerV3,
-    deployRouterV3,
     tronSetReferrerMaxFee,
     tronSetAuthorizationV3,
     tronSetFeeV3,
-    tronSetAuthFromConfigV3,
+    tronCheckAndUpdateFromConfig,
     tronSetFeeManager,
 } = require("../utils/tron.js");
 let { verify } = require("../utils/verify.js");
-const {setBridge} = require("../utils/util");
+
 
 module.exports = async (taskArgs, hre) => {
     const { getNamedAccounts, network } = hre;
@@ -46,6 +45,12 @@ module.exports = async (taskArgs, hre) => {
             feereceiver: config.v3.fee.receiver,
             feerate: config.v3.fee.feeRate,
             fixedfee: config.v3.fee.fixedFee,
+        });
+
+        await hre.run("routerV3:setReferrerMaxFee", {
+            router: router_addr,
+            rate: config.v3.fee.maxFeeRate,
+            native: config.v3.fee.maxNativeFee,
         });
     }
 };
@@ -176,61 +181,6 @@ task("routerV3:setFee", "set setFee")
         }
     });
 
-task("routerV3:setAuthFromConfig", "set Authorization from config file")
-    .addOptionalParam("router", "router address", "router", types.string)
-    .setAction(async (taskArgs, hre) => {
-        const { deployments, getNamedAccounts, ethers } = hre;
-        const { deploy } = deployments;
-        const { deployer } = await getNamedAccounts();
-        let config = getConfig(network.name);
-        if (!config) {
-            throw "config not set";
-        }
-        if (network.name === "Tron" || network.name === "TronTest") {
-            await tronSetAuthFromConfigV3(hre.artifacts, network.name, taskArgs.router, config);
-        } else {
-            console.log("\nset Authorization from config file deployer :", deployer);
-            let deploy_json = await readFromFile(network.name);
-
-            let router_addr = taskArgs.router;
-            if (router_addr === "router") {
-                if (deploy_json[network.name]["ButterRouterV3"] === undefined) {
-                    throw "can not get router address";
-                }
-                router_addr = deploy_json[network.name]["ButterRouterV3"]["addr"];
-            }
-            console.log("router: ", router_addr);
-
-            let adapter_address = deploy_json[network.name]["SwapAdapterV3"];
-            if (adapter_address != undefined) {
-                console.log("SwapAdapter: ", adapter_address);
-                config.v3.executors.push(adapter_address);
-            }
-
-            let Router = await ethers.getContractFactory("ButterRouterV3");
-            let router = Router.attach(router_addr);
-
-            let executors = [];
-            for (let i = 0; i < config.v3.executors.length; i++) {
-                let result = await await router.approved(config.v3.executors[i]);
-
-                if (result === false || result === undefined) {
-                    executors.push(config.v3.executors[i]);
-                }
-            }
-
-            if (executors.length > 0) {
-                let executors_s = executors.join(",");
-
-                console.log("routers to set :", executors_s);
-
-                await setAuthorizationV3(router_addr, executors_s, true);
-            }
-
-            console.log("RouterV3 sync authorization from config file.");
-        }
-    });
-
 task("routerV3:setBridge", "set setFee")
     .addParam("router", "router address")
     .addParam("bridge", "bridge address")
@@ -239,12 +189,7 @@ task("routerV3:setBridge", "set setFee")
         const { deploy } = deployments;
         const { deployer } = await getNamedAccounts();
         if (network.name === "Tron" || network.name === "TronTest") {
-            await tronSetFeeV3(
-                hre.artifacts,
-                network.name,
-                taskArgs.router,
-                taskArgs.bridge
-            );
+            await tronSetFeeV3(hre.artifacts, network.name, taskArgs.router, taskArgs.bridge);
         } else {
             console.log("\nset bridge :", taskArgs.bridge);
 
@@ -317,3 +262,112 @@ task("routerV3:withdraw", "rescueFunds from router")
             console.log("RouterV3 rescueFunds.");
         }
     });
+
+task("routerV3:checkAndUpdateFromConfig", "check and Update from config file")
+    .addOptionalParam("router", "router address", "router", types.string)
+    .setAction(async (taskArgs, hre) => {
+        const { deployments, getNamedAccounts, ethers } = hre;
+        const { deploy } = deployments;
+        const { deployer } = await getNamedAccounts();
+        let config = getConfig(network.name);
+        if (!config) {
+            throw "config not set";
+        }
+        if (network.name === "Tron" || network.name === "TronTest") {
+            await tronCheckAndUpdateFromConfig(hre.artifacts, network.name, taskArgs.router, config);
+        } else {
+            console.log("\nset Authorization from config file deployer :", deployer);
+            let deploy_json = await readFromFile(network.name);
+
+            let router_addr = taskArgs.router;
+            if (router_addr === "router") {
+                if (deploy_json[network.name]["ButterRouterV3"] === undefined) {
+                    throw "can not get router address";
+                }
+                router_addr = deploy_json[network.name]["ButterRouterV3"]["addr"];
+            }
+            console.log("router: ", router_addr);
+
+            let Router = await ethers.getContractFactory("ButterRouterV3");
+            let router = Router.attach(router_addr);
+            await checkAuthorization(router, config,deploy_json);
+            await checkFee(router, config);
+            await checkBridgeAndWToken(router, config);
+        }
+    });
+
+async function checkAuthorization(router, config,deploy_json) {
+    let adapter_address = deploy_json[network.name]["SwapAdapterV3"];
+    if (adapter_address != undefined) {
+        console.log("SwapAdapter: ", adapter_address);
+        config.v3.executors.push(adapter_address);
+    }
+    let executors = [];
+    for (let i = 0; i < config.v3.executors.length; i++) {
+        let result = await await router.approved(config.v3.executors[i]);
+
+        if (result === false || result === undefined) {
+            executors.push(config.v3.executors[i]);
+        }
+    }
+    if (executors.length > 0) {
+        let executors_s = executors.join(",");
+
+        console.log("routers to set :", executors_s);
+
+        await setAuthorizationV3(router.address, executors_s, true);
+    }
+
+    console.log("RouterV3 sync authorization from config file.");
+}
+
+async function checkFee(router, config) {
+    let feeReceiver = await router.feeReceiver();
+    let routerFixedFee = await router.routerFixedFee();
+    let routerFeeRate = await router.routerFeeRate();
+
+    console.log("pre feeReceiver", feeReceiver);
+    console.log("pre routerFixedFee", routerFixedFee);
+    console.log("pre routerFeeRate", routerFeeRate);
+
+    if (
+        feeReceiver.toLowerCase() !== config.v3.fee.receiver.toLowerCase() ||
+        routerFixedFee !== config.v3.fee.routerFixedFee ||
+        routerFeeRate !== config.v3.fee.routerFeeRate
+    ) {
+        await (
+            await router.setFee(config.v3.fee.receiver, config.v3.fee.routerFeeRate, config.v3.fee.routerFixedFee)
+        ).wait();
+
+        console.log("feeReceiver", await router.feeReceiver());
+        console.log("routerFixedFee", await router.routerFixedFee());
+        console.log("routerFeeRate", await router.routerFeeRate());
+    }
+    let maxFeeRate = await router.maxFeeRate();
+    let maxNativeFee = await router.maxNativeFee();
+    console.log("pre maxFeeRate", maxFeeRate);
+    console.log("pre maxNativeFee", maxNativeFee);
+    if (maxFeeRate !== config.v3.fee.maxFeeRate || maxNativeFee !== config.v3.fee.maxNativeFee) {
+       await (await router.setReferrerMaxFee(config.v3.fee.maxFeeRate, config.v3.fee.maxNativeFee)).wait();
+        console.log("maxFeeRate", await router.maxFeeRate());
+        console.log("maxNativeFee", await router.maxNativeFee());
+    }
+}
+
+async function checkBridgeAndWToken(router, config) {
+    let wToken = await router.wToken();
+
+    console.log("pre wToken", wToken);
+
+    if (wToken.toLowerCase() !== config.wToken.toLowerCase()) {
+       await (await router.setWToken(config.wToken)).wait();
+        console.log("wToken", await router.wToken());
+    }
+
+    let bridgeAddress = await router.bridgeAddress();
+    console.log("pre bridgeAddress", bridgeAddress);
+    if (bridgeAddress.toLowerCase() !== config.v3.bridge.toLowerCase()) {
+       await (await router.setBridgeAddress(config.v3.bridge)).wait();
+        console.log("bridgeAddress", await router.bridgeAddress());
+    }
+}
