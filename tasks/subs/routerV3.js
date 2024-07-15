@@ -49,8 +49,8 @@ module.exports = async (taskArgs, hre) => {
 
         await hre.run("routerV3:setReferrerMaxFee", {
             router: router_addr,
-            rate: config.v3.fee.maxFeeRate,
-            native: config.v3.fee.maxNativeFee,
+            rate: config.v3.fee.maxReferrerFeeRate,
+            native: config.v3.fee.maxReferrerNativeFee,
         });
     }
 };
@@ -263,7 +263,7 @@ task("routerV3:withdraw", "rescueFunds from router")
         }
     });
 
-task("routerV3:checkAndUpdateFromConfig", "check and Update from config file")
+task("routerV3:update", "check and Update from config file")
     .addOptionalParam("router", "router address", "router", types.string)
     .setAction(async (taskArgs, hre) => {
         const { deployments, getNamedAccounts, ethers } = hre;
@@ -284,7 +284,7 @@ task("routerV3:checkAndUpdateFromConfig", "check and Update from config file")
                 if (deploy_json[network.name]["ButterRouterV3"] === undefined) {
                     throw "can not get router address";
                 }
-                router_addr = deploy_json[network.name]["ButterRouterV3"]["addr"];
+                router_addr = deploy_json[network.name]["ButterRouterV3"];
             }
             console.log("router: ", router_addr);
 
@@ -332,8 +332,8 @@ async function checkFee(router, config) {
 
     if (
         feeReceiver.toLowerCase() !== config.v3.fee.receiver.toLowerCase() ||
-        routerFixedFee !== config.v3.fee.routerFixedFee ||
-        routerFeeRate !== config.v3.fee.routerFeeRate
+        routerFixedFee.toString() !== config.v3.fee.routerFixedFee ||
+        routerFeeRate.toString() !== config.v3.fee.routerFeeRate
     ) {
         await (
             await router.setFee(config.v3.fee.receiver, config.v3.fee.routerFeeRate, config.v3.fee.routerFixedFee)
@@ -347,8 +347,8 @@ async function checkFee(router, config) {
     let maxNativeFee = await router.maxNativeFee();
     console.log("pre maxFeeRate", maxFeeRate);
     console.log("pre maxNativeFee", maxNativeFee);
-    if (maxFeeRate !== config.v3.fee.maxFeeRate || maxNativeFee !== config.v3.fee.maxNativeFee) {
-       await (await router.setReferrerMaxFee(config.v3.fee.maxFeeRate, config.v3.fee.maxNativeFee)).wait();
+    if (maxFeeRate.toString() !== config.v3.fee.maxReferrerFeeRate || maxNativeFee.toString() !== config.v3.fee.maxReferrerNativeFee) {
+       await (await router.setReferrerMaxFee(config.v3.fee.maxReferrerFeeRate, config.v3.fee.maxReferrerNativeFee)).wait();
         console.log("maxFeeRate", await router.maxFeeRate());
         console.log("maxNativeFee", await router.maxNativeFee());
     }
@@ -358,7 +358,6 @@ async function checkBridgeAndWToken(router, config) {
     let wToken = await router.wToken();
 
     console.log("pre wToken", wToken);
-
     if (wToken.toLowerCase() !== config.wToken.toLowerCase()) {
        await (await router.setWToken(config.wToken)).wait();
         console.log("wToken", await router.wToken());

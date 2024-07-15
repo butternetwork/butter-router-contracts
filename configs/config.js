@@ -23,10 +23,10 @@ let config = new Map([
                 bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
-                    feeRate: "0", //denominator is 1000000
-                    fixedFee: "0",
-                    maxFeeRate:"1",
-                    maxNativeFee:"1"
+                    routerFeeRate: "0", //denominator is 10000
+                    routerFixedFee: "0",
+                    maxReferrerFeeRate:"2000",
+                    maxReferrerNativeFee:"6000000000000000"
                 },
                 executors: [
                     "0x0000000022D53366457F9d5E68Ec105046FC4383", //curve
@@ -63,10 +63,10 @@ let config = new Map([
                 bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
-                    feeRate: "0", //denominator is 1000000
-                    fixedFee: "0",
-                    maxFeeRate:"1",
-                    maxNativeFee:"1"
+                    routerFeeRate: "0", //denominator is 10000
+                    routerFixedFee: "0",
+                    maxReferrerFeeRate:"2000",
+                    maxReferrerNativeFee:"40000000000000000"
                 },
                 executors: [
                     "0x1111111254eeb25477b68fb85ed929f73a960582", //1inch v5
@@ -105,10 +105,10 @@ let config = new Map([
                 bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
-                    feeRate: "0", //denominator is 1000000
-                    fixedFee: "0",
-                    maxFeeRate:"1",
-                    maxNativeFee:"1"
+                    routerFeeRate: "0", //denominator is 10000
+                    routerFixedFee: "0",
+                    maxReferrerFeeRate:"2000",
+                    maxReferrerNativeFee:"40000000000000000000"
                 },
                 executors: [
                     "0x1111111254eeb25477b68fb85ed929f73a960582", //1inch v5
@@ -144,10 +144,10 @@ let config = new Map([
                 bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
-                    feeRate: "0", //denominator is 1000000
-                    fixedFee: "0",
-                    maxFeeRate:"1",
-                    maxNativeFee:"1"
+                    routerFeeRate: "0", //denominator is 10000
+                    routerFixedFee: "0",
+                    maxReferrerFeeRate:"2000",
+                    maxReferrerNativeFee:"120000000000000000000"
                 },
                 executors: [
                     "0xEf71750C100f7918d6Ded239Ff1CF09E81dEA92D", //claimswap
@@ -179,10 +179,10 @@ let config = new Map([
                 bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
-                    feeRate: "0", //denominator is 1000000
-                    fixedFee: "0",
-                    maxFeeRate:"1",
-                    maxNativeFee:"1"
+                    routerFeeRate: "0", //denominator is 10000
+                    routerFixedFee: "0",
+                    maxReferrerFeeRate:"2000",
+                    maxReferrerNativeFee:"120000000000000000000"
                 },
                 executors: [
                     "0x62b0873055bf896dd869e172119871ac24aea305", //Swappi
@@ -210,10 +210,10 @@ let config = new Map([
                 bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
-                    feeRate: "0", //denominator is 1000000
-                    fixedFee: "0",
-                    maxFeeRate:"1",
-                    maxNativeFee:"1"
+                    routerFeeRate: "0", //denominator is 10000
+                    routerFixedFee: "0",
+                    maxReferrerFeeRate:"2000",
+                    maxReferrerNativeFee:"2000000000000000000000"
                 },
                 executors: [
                     "0x0bce9e0ebd4fd4d6562495af45c4aaa0c1f7f3d7", //hiveswap v2
@@ -244,13 +244,13 @@ let config = new Map([
                 ],
             },
             v3: {
-                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                bridge: "TYMpgB8Q9vSoGtkyE3hXsvUrpte3KCDGj6",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
-                    feeRate: "0", //denominator is 1000000
-                    fixedFee: "0",
-                    maxFeeRate:"1",
-                    maxNativeFee:"1"
+                    routerFeeRate: "0", //denominator is 10000
+                    routerFixedFee: "0",
+                    maxReferrerFeeRate:"2000",
+                    maxReferrerNativeFee:"120000000000000000000"
                 },
                 executors: [
                     "TFVisXFaijZfeyeSjCEVkHfex7HGdTxzF9", // sun smart router
@@ -279,10 +279,10 @@ let config = new Map([
                 bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
-                    feeRate: "0", //denominator is 1000000
-                    fixedFee: "0",
-                    maxFeeRate:"1",
-                    maxNativeFee:"1"
+                    routerFeeRate: "0", //denominator is 10000
+                    routerFixedFee: "0",
+                    maxReferrerFeeRate:"2000",
+                    maxReferrerNativeFee:"300000000000000"
                 },
                 executors: [
                     "0x1aFa5D7f89743219576Ef48a9826261bE6378a68",//izumi
@@ -309,10 +309,10 @@ let config = new Map([
                 bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
-                    feeRate: "0", //denominator is 1000000
-                    fixedFee: "0",
-                    maxFeeRate:"1",
-                    maxNativeFee:"1"
+                    routerFeeRate: "0", //denominator is 10000
+                    routerFixedFee: "0",
+                    maxReferrerFeeRate:"2000",
+                    maxReferrerNativeFee:"6000000000000000"
                 },
                 executors: [
                     "0x44889b52b71E60De6ed7dE82E2939fcc52fB2B4E", //Thruster
@@ -342,10 +342,10 @@ let config = new Map([
                 bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
-                    feeRate: "0", //denominator is 1000000
-                    fixedFee: "0",
-                    maxFeeRate:"1",
-                    maxNativeFee:"1"
+                    routerFeeRate: "0", //denominator is 10000
+                    routerFixedFee: "0",
+                    maxReferrerFeeRate:"2000",
+                    maxReferrerNativeFee:"6000000000000000"
                 },
                 executors: [
                     "0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43", //Aerodrome Router
@@ -375,10 +375,10 @@ let config = new Map([
                 bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
-                    feeRate: "0", //denominator is 1000000
-                    fixedFee: "0",
-                    maxFeeRate:"1",
-                    maxNativeFee:"1"
+                    routerFeeRate: "0", //denominator is 10000
+                    routerFixedFee: "0",
+                    maxReferrerFeeRate:"2000",
+                    maxReferrerNativeFee:"6000000000000000"
                 },
                 executors: [
                     "0x1111111254eeb25477b68fb85ed929f73a960582", //1inch v5
@@ -405,10 +405,10 @@ let config = new Map([
                 bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
-                    feeRate: "0", //denominator is 1000000
-                    fixedFee: "0",
-                    maxFeeRate:"1",
-                    maxNativeFee:"1"
+                    routerFeeRate: "0", //denominator is 10000
+                    routerFixedFee: "0",
+                    maxReferrerFeeRate:"2000",
+                    maxReferrerNativeFee:"6000000000000000"
                 },
                 executors: [
                     "0x1111111254eeb25477b68fb85ed929f73a960582", //1inch v5
@@ -438,10 +438,10 @@ let config = new Map([
                 bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
-                    feeRate: "0", //denominator is 1000000
-                    fixedFee: "0",
-                    maxFeeRate:"1",
-                    maxNativeFee:"1"
+                    routerFeeRate: "0", //denominator is 10000
+                    routerFixedFee: "0",
+                    maxReferrerFeeRate:"2000",
+                    maxReferrerNativeFee:"6000000000000000"
                 },
                 executors: [
                     "0x032b241De86a8660f1Ae0691a4760B426EA246d7",//izumi
@@ -467,10 +467,10 @@ let config = new Map([
                 bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
-                    feeRate: "0", //denominator is 1000000
-                    fixedFee: "0",
-                    maxFeeRate:"1",
-                    maxNativeFee:"1"
+                    routerFeeRate: "0", //denominator is 10000
+                    routerFixedFee: "0",
+                    maxReferrerFeeRate:"2000",
+                    maxReferrerNativeFee:"6000000000000000"
                 },
                 executors: [
                     "0x2db0AFD0045F3518c77eC6591a542e326Befd3D7",//izumi
@@ -496,10 +496,10 @@ let config = new Map([
                 bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
-                    feeRate: "0", //denominator is 1000000
-                    fixedFee: "0",
-                    maxFeeRate:"1",
-                    maxNativeFee:"1"
+                    routerFeeRate: "0", //denominator is 10000
+                    routerFixedFee: "0",
+                    maxReferrerFeeRate:"2000",
+                    maxReferrerNativeFee:"20000000000000000000"
                 },
                 executors: [
                     "0x25C030116Feb2E7BbA054b9de0915E5F51b03e31",//izumi
@@ -525,10 +525,10 @@ let config = new Map([
                 bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
-                    feeRate: "0", //denominator is 1000000
-                    fixedFee: "0",
-                    maxFeeRate:"1",
-                    maxNativeFee:"1"
+                    routerFeeRate: "0", //denominator is 10000
+                    routerFixedFee: "0",
+                    maxReferrerFeeRate:"2000",
+                    maxReferrerNativeFee:"300000000000000"
                 },
                 executors: [],
             },
@@ -551,10 +551,10 @@ let config = new Map([
                 bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
-                    feeRate: "0", //denominator is 1000000
-                    fixedFee: "0",
-                    maxFeeRate:"1",
-                    maxNativeFee:"1"
+                    routerFeeRate: "0", //denominator is 10000
+                    routerFixedFee: "0",
+                    maxReferrerFeeRate:"2000",
+                    maxReferrerNativeFee:"300000000000000"
                 },
                 executors: [],
             },
@@ -577,10 +577,10 @@ let config = new Map([
                 bridge: "0xBEf06a32166C4B819fF04cCfa887733B8bb67eB5",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
-                    feeRate: "0", //denominator is 1000000
-                    fixedFee: "0",
-                    maxFeeRate:"1",
-                    maxNativeFee:"1"
+                    routerFeeRate: "0", //denominator is 10000
+                    routerFixedFee: "0",
+                    maxReferrerFeeRate:"2000",
+                    maxReferrerNativeFee:"6000000000000000"
                 },
                 executors: [
                     "0x6e2B76966cbD9cF4cC2Fa0D76d24d5241E0ABC2F", //1inch v5
@@ -609,10 +609,10 @@ let config = new Map([
                 bridge: "",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
-                    feeRate: "0", //denominator is 1000000
-                    fixedFee: "0",
-                    maxFeeRate:"1",
-                    maxNativeFee:"1"
+                    routerFeeRate: "0", //denominator is 10000
+                    routerFixedFee: "0",
+                    maxReferrerFeeRate:"2000",
+                    maxReferrerNativeFee:"300000000000000"
                 },
                 executors: [],
             },
@@ -637,10 +637,10 @@ let config = new Map([
                 bridge: "",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
-                    feeRate: "0", //denominator is 1000000
-                    fixedFee: "0",
-                    maxFeeRate:"1",
-                    maxNativeFee:"1"
+                    routerFeeRate: "0", //denominator is 10000
+                    routerFixedFee: "0",
+                    maxReferrerFeeRate:"2000",
+                    maxReferrerNativeFee:"6000000000000000"
                 },
                 executors: [],
             },
@@ -670,10 +670,10 @@ let config = new Map([
                 bridge: "",
                 fee: {
                     receiver: "0xCBdb1Da4f99276b0c427776BDE93838Bc19386Cc",
-                    feeRate: "7000", //denominator is 1000000
-                    fixedFee: "100000000",
-                    maxFeeRate:"1",
-                    maxNativeFee:"1"
+                    routerFeeRate: "7000", //denominator is 10000
+                    routerFixedFee: "100000000",
+                    maxReferrerFeeRate:"2000",
+                    maxReferrerNativeFee:"1"
                 },
                 executors: [
                     "0xD99D1c33F9fC3444f8101754aBC46c52416550D1",
@@ -701,10 +701,10 @@ let config = new Map([
                 bridge: "",
                 fee: {
                     receiver: "0xCBdb1Da4f99276b0c427776BDE93838Bc19386Cc",
-                    feeRate: "7000", //denominator is 1000000
-                    fixedFee: "100000000",
-                    maxFeeRate:"1",
-                    maxNativeFee:"1"
+                    routerFeeRate: "7000", //denominator is 10000
+                    routerFixedFee: "100000000",
+                    maxReferrerFeeRate:"2000",
+                    maxReferrerNativeFee:"1"
                 },
                 executors: ["0xf479BD49E55cf47474056Ef168B0E0709DDF1830"],
             },
@@ -733,10 +733,10 @@ let config = new Map([
                 bridge: "",
                 fee: {
                     receiver: "0xCBdb1Da4f99276b0c427776BDE93838Bc19386Cc",
-                    feeRate: "7000", //denominator is 1000000
-                    fixedFee: "1000000000000000000",
-                    maxFeeRate:"1",
-                    maxNativeFee:"1"
+                    routerFeeRate: "7000", //denominator is 10000
+                    routerFixedFee: "1000000000000000000",
+                    maxReferrerFeeRate:"2000",
+                    maxReferrerNativeFee:"1"
                 },
                 executors: [
                     "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff",
@@ -765,10 +765,10 @@ let config = new Map([
                 bridge: "",
                 fee: {
                     receiver: "0xCBdb1Da4f99276b0c427776BDE93838Bc19386Cc",
-                    feeRate: "7000", //denominator is 1000000
-                    fixedFee: "1000000000000000000",
-                    maxFeeRate:"1",
-                    maxNativeFee:"1"
+                    routerFeeRate: "7000", //denominator is 10000
+                    routerFixedFee: "1000000000000000000",
+                    maxReferrerFeeRate:"2000",
+                    maxReferrerNativeFee:"1"
                 },
                 executors: ["0xFB3B3134F13CCD2C81F4012E53024E8135D58FEE"],
             },

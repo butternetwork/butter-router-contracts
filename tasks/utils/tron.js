@@ -25,7 +25,7 @@ exports.routerV3 = async function (artifacts, network, config) {
     let tronWeb = await getTronWeb(network);
     let router = await deployRouter("ButterRouterV3", artifacts, network, config.v3.bridge, config.wToken);
     let deploy = await readFromFile(network);
-    let adapt = deploy[network]["SwapAdapter"];
+    let adapt = deploy[network]["SwapAdapterV3"];
     config.v3.executors.push(tronWeb.address.toHex(adapt).replace(/^(41)/, "0x"));
     let executors_s = config.v3.executors.join(",");
     await setAuthorization("ButterRouterV3", tronWeb, artifacts, network, router, executors_s, true);
@@ -36,10 +36,10 @@ exports.routerV3 = async function (artifacts, network, config) {
         network,
         router,
         config.v3.fee.receiver,
-        config.v3.fee.feeRate,
-        config.v3.fee.fixedFee
+        config.v3.fee.routerFeeRate,
+        config.v3.fee.routerFixedFee
     );
-   await setReferrerMaxFee(artifacts, network, router, config.v3.fee.maxFeeRate, config.v3.fee.maxNativeFee);
+   await setReferrerMaxFee(artifacts, network, router, config.v3.fee.maxReferrerFeeRate, config.v3.fee.maxReferrerNativeFee);
 };
 
 exports.deployFeeReceiver = async function (artifacts, network, payees, shares) {
@@ -181,7 +181,7 @@ async function deployRouter(contractName, artifacts, network, mosOrBridge, wtoke
     if (!deploy[network][contractName]) {
         deploy[network][contractName] = {};
     }
-    deploy[network][contractName]["addr"] = router;
+    deploy[network][contractName] = router;
     await writeToFile(deploy);
 
     return router;
@@ -196,7 +196,7 @@ async function deploySwapAdapter(artifacts, network) {
     let adapt = await deploy_contract(artifacts, "SwapAdapter", [deployer], tronWeb);
     console.log("SwapAdapter address :", adapt);
     let deploy = await readFromFile(network);
-    deploy[network]["SwapAdapter"] = adapt;
+    deploy[network]["SwapAdapterV3"] = adapt;
     await writeToFile(deploy);
     return adapt;
 }
@@ -246,11 +246,11 @@ exports.tronCheckAndUpdateFromConfig = async function (artifacts, network, route
         if (deploy_json[network]["ButterRouterV3"] === undefined) {
             throw "can not get router address";
         }
-        router_addr = deploy_json[network]["ButterRouterV3"]["addr"];
+        router_addr = deploy_json[network]["ButterRouterV3"];
     }
     console.log("router: ", router_addr);
 
-    let adapter_address = deploy_json[network]["SwapAdapter"];
+    let adapter_address = deploy_json[network]["SwapAdapterV3"];
     if (adapter_address != undefined) {
         console.log("SwapAdapter: ", adapter_address);
         config.v3.executors.push(adapter_address);
@@ -261,9 +261,10 @@ exports.tronCheckAndUpdateFromConfig = async function (artifacts, network, route
         router_addr = tronWeb.address.fromHex(router_addr);
     }
     let router = await tronWeb.contract(Router.abi, router_addr);
+    console.log("router: ", router.address);
     await checkAuthorization(router, config, tronWeb, artifacts, network, router_addr);
-    await checkFee(router, config);
-    await checkBridgeAndWToken(router, config);
+    await checkFee(router, config, tronWeb);
+    await checkBridgeAndWToken(router, config, tronWeb);
 };
 
 async function checkAuthorization(router, config, tronWeb, artifacts, network, router_addr) {
@@ -285,41 +286,45 @@ async function checkAuthorization(router, config, tronWeb, artifacts, network, r
     console.log("RouterV3 sync authorization from config file.");
 }
 
-async function checkFee(router, config) {
+async function checkFee(router, config, tronWeb) {
     let feeReceiver = await router.feeReceiver().call();
-    let routerFixedFee = await router.routerFixedFee().call();
-    let routerFeeRate = await router.routerFeeRate().call();
-
     console.log("pre feeReceiver", tronWeb.address.fromHex(feeReceiver));
+
+    let routerFixedFee = await router.routerFixedFee().call();
     console.log("pre routerFixedFee", routerFixedFee);
+
+    let routerFeeRate = await router.routerFeeRate().call();
     console.log("pre routerFeeRate", routerFeeRate);
+
     let hexReceiver = tronWeb.address.toHex(config.v3.fee.receiver).replace(/^(41)/, "0x");
+    feeReceiver = tronWeb.address.toHex(feeReceiver).replace(/^(41)/, "0x");
     if (
         feeReceiver.toLowerCase() !== hexReceiver.toLowerCase() ||
-        routerFixedFee !== config.v3.fee.routerFixedFee ||
-        routerFeeRate !== config.v3.fee.routerFeeRate
+        routerFixedFee.toString() !== config.v3.fee.routerFixedFee ||
+        routerFeeRate.toString() !== config.v3.fee.routerFeeRate
     ) {
         await router.setFee(hexReceiver, config.v3.fee.routerFeeRate, config.v3.fee.routerFixedFee).send();
         console.log("feeReceiver", tronWeb.address.fromHex(await router.feeReceiver().call()));
         console.log("routerFixedFee", await router.routerFixedFee().call());
-        console.log("routerFeeRate", router.routerFeeRate().call());
+        console.log("routerFeeRate", await router.routerFeeRate().call());
     }
     let maxFeeRate = await router.maxFeeRate().call();
     let maxNativeFee = await router.maxNativeFee().call();
     console.log("pre maxFeeRate", maxFeeRate);
     console.log("pre maxNativeFee", maxNativeFee);
-    if (maxFeeRate !== config.v3.fee.maxFeeRate || maxNativeFee !== config.v3.fee.maxNativeFee) {
-       await router.setReferrerMaxFee(config.v3.fee.maxFeeRate, config.v3.fee.maxNativeFee).send();
+    if (maxFeeRate.toString() !== config.v3.fee.maxReferrerFeeRate || maxNativeFee.toString() !== config.v3.fee.maxReferrerNativeFee) {
+       await router.setReferrerMaxFee(config.v3.fee.maxReferrerFeeRate, config.v3.fee.maxReferrerNativeFee).send();
         console.log("maxFeeRate", await router.maxFeeRate().call());
         console.log("maxNativeFee", await router.maxNativeFee().call());
     }
 }
 
-async function checkBridgeAndWToken(router, config) {
+async function checkBridgeAndWToken(router, config, tronWeb) {
     let wToken = await router.wToken().call();
 
     console.log("pre wToken", tronWeb.address.fromHex(wToken));
     let hexWToken = tronWeb.address.toHex(config.wToken).replace(/^(41)/, "0x");
+    wToken = tronWeb.address.toHex(wToken).replace(/^(41)/, "0x");
     if (wToken.toLowerCase() !== hexWToken.toLowerCase()) {
         await router.setWToken(hexWToken).send();
         console.log("wToken", tronWeb.address.fromHex(await router.wToken().call()));
@@ -327,6 +332,7 @@ async function checkBridgeAndWToken(router, config) {
 
     let bridgeAddress = await router.bridgeAddress().call();
     console.log("pre bridgeAddress", tronWeb.address.fromHex(bridgeAddress));
+    bridgeAddress = tronWeb.address.toHex(bridgeAddress).replace(/^(41)/, "0x");
     let hexbridgeAddress = tronWeb.address.toHex(config.v3.bridge).replace(/^(41)/, "0x");
     if (bridgeAddress.toLowerCase() !== hexbridgeAddress.toLowerCase()) {
         await router.setBridgeAddress(hexbridgeAddress).send();

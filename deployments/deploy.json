@@ -4,7 +4,9 @@
 			"addr": "0xbB21e441fb738F54e6eC244e435475096E179d66"
 		},
 		"SwapAdapter": "0x002162B2aEe2dD657FB131b28CC34deE6797b66f",
-		"omniAdapter": "0x3321dE36B6C29A6fa102A67bd5C48E5756Baa596"
+		"omniAdapter": "0x3321dE36B6C29A6fa102A67bd5C48E5756Baa596",
+		"SwapAdapterV3": "0xaa301070448385cfAaC5913A67B16C4392944a8f",
+		"ButterRouterV3": "0xEE3020a308B0E9F6765279C595f17a534CCC7019"
 	},
 	"Bsc": {
 		"ButterRouterV2": {
@@ -44,7 +46,9 @@
 		"ButterRouterV2": {
 			"addr": "TSBDbe1TB8Ft3KZTdbDcZPLFTkL2BFBiZh"
 		},
-		"SwapAdapter": "TKUNfz6X5CjrSyR5YwbkSZPx6LGSWygLBK"
+		"SwapAdapter": "TKUNfz6X5CjrSyR5YwbkSZPx6LGSWygLBK",
+		"SwapAdapterV3": "TYCXm93z8oAhhdT2C2VqEFbSnBAmWzXqo1",
+		"ButterRouterV3": "TVRyY9x9G9mQeXXfbNdfgAdHVxZJDyYJ9m"
 	},
 	"Makalu": {
 		"ButterRouterV2": {

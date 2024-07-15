@@ -93,7 +93,7 @@ module.exports = {
           process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     Blast: {
-      url: `https://rpc.blast.io`,
+      url: `https://blast.blockpi.network/v1/rpc/public`,
       chainId : 81457,
       accounts:
           process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],

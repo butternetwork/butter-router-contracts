@@ -1,7 +1,10 @@
 let fs = require("fs");
 let path = require("path");
+const TronWeb = require("tronweb");
 let { Wallet } = require("zksync-web3");
 let { Deployer } = require("@matterlabs/hardhat-zksync-deploy");
+
+
 
 DEPLOY_FACTORY = "0x6258e4d2950757A749a4d4683A7342261ce12471";
 let IDeployFactory_abi = [
@@ -88,8 +91,30 @@ async function createTron(contractName, args, artifacts, network) {
     });
     let contract_address = tronWeb.address.fromHex(contract_instance.address);
     console.log(`${contractName} deployed on: ${contract_address} (${contract_instance.address})`);
-    return "0x" + contract_instance.address.substring(2);
+    return contract_address;
 }
+
+async function getTronWeb(network) {
+    if (network === "Tron" || network === "TronTest") {
+        if (network === "Tron") {
+            return new TronWeb(
+                "https://api.trongrid.io/",
+                "https://api.trongrid.io/",
+                "https://api.trongrid.io/",
+                process.env.TRON_PRIVATE_KEY
+            );
+        } else {
+            return new TronWeb(
+                "https://api.nileex.io/",
+                "https://api.nileex.io/",
+                "https://api.nileex.io/",
+                process.env.TRON_PRIVATE_KEY
+            );
+        }
+    } else {
+        throw "unsupport network";
+    }
+};
 
 async function readFromFile(network) {
     let p = path.join(__dirname, "../deployments/deploy.json");
