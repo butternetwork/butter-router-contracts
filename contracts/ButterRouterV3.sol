@@ -86,6 +86,10 @@ contract ButterRouterV3 is SwapCall, FeeManager, ReentrancyGuard, IButterReceive
         emit SetFeeManager(_feeManager);
     }
 
+    function editFuncBlackList(bytes4 _func, bool _flag) external onlyOwner {
+         _editFuncBlackList(_func,_flag);
+    }
+
     function swapAndBridge(
         bytes32 _transferId,
         address _initiator, // initiator address

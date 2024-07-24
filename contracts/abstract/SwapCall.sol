@@ -16,7 +16,8 @@ abstract contract SwapCall {
     uint256 internal nativeBalanceBeforeExec;
     uint256 internal initInputTokenBalance;
     mapping(address => bool) public approved;
-
+    mapping(bytes4 => bool) public funcBlackList;
+    event EditFuncBlackList(bytes4 _func, bool flag);
     event SetWToken(address indexed _wToken);
 
     enum DexType {
@@ -55,6 +56,35 @@ abstract contract SwapCall {
 
     constructor(address _wToken) payable {
         _setWToken(_wToken);
+        //| a9059cbb | transfer(address,uint256)
+        funcBlackList[bytes4(0xa9059cbb)] = true;
+        //| 095ea7b3 | approve(address,uint256) |
+        funcBlackList[bytes4(0x095ea7b3)] = true;
+        //| 23b872dd | transferFrom(address,address,uint256) |
+        funcBlackList[bytes4(0x23b872dd)] = true;
+        //| 39509351 | increaseAllowance(address,uint256)
+        funcBlackList[bytes4(0x39509351)] = true;
+        //| a22cb465 | setApprovalForAll(address,bool) |
+        funcBlackList[bytes4(0xa22cb465)] = true;
+        //| 42842e0e | safeTransferFrom(address,address,uint256) |
+        funcBlackList[bytes4(0x42842e0e)] = true;
+        //| b88d4fde | safeTransferFrom(address,address,uint256,bytes) |
+        funcBlackList[bytes4(0xb88d4fde)] = true;
+        //| 9bd9bbc6 | send(address,uint256,bytes) |
+        funcBlackList[bytes4(0x9bd9bbc6)] = true;
+        //| fe9d9303 | burn(uint256,bytes) |
+        funcBlackList[bytes4(0xfe9d9303)] = true;
+        //| 959b8c3f | authorizeOperator
+        funcBlackList[bytes4(0x959b8c3f)] = true;
+        //| f242432a | safeTransferFrom(address,address,uint256,uint256,bytes) |
+        funcBlackList[bytes4(0xf242432a)] = true;
+        //| 2eb2c2d6 | safeBatchTransferFrom(address,address,uint256[],uint256[],bytes) |
+        funcBlackList[bytes4(0x2eb2c2d6)] = true;
+    }
+
+    function _editFuncBlackList(bytes4 _func, bool _flag) internal {
+        funcBlackList[_func] = _flag;
+        emit EditFuncBlackList(_func, _flag);
     }
 
     function _setWToken(address _wToken) internal {
@@ -154,11 +184,12 @@ abstract contract SwapCall {
     }
 
     function _checkApprove(address _callTo, bytes memory _calldata) private view {
-        if (_callTo == wToken) {
-            bytes4 sig = _getFirst4Bytes(_calldata);
-            if (sig != bytes4(0x2e1a7d4d) && sig != bytes4(0xd0e30db0)) revert Errors.NO_APPROVE();
+        if(_callTo != wToken && (!approved[_callTo])) revert Errors.NO_APPROVE();
+        bytes4 sig = _getFirst4Bytes(_calldata);
+        if(_callTo == wToken){
+            if (sig != bytes4(0x2e1a7d4d) && sig != bytes4(0xd0e30db0)) revert Errors.CALL_FUNC_BLACK_LIST();
         } else {
-            if (!approved[_callTo]) revert Errors.NO_APPROVE();
+            if(funcBlackList[sig]) revert Errors.CALL_FUNC_BLACK_LIST();
         }
     }
 
@@ -294,11 +325,6 @@ abstract contract SwapCall {
             }
         }
     }
-
-    // function _safeWithdraw(address _wToken, uint _value) internal returns (bool) {
-    //     (bool success, bytes memory data) = _wToken.call(abi.encodeWithSelector(0x2e1a7d4d, _value));
-    //     return (success && (data.length == 0 || abi.decode(data, (bool))));
-    // }
 
     function _getFirst4Bytes(bytes memory data) internal pure returns (bytes4 outBytes4) {
         if (data.length == 0) {

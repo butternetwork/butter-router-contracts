@@ -20,4 +20,5 @@ library Errors {
     error SWAP_SAME_TOKEN();
     error CANNOT_ADJUST();
     error SELF_ONLY();
+    error CALL_FUNC_BLACK_LIST();
 }
