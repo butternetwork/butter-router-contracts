@@ -134,12 +134,12 @@ abstract contract SwapCall {
         _callAmount = _getBalance(_token, address(this));
         uint256 offset = callParam.offset;
         bytes memory callPayload = callParam.data;
-        if (offset != 0) {
+        if (offset > 35) { //32 length + 4 funcSig
             assembly {
                 mstore(add(callPayload, offset), _amount)
             }
         }
-        _checkApprove(callParam.target, callParam.data);
+        _checkApprove(callParam.target, callPayload);
         bool _result;
         if (_isNative(_token)) {
             (_result, ) = callParam.target.call{value: _amount}(callPayload);
@@ -220,7 +220,7 @@ abstract contract SwapCall {
             }
             bytes memory callDatas = mixSwaps[i].callData;
             uint256 offset = mixSwaps[i].offset;
-            if (offset != 0) {
+            if (offset > 35) { //32 length + 4 funcSig
                 assembly {
                     mstore(add(callDatas, offset), _amount)
                 }
@@ -255,7 +255,7 @@ abstract contract SwapCall {
         uint256 len = offsets.length;
         for (uint i = 0; i < len; i++) {
             uint256 offset = offsets[i];
-            if (offset != 0) {
+            if (offset > 35) { //32 length + 4 funcSig
                 assembly {
                     mstore(add(callDatas, offset), _amount)
                 }
@@ -295,10 +295,10 @@ abstract contract SwapCall {
         }
     }
 
-    function _safeWithdraw(address _wToken, uint _value) internal returns (bool) {
-        (bool success, bytes memory data) = _wToken.call(abi.encodeWithSelector(0x2e1a7d4d, _value));
-        return (success && (data.length == 0 || abi.decode(data, (bool))));
-    }
+    // function _safeWithdraw(address _wToken, uint _value) internal returns (bool) {
+    //     (bool success, bytes memory data) = _wToken.call(abi.encodeWithSelector(0x2e1a7d4d, _value));
+    //     return (success && (data.length == 0 || abi.decode(data, (bool))));
+    // }
 
     function _getFirst4Bytes(bytes memory data) internal pure returns (bytes4 outBytes4) {
         if (data.length == 0) {
