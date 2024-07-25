@@ -13,12 +13,12 @@ abstract contract SwapCall {
     address internal constant NATIVE_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
     address public wToken;
-    uint256 internal nativeBalanceBeforeExec;
-    uint256 internal initInputTokenBalance;
+    // uint256 internal nativeBalanceBeforeExec;
+    // uint256 internal initInputTokenBalance;
     mapping(address => bool) public approved;
     mapping(bytes4 => bool) public funcBlackList;
     event EditFuncBlackList(bytes4 _func, bool flag);
-    event SetWToken(address indexed _wToken);
+    event SetWrappedToken(address indexed _wToken);
 
     enum DexType {
         AGG,
@@ -90,10 +90,10 @@ abstract contract SwapCall {
     function _setWToken(address _wToken) internal {
         if (!_wToken.isContract()) revert Errors.NOT_CONTRACT();
         wToken = _wToken;
-        emit SetWToken(_wToken);
+        emit SetWrappedToken(_wToken);
     }
 
-    function _transferIn(address token, uint256 amount, bytes memory permitData) internal {
+    function _transferIn(address token, uint256 amount, bytes memory permitData) internal returns (uint256 nativeBalanceBeforeExec, uint256 initInputTokenBalance){
         if (amount == 0) revert Errors.ZERO_IN();
 
         if (permitData.length != 0) {
@@ -110,47 +110,26 @@ abstract contract SwapCall {
         }
     }
 
-    function _afterCheck() internal {
+    function _afterCheck(uint256 nativeBalanceBeforeExec, uint256 initInputTokenBalance) internal {
         if (address(this).balance < nativeBalanceBeforeExec) revert Errors.NATIVE_VALUE_OVERSPEND();
-        nativeBalanceBeforeExec = 0;
-        initInputTokenBalance = 0;
+        // nativeBalanceBeforeExec = 0;
+        // initInputTokenBalance = 0;
     }
 
     function _swap(
-        uint256 _amount,
         address _token,
+        uint256 _amount,
+        uint256 _initBalance,
         SwapParam memory swapParam
     ) internal returns (address _dstToken, uint256 _dstAmount) {
         _dstToken = swapParam.dstToken;
-        uint256 len = swapParam.swaps.length;
         if (_token == _dstToken) revert Errors.SWAP_SAME_TOKEN();
-        if (len == 0) revert Errors.EMPTY();
-        (uint256 amountAdjust, uint256 firstAdjust, bool isUp) = _reBuildSwaps(_amount, len, swapParam.swaps);
+
         uint256 finalTokenAmount = _getBalance(swapParam.dstToken, address(this));
-        SwapData[] memory _swaps = swapParam.swaps;
-        bool isNative = _isNative(_token);
-        for (uint i = 0; i < len; ) {
-            if (firstAdjust != 0) {
-                if (i == 0) {
-                    isUp ? _swaps[i].fromAmount += firstAdjust : _swaps[i].fromAmount -= firstAdjust;
-                } else {
-                    isUp ? _swaps[i].fromAmount += amountAdjust : _swaps[i].fromAmount -= amountAdjust;
-                }
-            }
-            if (!isNative) {
-                IERC20(_token).safeIncreaseAllowance(_swaps[i].approveTo, _swaps[i].fromAmount);
-            }
-            _execute(_swaps[i].dexType, isNative, _swaps[i].callTo, _token, _swaps[i].fromAmount, _swaps[i].callData);
-            if (!isNative) {
-                IERC20(_token).safeApprove(_swaps[i].approveTo, 0);
-            }
-            unchecked {
-                i++;
-            }
-        }
+        _doSwap(_token, _amount, swapParam);
         _dstAmount = _getBalance(swapParam.dstToken, address(this)) - finalTokenAmount;
         if (_dstAmount < swapParam.minAmount) revert Errors.RECEIVE_LOW();
-        uint256 left = _getBalance(_token, address(this)) - initInputTokenBalance;
+        uint256 left = _getBalance(_token, address(this)) - _initBalance;
         if (left != 0) {
             _transfer(_token, swapParam.leftReceiver, left);
         }
@@ -196,7 +175,38 @@ abstract contract SwapCall {
         }
     }
 
-    function _reBuildSwaps(
+    function _doSwap(
+        address _token,
+        uint256 _amount,
+        SwapParam memory swapParam
+    ) internal {
+        uint256 len = swapParam.swaps.length;
+        if (len == 0) revert Errors.EMPTY();
+        (uint256 amountAdjust, uint256 firstAdjust, bool isUp) = _rebuildSwaps(_amount, len, swapParam.swaps);
+        SwapData[] memory _swaps = swapParam.swaps;
+        bool isNative = _isNative(_token);
+        for (uint i = 0; i < len; ) {
+            if (firstAdjust != 0) {
+                if (i == 0) {
+                    isUp ? _swaps[i].fromAmount += firstAdjust : _swaps[i].fromAmount -= firstAdjust;
+                } else {
+                    isUp ? _swaps[i].fromAmount += amountAdjust : _swaps[i].fromAmount -= amountAdjust;
+                }
+            }
+            if (!isNative) {
+                IERC20(_token).safeIncreaseAllowance(_swaps[i].approveTo, _swaps[i].fromAmount);
+            }
+            _execute(_swaps[i].dexType, isNative, _swaps[i].callTo, _token, _swaps[i].fromAmount, _swaps[i].callData);
+            if (!isNative) {
+                IERC20(_token).safeApprove(_swaps[i].approveTo, 0);
+            }
+            unchecked {
+                i++;
+            }
+        }
+    }
+
+    function _rebuildSwaps(
         uint256 _amount,
         uint256 _len,
         SwapData[] memory _swaps
