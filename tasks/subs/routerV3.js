@@ -375,7 +375,6 @@ async function checkBridgeAndWToken(router, config) {
     }
 }
 
-
 task("routerV3:bridge", "bridge token from router")
     .addOptionalParam("router", "router address", "router", types.string)
     .addParam("token", "token address")
@@ -428,7 +427,18 @@ task("routerV3:bridge", "bridge token from router")
             }
 
             let result;
-            result = await (await router.swapAndBridge(ethers.constants.HashZero, deployer, taskArgs.token, value, [], bridgeData, [], [])).wait();
+            result = await (
+                await router.swapAndBridge(
+                    ethers.constants.HashZero,
+                    deployer,
+                    taskArgs.token,
+                    value,
+                    [],
+                    bridgeData,
+                    [],
+                    []
+                )
+            ).wait();
             if (result.status === 1) {
                 console.log(`Router ${router.address} rescueFunds ${taskArgs.token} ${taskArgs.amount} succeed`);
             } else {

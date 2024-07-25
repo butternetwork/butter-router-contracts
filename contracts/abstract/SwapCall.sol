@@ -93,7 +93,11 @@ abstract contract SwapCall {
         emit SetWrappedToken(_wToken);
     }
 
-    function _transferIn(address token, uint256 amount, bytes memory permitData) internal returns (uint256 nativeBalanceBeforeExec, uint256 initInputTokenBalance){
+    function _transferIn(
+        address token,
+        uint256 amount,
+        bytes memory permitData
+    ) internal returns (uint256 nativeBalanceBeforeExec, uint256 initInputTokenBalance) {
         if (amount == 0) revert Errors.ZERO_IN();
 
         if (permitData.length != 0) {
@@ -173,11 +177,7 @@ abstract contract SwapCall {
         }
     }
 
-    function _doSwap(
-        address _token,
-        uint256 _amount,
-        SwapParam memory swapParam
-    ) internal {
+    function _doSwap(address _token, uint256 _amount, SwapParam memory swapParam) internal {
         uint256 len = swapParam.swaps.length;
         if (len == 0) revert Errors.EMPTY();
         (uint256 amountAdjust, uint256 firstAdjust, bool isUp) = _rebuildSwaps(_amount, len, swapParam.swaps);

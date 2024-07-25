@@ -110,13 +110,22 @@ contract ButterRouterV3 is SwapCall, FeeManager, ReentrancyGuard, IButterReceive
         swapTemp.swapToken = _srcToken;
         swapTemp.swapAmount = _amount;
         swapTemp.transferId = _transferId;
-        (swapTemp.nativeBalance, swapTemp.inputBalance) = _transferIn(swapTemp.srcToken, swapTemp.srcAmount, _permitData);
+        (swapTemp.nativeBalance, swapTemp.inputBalance) = _transferIn(
+            swapTemp.srcToken,
+            swapTemp.srcAmount,
+            _permitData
+        );
         bytes memory receiver;
         FeeDetail memory fd;
         (fd, swapTemp.swapAmount, swapTemp.referrer) = _collectFee(swapTemp.srcToken, swapTemp.srcAmount, _feeData);
         if (_swapData.length != 0) {
             SwapParam memory swapParam = abi.decode(_swapData, (SwapParam));
-            (swapTemp.swapToken, swapTemp.swapAmount) = _swap(swapTemp.srcToken, swapTemp.swapAmount, swapTemp.inputBalance, swapParam);
+            (swapTemp.swapToken, swapTemp.swapAmount) = _swap(
+                swapTemp.srcToken,
+                swapTemp.swapAmount,
+                swapTemp.inputBalance,
+                swapParam
+            );
             if (_bridgeData.length == 0 && swapTemp.swapAmount != 0) {
                 receiver = abi.encodePacked(swapParam.receiver);
                 _transfer(swapTemp.swapToken, swapParam.receiver, swapTemp.swapAmount);
@@ -169,7 +178,11 @@ contract ButterRouterV3 is SwapCall, FeeManager, ReentrancyGuard, IButterReceive
         swapTemp.srcToken = _srcToken;
         swapTemp.srcAmount = _amount;
         swapTemp.transferId = _transferId;
-        (swapTemp.nativeBalance, swapTemp.inputBalance) = _transferIn(swapTemp.srcToken, swapTemp.srcAmount, _permitData);
+        (swapTemp.nativeBalance, swapTemp.inputBalance) = _transferIn(
+            swapTemp.srcToken,
+            swapTemp.srcAmount,
+            _permitData
+        );
         if ((_swapData.length + _callbackData.length) == 0) revert Errors.DATA_EMPTY();
         FeeDetail memory fd;
         (fd, swapTemp.swapAmount, swapTemp.referrer) = _collectFee(swapTemp.srcToken, swapTemp.srcAmount, _feeData);
@@ -189,7 +202,7 @@ contract ButterRouterV3 is SwapCall, FeeManager, ReentrancyGuard, IButterReceive
             swapTemp.swapToken,
             swapTemp.swapAmount,
             swapTemp.callAmount
-        ) = _doSwapAndCall(swapTemp.srcToken, swapTemp.swapAmount, swapTemp.inputBalance , _swapData, _callbackData);
+        ) = _doSwapAndCall(swapTemp.srcToken, swapTemp.swapAmount, swapTemp.inputBalance, _swapData, _callbackData);
 
         if (swapTemp.swapAmount > swapTemp.callAmount) {
             _transfer(swapTemp.swapToken, swapTemp.receiver, (swapTemp.swapAmount - swapTemp.callAmount));
@@ -244,7 +257,12 @@ contract ButterRouterV3 is SwapCall, FeeManager, ReentrancyGuard, IButterReceive
             swapTemp.receiver = swap.receiver;
             if (gasleft() > minExecGas) {
                 try
-                    this.remoteSwap{gas: gasleft() - minExecGas}(swapTemp.srcToken, swapTemp.srcAmount, swapTemp.inputBalance, swap)
+                    this.remoteSwap{gas: gasleft() - minExecGas}(
+                        swapTemp.srcToken,
+                        swapTemp.srcAmount,
+                        swapTemp.inputBalance,
+                        swap
+                    )
                 returns (address dstToken, uint256 dstAmount) {
                     swapTemp.swapToken = dstToken;
                     swapTemp.swapAmount = dstAmount;
