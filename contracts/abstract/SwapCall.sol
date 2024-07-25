@@ -164,7 +164,8 @@ abstract contract SwapCall {
         _callAmount = _getBalance(_token, address(this));
         uint256 offset = callParam.offset;
         bytes memory callPayload = callParam.data;
-        if (offset > 35) { //32 length + 4 funcSig
+        if (offset > 35) {
+            //32 length + 4 funcSig
             assembly {
                 mstore(add(callPayload, offset), _amount)
             }
@@ -184,12 +185,14 @@ abstract contract SwapCall {
     }
 
     function _checkApprove(address _callTo, bytes memory _calldata) private view {
-        if(_callTo != wToken && (!approved[_callTo])) revert Errors.NO_APPROVE();
+        address wTokenAddr = wToken;
+        if (_callTo != wTokenAddr && (!approved[_callTo])) revert Errors.NO_APPROVE();
+
         bytes4 sig = _getFirst4Bytes(_calldata);
-        if(_callTo == wToken){
+        if (funcBlackList[sig]) revert Errors.CALL_FUNC_BLACK_LIST();
+
+        if (_callTo == wTokenAddr) {
             if (sig != bytes4(0x2e1a7d4d) && sig != bytes4(0xd0e30db0)) revert Errors.CALL_FUNC_BLACK_LIST();
-        } else {
-            if(funcBlackList[sig]) revert Errors.CALL_FUNC_BLACK_LIST();
         }
     }
 
@@ -249,22 +252,23 @@ abstract contract SwapCall {
                 _amount = _getBalance(mixSwaps[i].srcToken, address(this));
                 _srcToken = mixSwaps[i].srcToken;
             }
-            bytes memory callDatas = mixSwaps[i].callData;
+            bytes memory callData = mixSwaps[i].callData;
             uint256 offset = mixSwaps[i].offset;
-            if (offset > 35) { //32 length + 4 funcSig
+            if (offset > 35) {
+                //32 length + 4 funcSig
                 assembly {
-                    mstore(add(callDatas, offset), _amount)
+                    mstore(add(callData, offset), _amount)
                 }
             }
-            _checkApprove(mixSwaps[i].callTo, callDatas);
+            _checkApprove(mixSwaps[i].callTo, callData);
             if (_isNative(_srcToken)) {
-                (_result, ) = mixSwaps[i].callTo.call{value: _amount}(callDatas);
+                (_result, ) = mixSwaps[i].callTo.call{value: _amount}(callData);
             } else {
                 if (i != 0) {
                     IERC20(_srcToken).safeIncreaseAllowance(mixSwaps[i].approveTo, _amount);
                 }
 
-                (_result, ) = mixSwaps[i].callTo.call(callDatas);
+                (_result, ) = mixSwaps[i].callTo.call(callData);
 
                 if (i != 0) {
                     IERC20(_srcToken).safeApprove(mixSwaps[i].approveTo, 0);
@@ -282,21 +286,22 @@ abstract contract SwapCall {
         bool native,
         bytes memory _swapData
     ) internal returns (bool _result) {
-        (uint256[] memory offsets, bytes memory callDatas) = abi.decode(_swapData, (uint256[], bytes));
+        (uint256[] memory offsets, bytes memory callData) = abi.decode(_swapData, (uint256[], bytes));
         uint256 len = offsets.length;
         for (uint i = 0; i < len; i++) {
             uint256 offset = offsets[i];
-            if (offset > 35) { //32 length + 4 funcSig
+            if (offset > 35) {
+                //32 length + 4 funcSig
                 assembly {
-                    mstore(add(callDatas, offset), _amount)
+                    mstore(add(callData, offset), _amount)
                 }
             }
         }
-        _checkApprove(_router, callDatas);
+        _checkApprove(_router, callData);
         if (native) {
-            (_result, ) = _router.call{value: _amount}(callDatas);
+            (_result, ) = _router.call{value: _amount}(callData);
         } else {
-            (_result, ) = _router.call(callDatas);
+            (_result, ) = _router.call(callData);
         }
     }
 

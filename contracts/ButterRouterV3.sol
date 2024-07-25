@@ -87,7 +87,7 @@ contract ButterRouterV3 is SwapCall, FeeManager, ReentrancyGuard, IButterReceive
     }
 
     function editFuncBlackList(bytes4 _func, bool _flag) external onlyOwner {
-         _editFuncBlackList(_func,_flag);
+        _editFuncBlackList(_func, _flag);
     }
 
     function swapAndBridge(
@@ -242,7 +242,7 @@ contract ButterRouterV3 is SwapCall, FeeManager, ReentrancyGuard, IButterReceive
             swapTemp.receiver = swap.receiver;
             if (gasleft() > minExecGas) {
                 try
-                    this.doRemoteSwap{gas: gasleft() - gasForReFund}(swap, swapTemp.srcToken, swapTemp.srcAmount)
+                    this.doRemoteSwap{gas: gasleft() - minExecGas}(swap, swapTemp.srcToken, swapTemp.srcAmount)
                 returns (address dstToken, uint256 dstAmount) {
                     swapTemp.swapToken = dstToken;
                     swapTemp.swapAmount = dstAmount;
@@ -259,7 +259,7 @@ contract ButterRouterV3 is SwapCall, FeeManager, ReentrancyGuard, IButterReceive
             }
             if (result && gasleft() > minExecGas) {
                 try
-                    this.doRemoteCall{gas: gasleft() - gasForReFund}(callParam, swapTemp.swapToken, swapTemp.swapAmount)
+                    this.doRemoteCall{gas: gasleft() - minExecGas}(callParam, swapTemp.swapToken, swapTemp.swapAmount)
                 returns (address target, uint256 callAmount) {
                     swapTemp.target = target;
                     swapTemp.callAmount = callAmount;
@@ -374,13 +374,14 @@ contract ButterRouterV3 is SwapCall, FeeManager, ReentrancyGuard, IButterReceive
         BridgeParam memory _bridge
     ) internal returns (bytes32 _orderId) {
         uint256 value;
+        address bridgeAddr = bridgeAddress;
         if (_isNative(_token)) {
             value = _amount + _bridge.nativeFee;
         } else {
             value = _bridge.nativeFee;
-            IERC20(_token).forceApprove(bridgeAddress, _amount);
+            IERC20(_token).forceApprove(bridgeAddr, _amount);
         }
-        _orderId = IButterBridgeV3(bridgeAddress).swapOutToken{value: value}(
+        _orderId = IButterBridgeV3(bridgeAddr).swapOutToken{value: value}(
             _sender,
             _token,
             _bridge.receiver,
