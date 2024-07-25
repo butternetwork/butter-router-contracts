@@ -39,7 +39,13 @@ exports.routerV3 = async function (artifacts, network, config) {
         config.v3.fee.routerFeeRate,
         config.v3.fee.routerFixedFee
     );
-   await setReferrerMaxFee(artifacts, network, router, config.v3.fee.maxReferrerFeeRate, config.v3.fee.maxReferrerNativeFee);
+    await setReferrerMaxFee(
+        artifacts,
+        network,
+        router,
+        config.v3.fee.maxReferrerFeeRate,
+        config.v3.fee.maxReferrerNativeFee
+    );
 };
 
 exports.deployFeeReceiver = async function (artifacts, network, payees, shares) {
@@ -281,7 +287,7 @@ async function checkAuthorization(router, config, tronWeb, artifacts, network, r
 
         console.log("routers to set :", executors_s);
 
-        await setAuthorization("ButterRouterV3",tronWeb, artifacts, network, router_addr, executors_s, true);
+        await setAuthorization("ButterRouterV3", tronWeb, artifacts, network, router_addr, executors_s, true);
     }
     console.log("RouterV3 sync authorization from config file.");
 }
@@ -312,8 +318,11 @@ async function checkFee(router, config, tronWeb) {
     let maxNativeFee = await router.maxNativeFee().call();
     console.log("pre maxFeeRate", maxFeeRate);
     console.log("pre maxNativeFee", maxNativeFee);
-    if (maxFeeRate.toString() !== config.v3.fee.maxReferrerFeeRate || maxNativeFee.toString() !== config.v3.fee.maxReferrerNativeFee) {
-       await router.setReferrerMaxFee(config.v3.fee.maxReferrerFeeRate, config.v3.fee.maxReferrerNativeFee).send();
+    if (
+        maxFeeRate.toString() !== config.v3.fee.maxReferrerFeeRate ||
+        maxNativeFee.toString() !== config.v3.fee.maxReferrerNativeFee
+    ) {
+        await router.setReferrerMaxFee(config.v3.fee.maxReferrerFeeRate, config.v3.fee.maxReferrerNativeFee).send();
         console.log("maxFeeRate", await router.maxFeeRate().call());
         console.log("maxNativeFee", await router.maxNativeFee().call());
     }

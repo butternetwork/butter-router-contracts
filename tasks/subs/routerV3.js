@@ -12,7 +12,6 @@ let {
 } = require("../utils/tron.js");
 let { verify } = require("../utils/verify.js");
 
-
 module.exports = async (taskArgs, hre) => {
     const { getNamedAccounts, network } = hre;
     const { deployer } = await getNamedAccounts();
@@ -290,13 +289,13 @@ task("routerV3:update", "check and Update from config file")
 
             let Router = await ethers.getContractFactory("ButterRouterV3");
             let router = Router.attach(router_addr);
-            await checkAuthorization(router, config,deploy_json);
+            await checkAuthorization(router, config, deploy_json);
             await checkFee(router, config);
             await checkBridgeAndWToken(router, config);
         }
     });
 
-async function checkAuthorization(router, config,deploy_json) {
+async function checkAuthorization(router, config, deploy_json) {
     let adapter_address = deploy_json[network.name]["SwapAdapterV3"];
     if (adapter_address != undefined) {
         console.log("SwapAdapter: ", adapter_address);
@@ -347,8 +346,13 @@ async function checkFee(router, config) {
     let maxNativeFee = await router.maxNativeFee();
     console.log("pre maxFeeRate", maxFeeRate);
     console.log("pre maxNativeFee", maxNativeFee);
-    if (maxFeeRate.toString() !== config.v3.fee.maxReferrerFeeRate || maxNativeFee.toString() !== config.v3.fee.maxReferrerNativeFee) {
-       await (await router.setReferrerMaxFee(config.v3.fee.maxReferrerFeeRate, config.v3.fee.maxReferrerNativeFee)).wait();
+    if (
+        maxFeeRate.toString() !== config.v3.fee.maxReferrerFeeRate ||
+        maxNativeFee.toString() !== config.v3.fee.maxReferrerNativeFee
+    ) {
+        await (
+            await router.setReferrerMaxFee(config.v3.fee.maxReferrerFeeRate, config.v3.fee.maxReferrerNativeFee)
+        ).wait();
         console.log("maxFeeRate", await router.maxFeeRate());
         console.log("maxNativeFee", await router.maxNativeFee());
     }
@@ -359,14 +363,14 @@ async function checkBridgeAndWToken(router, config) {
 
     console.log("pre wToken", wToken);
     if (wToken.toLowerCase() !== config.wToken.toLowerCase()) {
-       await (await router.setWToken(config.wToken)).wait();
+        await (await router.setWToken(config.wToken)).wait();
         console.log("wToken", await router.wToken());
     }
 
     let bridgeAddress = await router.bridgeAddress();
     console.log("pre bridgeAddress", bridgeAddress);
     if (bridgeAddress.toLowerCase() !== config.v3.bridge.toLowerCase()) {
-       await (await router.setBridgeAddress(config.v3.bridge)).wait();
+        await (await router.setBridgeAddress(config.v3.bridge)).wait();
         console.log("bridgeAddress", await router.bridgeAddress());
     }
 }

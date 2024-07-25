@@ -7,7 +7,7 @@ task("IntegratorManager:deploy", "deploy IntegratorManager").setAction(async (ta
     const { getNamedAccounts, ethers } = hre;
     const { deployer } = await getNamedAccounts();
     let salt = process.env.FEE_MANAGER_SALT;
-    let integratorManager = await create(hre,deployer,"IntegratorManager",["address"],[deployer],salt)
+    let integratorManager = await create(hre, deployer, "IntegratorManager", ["address"], [deployer], salt);
     console.log("IntegratorManager address :", integratorManager);
     let deploy = await readFromFile(network.name);
     deploy[network.name]["IntegratorManager"] = integratorManager;

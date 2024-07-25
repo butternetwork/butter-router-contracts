@@ -62,9 +62,7 @@ async function setBridge(contractName, router_addr, bridge) {
     let router = Router.attach(router_addr);
     let result = await (await router.setBridgeAddress(bridge)).wait();
     if (result.status == 1) {
-        console.log(
-            `${contractName} ${router_addr} set bridge (${bridge}) succeed`
-        );
+        console.log(`${contractName} ${router_addr} set bridge (${bridge}) succeed`);
     } else {
         console.log("set bridge failed");
     }

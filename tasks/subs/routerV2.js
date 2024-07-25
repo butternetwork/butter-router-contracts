@@ -54,9 +54,16 @@ task("routerV2:deploy", "deploy butterRouterV2")
         const { getNamedAccounts, ethers } = hre;
         const { deployer } = await getNamedAccounts();
         let salt = process.env.ROUTER_V2_DEPLOY_SALT;
-        let butterRouterV2 = await create(hre,deployer,"ButterRouterV2",["address", "address", "address"],[taskArgs.mos, deployer, taskArgs.wtoken],salt)
+        let butterRouterV2 = await create(
+            hre,
+            deployer,
+            "ButterRouterV2",
+            ["address", "address", "address"],
+            [taskArgs.mos, deployer, taskArgs.wtoken],
+            salt
+        );
         console.log("router v2 address :", butterRouterV2);
-  
+
         let deploy = await readFromFile(network.name);
 
         if (!deploy[network.name]["ButterRouterV2"]) {
@@ -71,7 +78,7 @@ task("routerV2:deploy", "deploy butterRouterV2")
             .map((arg) => (typeof arg == "string" ? `'${arg}'` : arg))
             .join(" ");
         console.log(`To verify, run: npx hardhat verify --network ${network.name} ${butterRouterV2} ${verifyArgs}`);
-        
+
         await verify(
             butterRouterV2,
             [taskArgs.mos, deployer, taskArgs.wtoken],

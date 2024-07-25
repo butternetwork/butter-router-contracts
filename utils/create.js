@@ -4,8 +4,6 @@ const TronWeb = require("tronweb");
 let { Wallet } = require("zksync-web3");
 let { Deployer } = require("@matterlabs/hardhat-zksync-deploy");
 
-
-
 DEPLOY_FACTORY = "0x6258e4d2950757A749a4d4683A7342261ce12471";
 let IDeployFactory_abi = [
     "function deploy(bytes32 salt, bytes memory creationCode, uint256 value) external",
@@ -114,7 +112,7 @@ async function getTronWeb(network) {
     } else {
         throw "unsupport network";
     }
-};
+}
 
 async function readFromFile(network) {
     let p = path.join(__dirname, "../deployments/deploy.json");
