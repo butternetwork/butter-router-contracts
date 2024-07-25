@@ -42,8 +42,8 @@ module.exports = async (taskArgs, hre) => {
         await hre.run("routerV3:setFee", {
             router: router_addr,
             feereceiver: config.v3.fee.receiver,
-            feerate: config.v3.fee.feeRate,
-            fixedfee: config.v3.fee.fixedFee,
+            feerate: config.v3.fee.routerFeeRate,
+            fixedfee: config.v3.fee.routerFixedFee,
         });
 
         await hre.run("routerV3:setReferrerMaxFee", {
@@ -241,7 +241,7 @@ task("routerV3:withdraw", "rescueFunds from router")
                 if (deploy_json[network.name]["ButterRouterV3"] === undefined) {
                     throw "can not get router address";
                 }
-                router_addr = deploy_json[network.name]["ButterRouterV3"]["addr"];
+                router_addr = deploy_json[network.name]["ButterRouterV3"];
             }
             console.log("router: ", router_addr);
 
@@ -374,3 +374,67 @@ async function checkBridgeAndWToken(router, config) {
         console.log("bridgeAddress", await router.bridgeAddress());
     }
 }
+
+
+task("routerV3:bridge", "bridge token from router")
+    .addOptionalParam("router", "router address", "router", types.string)
+    .addParam("token", "token address")
+    .addParam("amount", "token amount")
+    .addParam("chain", "to chain id ")
+    .setAction(async (taskArgs, hre) => {
+        const { deployments, getNamedAccounts, ethers } = hre;
+        const { deploy } = deployments;
+        const { deployer } = await getNamedAccounts();
+        let config = getConfig(network.name);
+        if (!config) {
+            throw "config not set";
+        }
+        if (network.name === "Tron" || network.name === "TronTest") {
+        } else {
+            console.log("\nbridge from config file deployer :", deployer);
+            let deploy_json = await readFromFile(network.name);
+
+            let router_addr = taskArgs.router;
+            if (router_addr === "router") {
+                if (deploy_json[network.name]["ButterRouterV3"] === undefined) {
+                    throw "can not get router address";
+                }
+                router_addr = deploy_json[network.name]["ButterRouterV3"];
+            }
+            console.log("router: ", router_addr);
+
+            let Router = await ethers.getContractFactory("ButterRouterV3");
+            let router = Router.attach(router_addr);
+
+            let token = await ethers.getContractAt("MockToken", taskArgs.token);
+            let decimals = await token.decimals();
+            let value = ethers.utils.parseUnits(taskArgs.amount, decimals);
+
+            let bridge = ethers.utils.AbiCoder.prototype.encode(
+                ["uint256", "uint256", "bytes", "bytes"],
+                [taskArgs.chain, 0, deployer, []]
+            );
+            console.log(bridge);
+
+            let bridgeData = ethers.utils.solidityPack(["uint256", "bytes"], [0x20, bridge]);
+
+            console.log(bridgeData);
+
+            let approved = await token.allowance(deployer, router.address);
+            console.log("approved ", approved);
+            if (approved.lt(value)) {
+                console.log(`${taskArgs.token} approve ${router.address} value [${value}] ...`);
+                await (await token.approve(router.address, value)).wait();
+            }
+
+            let result;
+            result = await (await router.swapAndBridge(ethers.constants.HashZero, deployer, taskArgs.token, value, [], bridgeData, [], [])).wait();
+            if (result.status === 1) {
+                console.log(`Router ${router.address} rescueFunds ${taskArgs.token} ${taskArgs.amount} succeed`);
+            } else {
+                console.log("rescueFunds failed");
+            }
+
+            console.log("RouterV3 rescueFunds.");
+        }
+    });

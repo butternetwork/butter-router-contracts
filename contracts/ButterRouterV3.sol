@@ -151,7 +151,7 @@ contract ButterRouterV3 is SwapCall, FeeManager, ReentrancyGuard, IButterReceive
             swapTemp.toChain,
             receiver
         );
-        _afterCheck(swapTemp.nativeBalance, swapTemp.inputBalance);
+        _afterCheck(swapTemp.nativeBalance);
     }
 
     function swapAndCall(
@@ -208,7 +208,7 @@ contract ButterRouterV3 is SwapCall, FeeManager, ReentrancyGuard, IButterReceive
             swapTemp.target,
             swapTemp.callAmount
         );
-        _afterCheck(swapTemp.nativeBalance, swapTemp.inputBalance);
+        _afterCheck(swapTemp.nativeBalance);
     }
 
     // _srcToken must erc20 Token or wToken
@@ -285,7 +285,7 @@ contract ButterRouterV3 is SwapCall, FeeManager, ReentrancyGuard, IButterReceive
             swapTemp.toChain,
             swapTemp.from
         );
-        _afterCheck(swapTemp.nativeBalance, swapTemp.inputBalance);
+        _afterCheck(swapTemp.nativeBalance);
     }
 
     function getFee(

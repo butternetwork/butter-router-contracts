@@ -110,10 +110,8 @@ abstract contract SwapCall {
         }
     }
 
-    function _afterCheck(uint256 nativeBalanceBeforeExec, uint256 initInputTokenBalance) internal {
+    function _afterCheck(uint256 nativeBalanceBeforeExec) internal view {
         if (address(this).balance < nativeBalanceBeforeExec) revert Errors.NATIVE_VALUE_OVERSPEND();
-        // nativeBalanceBeforeExec = 0;
-        // initInputTokenBalance = 0;
     }
 
     function _swap(
