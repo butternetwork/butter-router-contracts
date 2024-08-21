@@ -348,3 +348,24 @@ async function checkBridgeAndWToken(router, config, tronWeb) {
         console.log("bridgeAddress", tronWeb.address.fromHex(await router.bridgeAddress().call()));
     }
 }
+
+exports.tronRemoveAuthFromConfig = async function (artifacts, network, router_addr, config) {
+    let tronWeb = await getTronWeb(network);
+    let Router = await artifacts.readArtifact("ButterRouterV3");
+    if (router_addr.startsWith("0x")) {
+        router_addr = tronWeb.address.fromHex(router_addr);
+    }
+    let router = await tronWeb.contract(Router.abi, router_addr);
+    let removes = [];
+    for (let i = 0; i < config.removes.length; i++) {
+        let result = await router.approved(config.removes[i]).call();
+        if (result === true) {
+            removes.push(config.removes[i]);
+        }
+    }
+    if (removes.length > 0) {
+        let removes_s = removes.join(",");
+        console.log("routers to remove :", removes_s);
+        await setAuthorization("ButterRouterV3", tronWeb, artifacts, network, router_addr, removes_s, false);
+    }
+};

@@ -21,6 +21,8 @@ exports.verify = async function (hre, addr, args, contract, wait) {
             address: addr,
             constructorArguments: args,
         });
+    } else if (needSourcify(hre.network.config.chainId)) {
+        await run("sourcify");
     }
 };
 
@@ -38,6 +40,17 @@ function needVerify(chainId) {
         59144, // linea
         534352, // scoll
         5000, // mantle
+    ];
+    if (needs.includes(chainId)) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+function needSourcify(chainId) {
+    let needs = [
+        //22776, // mapo
     ];
     if (needs.includes(chainId)) {
         return true;

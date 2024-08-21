@@ -39,6 +39,9 @@ let config = new Map([
                     "0x3321dE36B6C29A6fa102A67bd5C48E5756Baa596", // omni adapter
                 ],
             },
+            removes: [
+                "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
+            ]
         },
     ],
 
@@ -79,6 +82,9 @@ let config = new Map([
                     "0xedf2021f41AbCfE2dEA4427E1B61f4d0AA5aA4b8", //izumi
                 ],
             },
+            removes: [
+                "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
+            ]
         },
     ],
 
@@ -121,8 +127,12 @@ let config = new Map([
                     "0x032b241De86a8660f1Ae0691a4760B426EA246d7", //izumi
 
                     "0xaaab45a0ea5d8615411877178de9fa7a54068dde", // chain pool
+                    "0x63d13711AFcD6Ddd07154c19F020b490C25bDCD0", // chain pool v2
                 ],
             },
+            removes: [
+                "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
+            ]
         },
     ],
 
@@ -138,7 +148,7 @@ let config = new Map([
                     fixedFee: "0",
                 },
                 executors: [
-                    "0xEf71750C100f7918d6Ded239Ff1CF09E81dEA92D", //claimswap
+                    "0xEf71750C100f7918d6Ded239Ff1CF09E81dEA92D", // claimswap
                     "0xe0fbB27D0E7F3a397A67a9d4864D4f4DD7cF8cB9", // klayswap
                 ],
             },
@@ -159,6 +169,9 @@ let config = new Map([
                     "0x111111125421cA6dc452d289314280a0f8842A65", //1inch v6
                 ],
             },
+            removes: [
+                "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
+            ]
         },
     ],
 
@@ -190,6 +203,9 @@ let config = new Map([
                     "0x62b0873055bf896dd869e172119871ac24aea305", //Swappi
                 ],
             },
+            removes: [
+                "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
+            ]
         },
     ],
 
@@ -225,6 +241,9 @@ let config = new Map([
                     "0x3EF68D3f7664b2805D4E88381b64868a56f88bC4", // izumi
                 ],
             },
+            removes: [
+                "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
+            ]
         },
     ],
 
@@ -260,6 +279,9 @@ let config = new Map([
                     "TQAvWQpT9H916GckwWDJNhYZvQMkuRL7PN", // sun v3 route
                 ],
             },
+            removes: [
+                "TYMpgB8Q9vSoGtkyE3hXsvUrpte3KCDGj6", // bridge
+            ]
         },
     ],
 
@@ -289,6 +311,9 @@ let config = new Map([
                     "0x1aFa5D7f89743219576Ef48a9826261bE6378a68", //izumi
                 ],
             },
+            removes: [
+                "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
+            ]
         },
     ],
     [
@@ -321,6 +346,9 @@ let config = new Map([
                     "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64", //openocean
                 ],
             },
+            removes: [
+                "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
+            ]
         },
     ],
     [
@@ -357,6 +385,9 @@ let config = new Map([
                     "0x111111125421cA6dc452d289314280a0f8842A65", //1inch v6
                 ],
             },
+            removes: [
+                "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
+            ]
         },
     ],
     [
@@ -387,6 +418,9 @@ let config = new Map([
                     "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64", // openocean
                 ],
             },
+            removes: [
+                "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
+            ]
         },
     ],
     [
@@ -419,6 +453,9 @@ let config = new Map([
                     "0x01fDea353849cA29F778B2663BcaCA1D191bED0e", //izumi
                 ],
             },
+            removes: [
+                "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
+            ]
         },
     ],
     [
@@ -448,6 +485,9 @@ let config = new Map([
                     "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64", //openocean
                 ],
             },
+            removes: [
+                "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
+            ]
         },
     ],
     [
@@ -477,6 +517,9 @@ let config = new Map([
                     "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64", //openocean
                 ],
             },
+            removes: [
+                "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
+            ]
         },
     ],
     [
@@ -506,6 +549,9 @@ let config = new Map([
                     "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64", //openocean
                 ],
             },
+            removes: [
+                "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
+            ]
         },
     ],
     [
@@ -532,32 +578,9 @@ let config = new Map([
                 },
                 executors: [],
             },
-        },
-    ],
-    [
-        "Bevm",
-        {
-            wToken: "0x09Ff8E49D0EA411A3422ed95E8f5497D4241F532",
-            v2: {
-                mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
-                fee: {
-                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
-                    feeRate: "0", //denominator is 1000000
-                    fixedFee: "0",
-                },
-                executors: [],
-            },
-            v3: {
-                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
-                fee: {
-                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
-                    routerFeeRate: "0", //denominator is 10000
-                    routerFixedFee: "0",
-                    maxReferrerFeeRate: "2000",
-                    maxReferrerNativeFee: "300000000000000",
-                },
-                executors: [],
-            },
+            removes: [
+                "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
+            ]
         },
     ],
     [
@@ -590,60 +613,9 @@ let config = new Map([
                     "0x36A1aCbbCAfca2468b85011DDD16E7Cb4d673230", //openocean
                 ],
             },
-        },
-    ],
-    [
-        "B2",
-        {
-            wToken: "0x4200000000000000000000000000000000000006",
-            v2: {
-                mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
-                fee: {
-                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
-                    feeRate: "0", //denominator is 1000000
-                    fixedFee: "0",
-                },
-                executors: [],
-            },
-            v3: {
-                bridge: "",
-                fee: {
-                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
-                    routerFeeRate: "0", //denominator is 10000
-                    routerFixedFee: "0",
-                    maxReferrerFeeRate: "2000",
-                    maxReferrerNativeFee: "300000000000000",
-                },
-                executors: [],
-            },
-        },
-    ],
-    [
-        "zkLink",
-        {
-            wToken: "0x8280a4e7D5B3B658ec4580d3Bc30f5e50454F169",
-            v2: {
-                mos: "0xB666A84a94E5459cC47874aD9774935ba0DdF614",
-                fee: {
-                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
-                    feeRate: "0", //denominator is 1000000
-                    fixedFee: "0",
-                },
-                executors: [
-                    "0x377EC7c9ae5a0787F384668788a1654249059dD6", //izumi
-                ],
-            },
-            v3: {
-                bridge: "",
-                fee: {
-                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
-                    routerFeeRate: "0", //denominator is 10000
-                    routerFixedFee: "0",
-                    maxReferrerFeeRate: "2000",
-                    maxReferrerNativeFee: "6000000000000000",
-                },
-                executors: [],
-            },
+            removes: [
+                "0xBEf06a32166C4B819fF04cCfa887733B8bb67eB5", // bridge
+            ]
         },
     ],
 

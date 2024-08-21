@@ -9,6 +9,7 @@ let {
     tronSetFeeV3,
     tronCheckAndUpdateFromConfig,
     tronSetFeeManager,
+    tronRemoveAuthFromConfig
 } = require("../utils/tron.js");
 let { verify } = require("../utils/verify.js");
 
@@ -292,6 +293,8 @@ task("routerV3:update", "check and Update from config file")
             await checkAuthorization(router, config, deploy_json);
             await checkFee(router, config);
             await checkBridgeAndWToken(router, config);
+
+            await hre.run("routerV3:removeAuthFromConfig", { router: router_addr});
         }
     });
 
@@ -447,4 +450,49 @@ task("routerV3:bridge", "bridge token from router")
 
             console.log("RouterV3 rescueFunds.");
         }
+    });
+
+
+task("routerV3:removeAuthFromConfig", "remove Authorization from config file")
+    .addOptionalParam("router", "router address", "router", types.string)
+    .setAction(async (taskArgs, hre) => {
+        const { deployments, getNamedAccounts, ethers } = hre;
+        let config = getConfig(hre.network.name);
+        if (!config) {
+            throw "config not set";
+        }
+
+        let router_addr = taskArgs.router;
+        if (router_addr === "router") {
+            let deploy_json = await readFromFile(hre.network.name);
+
+            if (deploy_json[network.name]["ButterRouterV3"] === undefined) {
+                throw "can not get router address";
+            }
+            router_addr = deploy_json[network.name]["ButterRouterV3"];
+        }
+        console.log("router: ", router_addr);
+
+        if (network.name === "Tron" || network.name === "TronTest") {
+            //let tronWeb = await getTronWeb(network.name);
+            //let deployer = "0x" + tronWeb.defaultAddress.hex.substring(2);
+            //console.log("\nremoveAuthFromConfig deployer :", deployer);
+            await tronRemoveAuthFromConfig(hre.artifacts, hre.network.name, router_addr, config);
+        } else {
+            let Router = await ethers.getContractFactory("ButterRouterV3");
+            let router = Router.attach(router_addr);
+            let removes = [];
+            for (let i = 0; i < config.removes.length; i++) {
+                let result = await router.approved(config.removes[i]);
+                if (result === true) {
+                    removes.push(config.removes[i]);
+                }
+            }
+            if (removes.length > 0) {
+                let removes_s = removes.join(",");
+                console.log("routers to remove :", removes_s);
+                await setAuthorization(router_addr, removes_s, false);
+            }
+        }
+        console.log("RouterV3 remove authorization from config file.");
     });
