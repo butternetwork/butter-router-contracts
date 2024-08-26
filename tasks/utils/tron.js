@@ -48,6 +48,29 @@ exports.routerV3 = async function (artifacts, network, config) {
     );
 };
 
+exports.deployReceiver = async function (artifacts, network, config) {
+    let tronWeb = await getTronWeb(network);
+    console.log("deployer :", tronWeb.defaultAddress);
+
+    let deployer = tronWeb.defaultAddress.hex.replace(/^(41)/, "0x");
+    let mosOrBridgeHex = tronWeb.address.toHex(config.v3.bridge).replace(/^(41)/, "0x");
+    let wtokenHex = tronWeb.address.toHex(config.wToken).replace(/^(41)/, "0x");
+
+    let receiver = await deploy_contract(artifacts, "Receiver", [deployer, wtokenHex, mosOrBridgeHex], tronWeb);
+
+    let deploy = await readFromFile(network);
+    if (!deploy[network]["Receiver"]) {
+        deploy[network]["Receiver"] = {};
+    }
+    let adapt = deploy[network]["SwapAdapterV3"];
+    config.v3.executors.push(tronWeb.address.toHex(adapt).replace(/^(41)/, "0x"));
+    let executors_s = config.v3.executors.join(",");
+    await setAuthorization("Receiver", tronWeb, artifacts, network, router, executors_s, true);
+    
+    deploy[network]["Receiver"] = receiver;
+    await writeToFile(deploy);
+};
+
 exports.deployFeeReceiver = async function (artifacts, network, payees, shares) {
     let tronWeb = await getTronWeb(network);
     let deployer = "0x" + tronWeb.defaultAddress.hex.substring(2);
@@ -246,7 +269,8 @@ exports.tronSetAuthFromConfigV2 = async function (artifacts, network, router_add
     console.log("RouterV2 sync authorization from config file.");
 };
 
-exports.tronCheckAndUpdateFromConfig = async function (artifacts, network, router_addr, config) {
+exports.tronCheckAndUpdateFromConfig = async function (artifacts, network, router_addr, config, isRouter) {
+    isRouter = isRouter || true;
     let deploy_json = await readFromFile(network);
     if (router_addr === "router") {
         if (deploy_json[network]["ButterRouterV3"] === undefined) {
@@ -269,7 +293,7 @@ exports.tronCheckAndUpdateFromConfig = async function (artifacts, network, route
     let router = await tronWeb.contract(Router.abi, router_addr);
     console.log("router: ", router.address);
     await checkAuthorization(router, config, tronWeb, artifacts, network, router_addr);
-    await checkFee(router, config, tronWeb);
+    if(isRouter == true) await checkFee(router, config, tronWeb);
     await checkBridgeAndWToken(router, config, tronWeb);
 };
 
