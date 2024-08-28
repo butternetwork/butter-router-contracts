@@ -139,6 +139,7 @@ contract Receiver is Ownable2Step, SwapCall, ReentrancyGuard, IButterReceiver {
                     swap.dstToken,
                     swapTemp.srcAmount,
                     swap.receiver,
+                    swap.minAmount,
                     swapTemp.from,
                     _callbackData
                 );
@@ -170,7 +171,7 @@ contract Receiver is Ownable2Step, SwapCall, ReentrancyGuard, IButterReceiver {
         _emitRemoteSwapAndCall(_orderId, swapTemp);
     }
 
-    function execFailedSwap(
+    function execSwap(
         bytes32 _orderId,
         uint256 _fromChain,
         address _srcToken,
@@ -299,6 +300,7 @@ contract Receiver is Ownable2Step, SwapCall, ReentrancyGuard, IButterReceiver {
         address _dscToken,
         uint256 _amount,
         address _receiver,
+        uint256 _minReceived,
         bytes _from,
         bytes _callData
     );
@@ -310,6 +312,7 @@ contract Receiver is Ownable2Step, SwapCall, ReentrancyGuard, IButterReceiver {
         address _dstToken,
         uint256 _amount,
         address _receiver,
+        uint256 _minReceived,
         bytes memory _from,
         bytes memory _callbackData
     ) private {
@@ -317,7 +320,7 @@ contract Receiver is Ownable2Step, SwapCall, ReentrancyGuard, IButterReceiver {
             abi.encodePacked(_fromChain, _srcToken, _dstToken, _amount, _receiver, _from, _callbackData)
         );
         storedFailedSwap[_orderId] = hash;
-        emit SwapFailed(_orderId, _fromChain, _srcToken, _dstToken, _amount, _receiver, _from, _callbackData);
+        emit SwapFailed(_orderId, _fromChain, _srcToken, _dstToken, _amount, _receiver, _minReceived, _from, _callbackData);
     }
 
     function _setBridgeAddress(address _bridgeAddress) internal returns (bool) {

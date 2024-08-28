@@ -93,27 +93,6 @@ abstract contract SwapCall {
         emit SetWrappedToken(_wToken);
     }
 
-    function _transferIn(
-        address token,
-        uint256 amount,
-        bytes memory permitData
-    ) internal returns (uint256 nativeBalanceBeforeExec, uint256 initInputTokenBalance) {
-        if (amount == 0) revert Errors.ZERO_IN();
-
-        if (permitData.length != 0) {
-            _permit(permitData);
-        }
-        nativeBalanceBeforeExec = address(this).balance - msg.value;
-        if (_isNative(token)) {
-            if (msg.value < amount) revert Errors.FEE_MISMATCH();
-            //extra value maybe used for call native or bridge native fee
-            initInputTokenBalance = address(this).balance - amount;
-        } else {
-            initInputTokenBalance = _getBalance(token, address(this));
-            SafeERC20.safeTransferFrom(IERC20(token), msg.sender, address(this), amount);
-        }
-    }
-
     function _afterCheck(uint256 nativeBalanceBeforeExec) internal view {
         if (address(this).balance < nativeBalanceBeforeExec) revert Errors.NATIVE_VALUE_OVERSPEND();
     }
@@ -346,20 +325,5 @@ abstract contract SwapCall {
         assembly {
             outBytes4 := mload(add(data, 32))
         }
-    }
-
-    function _permit(bytes memory _data) internal {
-        (
-            address token,
-            address owner,
-            address spender,
-            uint256 value,
-            uint256 deadline,
-            uint8 v,
-            bytes32 r,
-            bytes32 s
-        ) = abi.decode(_data, (address, address, address, uint256, uint256, uint8, bytes32, bytes32));
-
-        SafeERC20.safePermit(IERC20Permit(token), owner, spender, value, deadline, v, r, s);
     }
 }

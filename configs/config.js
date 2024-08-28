@@ -239,6 +239,8 @@ let config = new Map([
                     "0x6628a22D9E16E42225a46ceaDd93dACFefAcfE1b", //hiveswap v3
                     "0x3321dE36B6C29A6fa102A67bd5C48E5756Baa596", // omni adapter
                     "0x3EF68D3f7664b2805D4E88381b64868a56f88bC4", // izumi
+
+                    "0x63d13711AFcD6Ddd07154c19F020b490C25bDCD0", // chainpool
                 ],
             },
             removes: [
