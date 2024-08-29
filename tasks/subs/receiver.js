@@ -9,6 +9,7 @@ let {
     deployReceiver,
 } = require("../utils/tron.js");
 let { verify } = require("../utils/verify.js");
+let { httpGet } = require("../utils/httpUtil.js");
 
 module.exports = async (taskArgs, hre) => {
     const { getNamedAccounts, network } = hre;
@@ -35,8 +36,7 @@ module.exports = async (taskArgs, hre) => {
 
         let executors_s = config.v3.executors.join(",");
 
-        await hre.run("receiver:setAuthorization", { router: router_addr, executors: executors_s });
-
+        await hre.run("receiver:setAuthorization", { receiver: router_addr, executors: executors_s });
     }
 };
 
@@ -95,7 +95,6 @@ task("receiver:setAuthorization", "set Authorization")
         }
     });
 
-
 task("receiver:setBridge", "set setFee")
     .addParam("receiver", "receiver address")
     .addParam("bridge", "bridge address")
@@ -104,7 +103,7 @@ task("receiver:setBridge", "set setFee")
         const { deploy } = deployments;
         const { deployer } = await getNamedAccounts();
         if (network.name === "Tron" || network.name === "TronTest") {
-          //  await tronSetFeeV3(hre.artifacts, network.name, taskArgs.router, taskArgs.bridge);
+            //  await tronSetFeeV3(hre.artifacts, network.name, taskArgs.router, taskArgs.bridge);
         } else {
             console.log("\nset bridge :", taskArgs.bridge);
 
@@ -120,13 +119,11 @@ task("receiver:setOwner", "transfer owner")
         const { deploy } = deployments;
         const { deployer } = await getNamedAccounts();
         if (network.name === "Tron" || network.name === "TronTest") {
-
         } else {
             console.log("\ntransfer owner :", taskArgs.owner);
             await transferOwner(taskArgs.receiver, taskArgs.owner);
         }
     });
-
 
 task("receiver:update", "check and Update from config file")
     .addOptionalParam("receiver", "receiver address", "receiver", types.string)
@@ -142,7 +139,6 @@ task("receiver:update", "check and Update from config file")
         } else {
             console.log("\nset Authorization from config file deployer :", deployer);
             let deploy_json = await readFromFile(network.name);
-            receiver
             let receiver_addr = taskArgs.receiver;
             if (receiver_addr === "receiver") {
                 if (deploy_json[network.name]["Receiver"] === undefined) {
@@ -185,7 +181,6 @@ async function checkAuthorization(receiver, config, deploy_json) {
     console.log("receiver sync authorization from config file.");
 }
 
-
 async function checkBridgeAndWToken(router, config) {
     let wToken = await router.wToken();
 
@@ -202,7 +197,6 @@ async function checkBridgeAndWToken(router, config) {
         console.log("bridgeAddress", await router.bridgeAddress());
     }
 }
-
 
 task("receiver:removeAuthFromConfig", "remove Authorization from config file")
     .addOptionalParam("receiver", "receiver address", "receiver", types.string)
@@ -243,4 +237,101 @@ task("receiver:removeAuthFromConfig", "remove Authorization from config file")
             }
         }
         console.log("Receiver remove authorization from config file.");
+    });
+
+// event SwapFailed(
+//     bytes32 indexed _orderId,
+//     uint256 _fromChain,
+//     address _srcToken,
+//     address _dscToken,
+//     uint256 _amount,
+//     address _receiver,
+//     uint256 _minReceived,
+//     bytes _from,
+//     bytes _callData
+// );
+let SwapFailed_topic = "0xd457b25e0e458857e38c937f68af3100c40afd88fc5522c5820440d07b44351f";
+task("receiver:execSwap", "execSwap")
+    .addParam("hash", "transation hash")
+    .setAction(async (taskArgs, hre) => {
+        const { ethers, network } = hre;
+        let [wallet] = await ethers.getSigners();
+        console.log("wallet...", wallet.address);
+        let deploy_json = await readFromFile(hre.network.name);
+        let receiver_addr = deploy_json[network.name]["Receiver"];
+        let chain_id = network.config.chainId;
+        if (receiver_addr === undefined) {
+            throw "can not get receiver address";
+        }
+        let Receiver = await ethers.getContractFactory("Receiver");
+        let receiver = Receiver.attach(receiver_addr);
+        receiver_addr = receiver_addr.toLowerCase();
+        let r = await ethers.provider.getTransactionReceipt(taskArgs.hash);
+        let swapFailed;
+        if (r && r.logs) {
+            r.logs.forEach((log) => {
+                if (log.address.toLowerCase() === receiver_addr && log.topics[0].toLowerCase() === SwapFailed_topic) {
+                    swapFailed = log;
+                }
+            });
+        }
+        if (swapFailed) {
+            let url = process.env.BUTTER_ROUTER_API;
+            let orderId = swapFailed.topics[1];
+            let storeHash = await receiver.storedFailedSwap(orderId);
+            if (storeHash === ethers.constants.HashZero) {
+                throw "already exec ?";
+            }
+            let decode = ethers.utils.defaultAbiCoder.decode(
+                ["uint256", "address", "address", "uint256", "address", "uint256", "bytes", "bytes"],
+                swapFailed.data
+            );
+            let tokenIn = decode[1];
+            let dstToken = decode[2];
+            let amount_decimals = decode[3];
+            let user_addr = decode[4];
+            let from = decode[6];
+            let callBackData = decode[7];
+            let slippage = 300
+            let decimals;
+            if (tokenIn.toLowerCase() === ethers.constants.AddressZero) {
+                decimals = 18;
+            } else {
+                let ERC20 = ["function decimals() external view returns (uint8)"];
+                let t = await ethers.getContractAt(ERC20, tokenIn, wallet);
+                decimals = await t.decimals();
+            }
+            let amount = ethers.FixedNumber.from(amount_decimals).divUnsafe(
+                ethers.FixedNumber.from(BigNumber.from(10).pow(decimals))
+            );
+            let get_param = `fromChainId=${chain_id}&toChainId=${chain_id}&amount=${amount}&tokenInAddress=${tokenIn}&tokenOutAddress=${dstToken}&type=exactIn&slippage=${slippage}&from=${from}&receiver=${user_addr}&callData=${callBackData}&entrance=Butter%2B`;
+            let response = await httpGet(url, get_param);
+            if(!response) {
+                throw "get swap router failed";
+            }
+            let j = JSON.parse(response);
+            if (j.errno === 0) {
+                let txParam = j.data[0].txParam;
+                if (txParam.errno === 0 && txParam.data.length != 0) {
+                    let args = txParam.data[0].args;
+                    if (args && args.length != 0) {
+                        console.log(args);
+                        await (
+                            await receiver.execSwap(
+                                orderId,
+                                decode[0],       // fromChain
+                                tokenIn,
+                                amount_decimals, // amount
+                                from,            // from
+                                args[4].value,   // swapData
+                                callBackData,    // callBackData
+                                { gasLimit: 1200000 }
+                            )
+                        ).wait();
+                    }
+                }
+            } else {
+                console.log(j);
+            }
+        }
     });
