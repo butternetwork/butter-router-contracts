@@ -302,7 +302,7 @@ task("receiver:execSwap", "execSwap")
                 decimals = await t.decimals();
             }
             let amount = ethers.FixedNumber.from(amount_decimals).divUnsafe(
-                ethers.FixedNumber.from(BigNumber.from(10).pow(decimals))
+                ethers.FixedNumber.from(ethers.BigNumber.from(10).pow(decimals))
             );
             let get_param = `fromChainId=${chain_id}&toChainId=${chain_id}&amount=${amount}&tokenInAddress=${tokenIn}&tokenOutAddress=${dstToken}&type=exactIn&slippage=${slippage}&from=${from}&receiver=${user_addr}&callData=${callBackData}&entrance=Butter%2B`;
             let response = await httpGet(url, get_param);
@@ -316,18 +316,29 @@ task("receiver:execSwap", "execSwap")
                     let args = txParam.data[0].args;
                     if (args && args.length != 0) {
                         console.log(args);
-                        await (
-                            await receiver.execSwap(
-                                orderId,
-                                decode[0],       // fromChain
-                                tokenIn,
-                                amount_decimals, // amount
-                                from,            // from
-                                args[4].value,   // swapData
-                                callBackData,    // callBackData
-                                { gasLimit: 1200000 }
-                            )
-                        ).wait();
+                        let gasLimit = await receiver.estimateGas.execSwap(
+                            orderId,
+                            decode[0],       // fromChain
+                            tokenIn,
+                            amount_decimals, // amount
+                            from,            // from
+                            args[4].value,   // swapData
+                            callBackData,    // callBackData
+                        );
+                        if(gasLimit) {
+                            await (
+                                await receiver.execSwap(
+                                    orderId,
+                                    decode[0],       // fromChain
+                                    tokenIn,
+                                    amount_decimals, // amount
+                                    from,            // from
+                                    args[4].value,   // swapData
+                                    callBackData,    // callBackData
+                                    { gasLimit: 1200000 }
+                                )
+                            ).wait();
+                        }
                     }
                 }
             } else {
