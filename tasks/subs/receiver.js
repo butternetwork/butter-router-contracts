@@ -278,6 +278,7 @@ task("receiver:removeAuthFromConfig", "remove Authorization from config file")
 let SwapFailed_topic = "0xd457b25e0e458857e38c937f68af3100c40afd88fc5522c5820440d07b44351f";
 task("receiver:execSwap", "execSwap")
     .addParam("hash", "transation hash")
+    .addOptionalParam("force", "force execSwap, default: false", false, types.boolean)
     .setAction(async (taskArgs, hre) => {
         const { ethers, network } = hre;
         let [wallet] = await ethers.getSigners();
@@ -340,8 +341,9 @@ task("receiver:execSwap", "execSwap")
                 let txParam = j.data[0].txParam;
                 let router = j.data[0].route;
                 let minOut = ethers.utils.parseUnits(router.minAmountOut.amount, decimals);  //add slippage 
-                if(minReceived.gt(minOut)){
-                    console.log("minOut", minOut)
+                console.log("minOut ：", minOut)
+                console.log("event minOut ：", minReceived)
+                if(minReceived.gt(minOut) && (!taskArgs.force)){
                     throw "receiver too lower";
                 }
                 if (txParam.errno === 0 && txParam.data.length != 0) {
