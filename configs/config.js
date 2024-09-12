@@ -126,12 +126,13 @@ let config = new Map([
                     "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64", // openocean
                     "0x032b241De86a8660f1Ae0691a4760B426EA246d7", //izumi
 
-                    "0xaaab45a0ea5d8615411877178de9fa7a54068dde", // chain pool
+                    "0x273290B6dCe557B2889b8B5aF7ea4d989689E1CC", // chain pool
                     "0x63d13711AFcD6Ddd07154c19F020b490C25bDCD0", // chain pool v2
                 ],
             },
             removes: [
                 "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
+                "0xaaab45a0ea5d8615411877178de9fa7a54068dde",
             ]
         },
     ],
@@ -240,11 +241,12 @@ let config = new Map([
                     "0x3321dE36B6C29A6fa102A67bd5C48E5756Baa596", // omni adapter
                     "0x3EF68D3f7664b2805D4E88381b64868a56f88bC4", // izumi
 
-                    "0x63d13711AFcD6Ddd07154c19F020b490C25bDCD0", // chainpool
+                    // "0x63d13711AFcD6Ddd07154c19F020b490C25bDCD0", // chainpool
                 ],
             },
             removes: [
                 "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
+                "0x63d13711AFcD6Ddd07154c19F020b490C25bDCD0"
             ]
         },
     ],
