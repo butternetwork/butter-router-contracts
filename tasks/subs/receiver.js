@@ -340,7 +340,15 @@ task("receiver:execSwap", "execSwap")
             if (j.errno === 0) {
                 let txParam = j.data[0].txParam;
                 let router = j.data[0].route;
-                let minOut = ethers.utils.parseUnits(router.minAmountOut.amount, decimals);  //add slippage 
+                let index = router.minAmountOut.amount.indexOf(".");
+                let minOut
+                if(index > 0){
+                    let len = router.minAmountOut.amount.length - index - 1;
+                    if(len > decimals) len = decimals;
+                    minOut = ethers.utils.parseUnits(router.minAmountOut.amount.substring(0, (len + index + 1)), decimals);  //add slippage 
+                } else {
+                    minOut = ethers.utils.parseUnits(router.minAmountOut.amount, decimals);  //add slippage 
+                }
                 console.log("minOut ：", minOut)
                 console.log("event minOut ：", minReceived)
                 if(minReceived.gt(minOut) && (!taskArgs.force)){
