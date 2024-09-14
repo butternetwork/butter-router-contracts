@@ -111,6 +111,31 @@ task("receiver:setBridge", "set setFee")
         }
     });
 
+task("receiver:updateKeepers", "set setFee")
+    .addOptionalParam("receiver", "receiver address", "receiver", types.string)
+    .addParam("keeper", "receiver address")
+    .addOptionalParam("flag", "flag, default: true", true, types.boolean)
+    .setAction(async (taskArgs, hre) => {
+        const { deployments, getNamedAccounts, ethers } = hre;
+        const { deploy } = deployments;
+        const { deployer } = await getNamedAccounts();
+        console.log("\n updateKeepers deployer :", deployer);
+        let deploy_json = await readFromFile(network.name);
+        let receiver_addr = taskArgs.receiver;
+        if (receiver_addr === "receiver") {
+            if (deploy_json[network.name]["Receiver"] === undefined) {
+                throw "can not get Receiver address";
+            }
+            receiver_addr = deploy_json[network.name]["Receiver"];
+        }
+        console.log("Receiver: ", receiver_addr);
+
+        let Receiver = await ethers.getContractFactory("Receiver");
+        let receiver = Receiver.attach(receiver_addr);
+
+        await (await receiver.updateKeepers(taskArgs.keeper, taskArgs.flag)).wait();
+    });
+
 task("receiver:setOwner", "transfer owner")
     .addParam("receiver", "receiver address")
     .addParam("owner", "owner address")
@@ -233,7 +258,7 @@ task("receiver:removeAuthFromConfig", "remove Authorization from config file")
             if (removes.length > 0) {
                 let removes_s = removes.join(",");
                 console.log("receiver to remove :", removes_s);
-                await setAuthorization(receiver_addr, removes_s, false);
+                await setAuthorizationV3(receiver_addr, removes_s, false);
             }
         }
         console.log("Receiver remove authorization from config file.");
@@ -253,6 +278,7 @@ task("receiver:removeAuthFromConfig", "remove Authorization from config file")
 let SwapFailed_topic = "0xd457b25e0e458857e38c937f68af3100c40afd88fc5522c5820440d07b44351f";
 task("receiver:execSwap", "execSwap")
     .addParam("hash", "transation hash")
+    .addOptionalParam("force", "force execSwap, default: false", false, types.boolean)
     .setAction(async (taskArgs, hre) => {
         const { ethers, network } = hre;
         let [wallet] = await ethers.getSigners();
@@ -292,7 +318,7 @@ task("receiver:execSwap", "execSwap")
             let user_addr = decode[4];
             let from = decode[6];
             let callBackData = decode[7];
-            let slippage = 300
+            let slippage = 50
             let decimals;
             if (tokenIn.toLowerCase() === ethers.constants.AddressZero) {
                 decimals = 18;
@@ -304,6 +330,7 @@ task("receiver:execSwap", "execSwap")
             let amount = ethers.FixedNumber.from(amount_decimals).divUnsafe(
                 ethers.FixedNumber.from(ethers.BigNumber.from(10).pow(decimals))
             );
+            let minReceived = ethers.BigNumber.from(decode[5]);
             let get_param = `fromChainId=${chain_id}&toChainId=${chain_id}&amount=${amount}&tokenInAddress=${tokenIn}&tokenOutAddress=${dstToken}&type=exactIn&slippage=${slippage}&from=${from}&receiver=${user_addr}&callData=${callBackData}&entrance=Butter%2B`;
             let response = await httpGet(url, get_param);
             if(!response) {
@@ -312,6 +339,21 @@ task("receiver:execSwap", "execSwap")
             let j = JSON.parse(response);
             if (j.errno === 0) {
                 let txParam = j.data[0].txParam;
+                let router = j.data[0].route;
+                let index = router.minAmountOut.amount.indexOf(".");
+                let minOut
+                if(index > 0){
+                    let len = router.minAmountOut.amount.length - index - 1;
+                    if(len > decimals) len = decimals;
+                    minOut = ethers.utils.parseUnits(router.minAmountOut.amount.substring(0, (len + index + 1)), decimals);  //add slippage 
+                } else {
+                    minOut = ethers.utils.parseUnits(router.minAmountOut.amount, decimals);  //add slippage 
+                }
+                console.log("minOut ：", minOut)
+                console.log("event minOut ：", minReceived)
+                if(minReceived.gt(minOut) && (!taskArgs.force)){
+                    throw "receiver too lower";
+                }
                 if (txParam.errno === 0 && txParam.data.length != 0) {
                     let args = txParam.data[0].args;
                     if (args && args.length != 0) {
