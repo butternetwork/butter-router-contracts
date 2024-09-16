@@ -319,17 +319,11 @@ task("receiver:execSwap", "execSwap")
             let from = decode[6];
             let callBackData = decode[7];
             let slippage = 50
-            let decimals;
-            if (tokenIn.toLowerCase() === ethers.constants.AddressZero) {
-                decimals = 18;
-            } else {
-                let ERC20 = ["function decimals() external view returns (uint8)"];
-                let t = await ethers.getContractAt(ERC20, tokenIn, wallet);
-                decimals = await t.decimals();
-            }
+            let inTokenDecimals = await decimals(tokenIn, wallet);
             let amount = ethers.FixedNumber.from(amount_decimals).divUnsafe(
-                ethers.FixedNumber.from(ethers.BigNumber.from(10).pow(decimals))
+                ethers.FixedNumber.from(ethers.BigNumber.from(10).pow(inTokenDecimals))
             );
+
             let minReceived = ethers.BigNumber.from(decode[5]);
             let get_param = `fromChainId=${chain_id}&toChainId=${chain_id}&amount=${amount}&tokenInAddress=${tokenIn}&tokenOutAddress=${dstToken}&type=exactIn&slippage=${slippage}&from=${from}&receiver=${user_addr}&callData=${callBackData}&entrance=Butter%2B`;
             let response = await httpGet(url, get_param);
@@ -341,11 +335,12 @@ task("receiver:execSwap", "execSwap")
                 let txParam = j.data[0].txParam;
                 let router = j.data[0].route;
                 let index = router.minAmountOut.amount.indexOf(".");
+                let outTokenDecimals = await decimals(dstToken, wallet);
                 let minOut
                 if(index > 0){
                     let len = router.minAmountOut.amount.length - index - 1;
-                    if(len > decimals) len = decimals;
-                    minOut = ethers.utils.parseUnits(router.minAmountOut.amount.substring(0, (len + index + 1)), decimals);  //add slippage 
+                    if(len > outTokenDecimals) len = outTokenDecimals;
+                    minOut = ethers.utils.parseUnits(router.minAmountOut.amount.substring(0, (len + index + 1)), outTokenDecimals);  //add slippage 
                 } else {
                     minOut = ethers.utils.parseUnits(router.minAmountOut.amount, decimals);  //add slippage 
                 }
@@ -388,3 +383,16 @@ task("receiver:execSwap", "execSwap")
             }
         }
     });
+
+
+async function decimals(token,wallet) {
+    let decimals;
+    if (token.toLowerCase() === ethers.constants.AddressZero) {
+        decimals = 18;
+    } else {
+        let ERC20 = ["function decimals() external view returns (uint8)"];
+        let t = await ethers.getContractAt(ERC20, token, wallet);
+        decimals = await t.decimals();
+    }
+    return decimals;
+}
