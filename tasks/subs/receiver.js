@@ -20,7 +20,7 @@ module.exports = async (taskArgs, hre) => {
     }
 
     if (network.name === "Tron" || network.name === "TronTest") {
-        await deployReceiver(hre.artifacts, network.name, config);
+        await deployReceiver("Receiver", hre.artifacts, network.name, config);
     } else {
         console.log("Receiver deployer :", deployer);
 
@@ -318,7 +318,7 @@ task("receiver:execSwap", "execSwap")
             let user_addr = decode[4];
             let from = decode[6];
             let callBackData = decode[7];
-            let slippage = 50
+            let slippage = 30
             let inTokenDecimals = await decimals(tokenIn, wallet);
             let amount = ethers.FixedNumber.from(amount_decimals).divUnsafe(
                 ethers.FixedNumber.from(ethers.BigNumber.from(10).pow(inTokenDecimals))
