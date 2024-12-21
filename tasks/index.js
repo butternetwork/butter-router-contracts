@@ -9,3 +9,4 @@ task("deployFeeReceiver", "deploy feeReceiver", require("./subs/deployFeeReceive
     .addParam("shares", "shares array");
 
 task("deployOmniAdapter", "deploy OmniAdapter", require("./subs/OmniAdapter.js"));
+task("solanaReceiver", "deploy solana receiver contract and set", require("./subs/solanaReveiver.js"));

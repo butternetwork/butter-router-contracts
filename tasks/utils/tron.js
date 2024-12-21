@@ -48,7 +48,7 @@ exports.routerV3 = async function (artifacts, network, config) {
     );
 };
 
-exports.deployReceiver = async function (artifacts, network, config) {
+exports.deployReceiver = async function (contractName, artifacts, network, config) {
     let tronWeb = await getTronWeb(network);
     console.log("deployer :", tronWeb.defaultAddress);
 
@@ -56,18 +56,18 @@ exports.deployReceiver = async function (artifacts, network, config) {
     let mosOrBridgeHex = tronWeb.address.toHex(config.v3.bridge).replace(/^(41)/, "0x");
     let wtokenHex = tronWeb.address.toHex(config.wToken).replace(/^(41)/, "0x");
 
-    let receiver = await deploy_contract(artifacts, "Receiver", [deployer, wtokenHex, mosOrBridgeHex], tronWeb);
+    let receiver = await deploy_contract(artifacts, contractName, [deployer, wtokenHex, mosOrBridgeHex], tronWeb);
 
     let deploy = await readFromFile(network);
-    if (!deploy[network]["Receiver"]) {
-        deploy[network]["Receiver"] = {};
+    if (!deploy[network][contractName]) {
+        deploy[network][contractName] = {};
     }
     let adapt = deploy[network]["SwapAdapterV3"];
     config.v3.executors.push(tronWeb.address.toHex(adapt).replace(/^(41)/, "0x"));
     let executors_s = config.v3.executors.join(",");
-    await setAuthorization("Receiver", tronWeb, artifacts, network, router, executors_s, true);
+    await setAuthorization(contractName, tronWeb, artifacts, network, router, executors_s, true);
     
-    deploy[network]["Receiver"] = receiver;
+    deploy[network][contractName] = receiver;
     await writeToFile(deploy);
 };
 
