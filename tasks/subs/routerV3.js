@@ -7,6 +7,7 @@ let {
     tronSetReferrerMaxFee,
     tronSetAuthorizationV3,
     tronSetFeeV3,
+    tronSetBridge,
     tronCheckAndUpdateFromConfig,
     tronSetFeeManager,
     tronRemoveAuthFromConfig
@@ -189,7 +190,7 @@ task("routerV3:setBridge", "set setFee")
         const { deploy } = deployments;
         const { deployer } = await getNamedAccounts();
         if (network.name === "Tron" || network.name === "TronTest") {
-            await tronSetFeeV3(hre.artifacts, network.name, taskArgs.router, taskArgs.bridge);
+            await tronSetBridge(hre.artifacts, network.name, taskArgs.router, taskArgs.bridge);
         } else {
             console.log("\nset bridge :", taskArgs.bridge);
 
@@ -491,7 +492,7 @@ task("routerV3:removeAuthFromConfig", "remove Authorization from config file")
             if (removes.length > 0) {
                 let removes_s = removes.join(",");
                 console.log("routers to remove :", removes_s);
-                await setAuthorization(router_addr, removes_s, false);
+                await setAuthorizationV3(router_addr, removes_s, false);
             }
         }
         console.log("RouterV3 remove authorization from config file.");

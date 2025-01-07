@@ -1,5 +1,4 @@
 let { create, readFromFile, writeToFile } = require("../../utils/create.js");
-let { task } = require("hardhat/config");
 let { getConfig } = require("../../configs/config");
 let { setAuthorizationV3, setFeeV3, transferOwner, setBridge } = require("../utils/util.js");
 let {
@@ -10,6 +9,8 @@ let {
 } = require("../utils/tron.js");
 let { verify } = require("../utils/verify.js");
 let { httpGet } = require("../utils/httpUtil.js");
+const {tronSetBridge} = require("../utils/tron");
+const {tronToHex, getTronContract} = require("../../utils/create");
 
 module.exports = async (taskArgs, hre) => {
     const { getNamedAccounts, network } = hre;
@@ -103,6 +104,7 @@ task("receiver:setBridge", "set setFee")
         const { deploy } = deployments;
         const { deployer } = await getNamedAccounts();
         if (network.name === "Tron" || network.name === "TronTest") {
+            await tronSetBridge(hre.artifacts, network.name, taskArgs.receiver, taskArgs.bridge);
             //  await tronSetFeeV3(hre.artifacts, network.name, taskArgs.router, taskArgs.bridge);
         } else {
             console.log("\nset bridge :", taskArgs.bridge);
@@ -129,11 +131,18 @@ task("receiver:updateKeepers", "set setFee")
             receiver_addr = deploy_json[network.name]["Receiver"];
         }
         console.log("Receiver: ", receiver_addr);
+        console.log("keeper: ", taskArgs.keeper);
 
-        let Receiver = await ethers.getContractFactory("Receiver");
-        let receiver = Receiver.attach(receiver_addr);
+        if (hre.network.name === "Tron" || hre.network.name === "TronTest") {
+            let receiver = await getTronContract("Receiver", hre.artifacts, hre.network.name, receiver_addr);
 
-        await (await receiver.updateKeepers(taskArgs.keeper, taskArgs.flag)).wait();
+            await receiver.updateKeepers(taskArgs.keeper, taskArgs.flag).send();
+        } else {
+            let Receiver = await ethers.getContractFactory("Receiver");
+            let receiver = Receiver.attach(receiver_addr);
+
+            await (await receiver.updateKeepers(taskArgs.keeper, taskArgs.flag)).wait();
+        }
     });
 
 task("receiver:setOwner", "transfer owner")
@@ -289,14 +298,29 @@ task("receiver:execSwap", "execSwap")
         if (receiver_addr === undefined) {
             throw "can not get receiver address";
         }
-        let Receiver = await ethers.getContractFactory("Receiver");
-        let receiver = Receiver.attach(receiver_addr);
-        receiver_addr = receiver_addr.toLowerCase();
+        console.log("Receiver: ", receiver_addr);
+
+        let receiver;
+        let receiverHex;
+        if (network.name === "Tron" || network.name === "TronTest") {
+            receiver = await getTronContract("Receiver", hre.artifacts, network.name, receiver_addr);
+
+            receiverHex = await tronToHex(receiver_addr, network.name);
+
+            let keeper = await receiver.keepers(wallet.address).call();
+            console.log("wallet is keeper: ", keeper);
+        } else {
+            let Receiver = await ethers.getContractFactory("Receiver");
+            receiver = await Receiver.attach(receiver_addr);
+
+            receiverHex = receiver_addr.toLowerCase();
+        }
+
         let r = await ethers.provider.getTransactionReceipt(taskArgs.hash);
         let swapFailed;
         if (r && r.logs) {
             r.logs.forEach((log) => {
-                if (log.address.toLowerCase() === receiver_addr && log.topics[0].toLowerCase() === SwapFailed_topic) {
+                if (log.address.toLowerCase() === receiverHex && log.topics[0].toLowerCase() === SwapFailed_topic) {
                     swapFailed = log;
                 }
             });
@@ -304,7 +328,13 @@ task("receiver:execSwap", "execSwap")
         if (swapFailed) {
             let url = process.env.BUTTER_ROUTER_API;
             let orderId = swapFailed.topics[1];
-            let storeHash = await receiver.storedFailedSwap(orderId);
+
+            let storeHash;
+            if (network.name === "Tron" || network.name === "TronTest") {
+                storeHash = await receiver.storedFailedSwap(orderId).call();
+            } else {
+                storeHash = await receiver.storedFailedSwap(orderId);
+            }
             if (storeHash === ethers.constants.HashZero) {
                 throw "already exec ?";
             }
@@ -320,20 +350,35 @@ task("receiver:execSwap", "execSwap")
             let callBackData = decode[7];
             let slippage = 30
             let inTokenDecimals = await decimals(tokenIn, wallet);
+            console.log(inTokenDecimals)
+            /*
             let amount = ethers.FixedNumber.from(amount_decimals).divUnsafe(
                 ethers.FixedNumber.from(ethers.BigNumber.from(10).pow(inTokenDecimals))
-            );
+            );*/
+            let amount = ethers.utils.formatUnits(amount_decimals, inTokenDecimals);
+
+            console.log("tokenIn ：", tokenIn);
+            console.log("dstToken ：", dstToken);
+            console.log("amount ：", amount);
 
             let minReceived = ethers.BigNumber.from(decode[5]);
-            let get_param = `fromChainId=${chain_id}&toChainId=${chain_id}&amount=${amount}&tokenInAddress=${tokenIn}&tokenOutAddress=${dstToken}&type=exactIn&slippage=${slippage}&from=${from}&receiver=${user_addr}&callData=${callBackData}&entrance=Butter%2B`;
+            let get_param = `fromChainId=${chain_id}&toChainId=${chain_id}&amount=${amount}&tokenInAddress=${tokenIn}&tokenOutAddress=${dstToken}&type=exactIn&slippage=${slippage}&from=${from}&receiver=${user_addr}&callData=${callBackData}&entrance=Butter%2B&swapCaller=${receiver_addr}`;
             let response = await httpGet(url, get_param);
             if(!response) {
                 throw "get swap router failed";
             }
             let j = JSON.parse(response);
             if (j.errno === 0) {
+                console.log(orderId);
+                console.log(decode[0]);  // fromChain
+                console.log(tokenIn);
+                console.log(amount_decimals);// amount
+                console.log(from); // from
+                console.log(callBackData); // callBackData
+
                 let txParam = j.data[0].txParam;
                 let router = j.data[0].route;
+
                 let index = router.minAmountOut.amount.indexOf(".");
                 let outTokenDecimals = await decimals(dstToken, wallet);
                 let minOut
@@ -346,13 +391,27 @@ task("receiver:execSwap", "execSwap")
                 }
                 console.log("minOut ：", minOut)
                 console.log("event minOut ：", minReceived)
-                if(minReceived.gt(minOut) && (!taskArgs.force)){
+                if(minReceived.gt(minOut) && (!taskArgs.force)) {
                     throw "receiver too lower";
                 }
                 if (txParam.errno === 0 && txParam.data.length != 0) {
                     let args = txParam.data[0].args;
                     if (args && args.length != 0) {
                         console.log(args);
+
+                        if (hre.network.name === "Tron" || hre.network.name === "TronTest") {
+                            await receiver.execSwap(
+                                orderId,
+                                decode[0],       // fromChain
+                                tokenIn,
+                                amount_decimals, // amount
+                                from,            // from
+                                args[4].value,   // swapData
+                                callBackData,    // callBackData
+                            ).send();
+                            return;
+                        }
+
                         let gasLimit = await receiver.estimateGas.execSwap(
                             orderId,
                             decode[0],       // fromChain
@@ -362,7 +421,11 @@ task("receiver:execSwap", "execSwap")
                             args[4].value,   // swapData
                             callBackData,    // callBackData
                         );
-                        if(gasLimit) {
+                        console.log(gasLimit);
+
+                        return;
+
+                        if (gasLimit) {
                             await (
                                 await receiver.execSwap(
                                     orderId,
@@ -372,7 +435,7 @@ task("receiver:execSwap", "execSwap")
                                     from,            // from
                                     args[4].value,   // swapData
                                     callBackData,    // callBackData
-                                    { gasLimit: 1200000 }
+                                    { gasLimit: 5000000 }
                                 )
                             ).wait();
                         }
@@ -387,12 +450,18 @@ task("receiver:execSwap", "execSwap")
 
 async function decimals(token,wallet) {
     let decimals;
-    if (token.toLowerCase() === ethers.constants.AddressZero) {
-        decimals = 18;
+    if (hre.network.name === "Tron" || hre.network.name === "TronTest") {
+        // TRX or USDT
+        decimals = 6;
     } else {
-        let ERC20 = ["function decimals() external view returns (uint8)"];
-        let t = await ethers.getContractAt(ERC20, token, wallet);
-        decimals = await t.decimals();
+        if (token.toLowerCase() === ethers.constants.AddressZero) {
+            decimals = 18;
+        } else {
+            let ERC20 = ["function decimals() external view returns (uint8)"];
+            let t = await ethers.getContractAt(ERC20, token, wallet);
+            decimals = await t.decimals();
+        }
     }
+
     return decimals;
 }

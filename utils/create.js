@@ -92,6 +92,24 @@ async function createTron(contractName, args, artifacts, network) {
     return contract_address;
 }
 
+async function tronFromHex(hex, network) {
+    let tronWeb = await getTronWeb(network);
+    return tronWeb.address.fromHex(hex);
+}
+
+async function tronToHex(addr, network) {
+    let tronWeb = await getTronWeb(network);
+    return tronWeb.address.toHex(addr).replace(/^(41)/, "0x");
+}
+
+async function getTronContract(contractName, artifacts, network, addr) {
+    let tronWeb = await getTronWeb(network);
+    console.log("operator address is:", tronWeb.defaultAddress);
+    let C = await artifacts.readArtifact(contractName);
+    let c = await tronWeb.contract(C.abi, addr);
+    return c;
+}
+
 async function getTronWeb(network) {
     if (network === "Tron" || network === "TronTest") {
         if (network === "Tron") {
@@ -151,4 +169,7 @@ module.exports = {
     readFromFile,
     create,
     createZk,
+    tronFromHex,
+    tronToHex,
+    getTronContract
 };

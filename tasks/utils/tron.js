@@ -134,7 +134,7 @@ exports.tronSetFeeV3 = async function (artifacts, network, router_addr, feerecei
 
 exports.tronSetBridge = async function (artifacts, network, router_addr, bridge) {
     let tronWeb = await getTronWeb(network);
-    await setBridge("ButterRouterV3", tronWeb, artifacts, network, bridge);
+    await setBridge("ButterRouterV3", tronWeb, artifacts, network, router_addr, bridge);
 };
 
 exports.tronSetReferrerMaxFee = async function (artifacts, network, router_addr, maxFeeRate, maxNativeFee) {

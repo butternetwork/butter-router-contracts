@@ -20,7 +20,7 @@ let config = new Map([
                 ],
             },
             v3: {
-                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                bridge: "0x0000317Bec33Af037b5fAb2028f52d14658F6A56",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     routerFeeRate: "0", //denominator is 10000
@@ -63,7 +63,7 @@ let config = new Map([
                 ],
             },
             v3: {
-                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                bridge: "0x0000317Bec33Af037b5fAb2028f52d14658F6A56",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     routerFeeRate: "0", //denominator is 10000
@@ -80,6 +80,8 @@ let config = new Map([
                     "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64", // openocean
                     "0x3321dE36B6C29A6fa102A67bd5C48E5756Baa596", // omni adapter
                     "0xedf2021f41AbCfE2dEA4427E1B61f4d0AA5aA4b8", //izumi
+
+                    "0x273290B6dCe557B2889b8B5aF7ea4d989689E1CC", // chain pool 103
                 ],
             },
             removes: [
@@ -108,7 +110,7 @@ let config = new Map([
                 ],
             },
             v3: {
-                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                bridge: "0x0000317Bec33Af037b5fAb2028f52d14658F6A56",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     routerFeeRate: "0", //denominator is 10000
@@ -126,8 +128,8 @@ let config = new Map([
                     "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64", // openocean
                     "0x032b241De86a8660f1Ae0691a4760B426EA246d7", //izumi
 
-                    "0x273290B6dCe557B2889b8B5aF7ea4d989689E1CC", // chain pool
-                    "0x63d13711AFcD6Ddd07154c19F020b490C25bDCD0", // chain pool v2
+                    "0x63d13711AFcD6Ddd07154c19F020b490C25bDCD0", // chain pool v2 test
+                    "0x273290B6dCe557B2889b8B5aF7ea4d989689E1CC", // chain pool 101
                 ],
             },
             removes: [
@@ -154,7 +156,7 @@ let config = new Map([
                 ],
             },
             v3: {
-                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                bridge: "0x0000317Bec33Af037b5fAb2028f52d14658F6A56",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     routerFeeRate: "0", //denominator is 10000
@@ -192,7 +194,7 @@ let config = new Map([
                 ],
             },
             v3: {
-                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                bridge: "0x0000317Bec33Af037b5fAb2028f52d14658F6A56",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     routerFeeRate: "0", //denominator is 10000
@@ -226,7 +228,7 @@ let config = new Map([
                 ],
             },
             v3: {
-                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                bridge: "0x0000317Bec33Af037b5fAb2028f52d14658F6A56",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     routerFeeRate: "0", //denominator is 10000
@@ -241,12 +243,14 @@ let config = new Map([
                     "0x3321dE36B6C29A6fa102A67bd5C48E5756Baa596", // omni adapter
                     "0x3EF68D3f7664b2805D4E88381b64868a56f88bC4", // izumi
 
-                    // "0x63d13711AFcD6Ddd07154c19F020b490C25bDCD0", // chainpool
+                    "0x273290B6dCe557B2889b8B5aF7ea4d989689E1CC", // chainpool
+                    "0x63d13711AFcD6Ddd07154c19F020b490C25bDCD0", // test chainpool
+                    "0xd2947E481666B80D1fC130f9539812de6030de19"  // mapoX
                 ],
             },
             removes: [
                 "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
-                "0x63d13711AFcD6Ddd07154c19F020b490C25bDCD0"
+
             ]
         },
     ],
@@ -266,10 +270,11 @@ let config = new Map([
                     "TFVisXFaijZfeyeSjCEVkHfex7HGdTxzF9", // sun smart router
                     "TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ax", // sun v2 route
                     "TQAvWQpT9H916GckwWDJNhYZvQMkuRL7PN", // sun v3 route
+                    "TJ4NNy8xZEqsowCBhLvZ45LCqPdGjkET5j", // sun smart router
                 ],
             },
             v3: {
-                bridge: "TYMpgB8Q9vSoGtkyE3hXsvUrpte3KCDGj6",
+                bridge: "TXsDYB9ovFEFg4cja6gn1t1tpmrnSbYhHA",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     routerFeeRate: "0", //denominator is 10000
@@ -281,6 +286,7 @@ let config = new Map([
                     "TFVisXFaijZfeyeSjCEVkHfex7HGdTxzF9", // sun smart router
                     "TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ax", // sun v2 route
                     "TQAvWQpT9H916GckwWDJNhYZvQMkuRL7PN", // sun v3 route
+                    "TJ4NNy8xZEqsowCBhLvZ45LCqPdGjkET5j", // sun smart router
                 ],
             },
             removes: [
@@ -303,7 +309,7 @@ let config = new Map([
                 executors: [],
             },
             v3: {
-                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                bridge: "0x0000317Bec33Af037b5fAb2028f52d14658F6A56",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     routerFeeRate: "0", //denominator is 10000
@@ -336,7 +342,7 @@ let config = new Map([
                 ],
             },
             v3: {
-                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                bridge: "0x0000317Bec33Af037b5fAb2028f52d14658F6A56",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     routerFeeRate: "0", //denominator is 10000
@@ -372,7 +378,7 @@ let config = new Map([
                 ],
             },
             v3: {
-                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                bridge: "0x0000317Bec33Af037b5fAb2028f52d14658F6A56",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     routerFeeRate: "0", //denominator is 10000
@@ -408,7 +414,7 @@ let config = new Map([
                 executors: [],
             },
             v3: {
-                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                bridge: "0x0000317Bec33Af037b5fAb2028f52d14658F6A56",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     routerFeeRate: "0", //denominator is 10000
@@ -441,7 +447,7 @@ let config = new Map([
                 executors: [],
             },
             v3: {
-                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                bridge: "0x0000317Bec33Af037b5fAb2028f52d14658F6A56",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     routerFeeRate: "0", //denominator is 10000
@@ -476,7 +482,7 @@ let config = new Map([
                 executors: [],
             },
             v3: {
-                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                bridge: "0x0000317Bec33Af037b5fAb2028f52d14658F6A56",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     routerFeeRate: "0", //denominator is 10000
@@ -508,7 +514,7 @@ let config = new Map([
                 executors: [],
             },
             v3: {
-                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                bridge: "0x0000317Bec33Af037b5fAb2028f52d14658F6A56",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     routerFeeRate: "0", //denominator is 10000
@@ -540,7 +546,7 @@ let config = new Map([
                 executors: [],
             },
             v3: {
-                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                bridge: "0x0000317Bec33Af037b5fAb2028f52d14658F6A56",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     routerFeeRate: "0", //denominator is 10000
@@ -572,7 +578,7 @@ let config = new Map([
                 executors: [],
             },
             v3: {
-                bridge: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
+                bridge: "0x0000317Bec33Af037b5fAb2028f52d14658F6A56",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     routerFeeRate: "0", //denominator is 10000
