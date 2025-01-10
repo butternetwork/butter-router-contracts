@@ -1,5 +1,3 @@
-let fs = require("fs");
-let path = require("path");
 const TronWeb = require("tronweb");
 let { Wallet } = require("zksync-web3");
 let { Deployer } = require("@matterlabs/hardhat-zksync-deploy");
@@ -92,15 +90,33 @@ async function createTron(contractName, args, artifacts, network) {
     return contract_address;
 }
 
-async function tronFromHex(hex, network) {
-    let tronWeb = await getTronWeb(network);
-    return tronWeb.address.fromHex(hex);
+async function tronContractCall(hre, contract, method, args, read) {
+    let result;
+    if (hre.network.name === "Tron" || hre.network.name === "TronTest") {
+      let methodFunc = contract.methods[method];
+      if (read) {
+        result = await methodFunc(args).call();
+      } else {
+        result = await methodFunc(args).send();
+      }
+    } else {
+      let methodFunc = contract.funcs[method];
+      result = await methodFunc(args);
+    }
+  
+    return result;
 }
 
-async function tronToHex(addr, network) {
-    let tronWeb = await getTronWeb(network);
-    return tronWeb.address.toHex(addr).replace(/^(41)/, "0x");
+
+async function getTronDeployer(hex, network) {
+  let tronWeb = await getTronWeb(network);
+  if (hex) {
+    return tronWeb.defaultAddress.hex.replace(/^(41)/, "0x");
+  } else {
+    return tronWeb.defaultAddress;
+  }
 }
+
 
 async function getTronContract(contractName, artifacts, network, addr) {
     let tronWeb = await getTronWeb(network);
@@ -132,44 +148,10 @@ async function getTronWeb(network) {
     }
 }
 
-async function readFromFile(network) {
-    let p = path.join(__dirname, "../deployments/deploy.json");
-    let deploy;
-    if (!fs.existsSync(p)) {
-        deploy = {};
-        deploy[network] = {};
-    } else {
-        let rawdata = fs.readFileSync(p);
-        deploy = JSON.parse(rawdata);
-        if (!deploy[network]) {
-            deploy[network] = {};
-        }
-    }
-
-    return deploy;
-}
-
-async function writeToFile(deploy) {
-    let p = path.join(__dirname, "../deployments/deploy.json");
-    await folder("../deployments/");
-    fs.writeFileSync(p, JSON.stringify(deploy, null, "\t"));
-}
-
-const folder = async (reaPath) => {
-    const absPath = path.resolve(__dirname, reaPath);
-    try {
-        await fs.promises.stat(absPath);
-    } catch (e) {
-        // {recursive: true}
-        await fs.promises.mkdir(absPath, { recursive: true });
-    }
-};
 module.exports = {
-    writeToFile,
-    readFromFile,
     create,
     createZk,
-    tronFromHex,
-    tronToHex,
-    getTronContract
+    getTronContract,
+    tronContractCall,
+    getTronDeployer
 };
