@@ -51,6 +51,16 @@ contract Receiver is Ownable2Step, SwapCall, ReentrancyGuard, IButterReceiver {
         bytes from
     );
 
+    event SwapRescueFunds(
+        bytes32 indexed orderId,
+        address indexed token,
+        address indexed receiver,
+        uint256 amount,
+        uint256 fromChain,
+        uint256 toChain,
+        bytes from
+    );
+
     event Approve(address indexed executor, bool indexed flag);
     event SetBridgeAddress(address indexed _bridgeAddress);
     event SetGasForReFund(uint256 indexed _gasForReFund);
@@ -169,6 +179,45 @@ contract Receiver is Ownable2Step, SwapCall, ReentrancyGuard, IButterReceiver {
 
         _afterCheck(swapTemp.nativeBalance);
         _emitRemoteSwapAndCall(_orderId, swapTemp);
+    }
+
+    function swapRescueFunds(
+        bytes32 _orderId,
+        uint256 _fromChain,
+        address _srcToken,
+        uint256 _amount,
+        address _dscToken,
+        address _receiver,
+        bytes calldata _from,
+        bytes calldata _callbackData
+    ) external nonReentrant {
+        if (!keepers[msg.sender]) revert ONLY_KEEPER();
+        require(_receiver != address(0));
+        SwapTemp memory swapTemp = _assignment(_fromChain, _srcToken, _amount, _from);
+        swapTemp.receiver = _receiver;
+        bytes32 hash = keccak256(
+            abi.encodePacked(
+                swapTemp.fromChain,
+                swapTemp.srcToken,
+                _dscToken,
+                swapTemp.srcAmount,
+                swapTemp.receiver,
+                swapTemp.from,
+                _callbackData
+            )
+        );
+        if (storedFailedSwap[_orderId] != hash) revert INVALID_EXEC_PARAM();
+        _transfer(swapTemp.srcToken, swapTemp.receiver, swapTemp.srcAmount);
+        delete storedFailedSwap[_orderId];
+        emit SwapRescueFunds(
+            _orderId,
+            swapTemp.srcToken,
+            swapTemp.receiver,
+            swapTemp.srcAmount,
+            swapTemp.fromChain,
+            swapTemp.toChain,
+            swapTemp.from
+        );
     }
 
     function execSwap(

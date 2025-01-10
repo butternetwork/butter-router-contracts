@@ -1,126 +1,85 @@
-// const hre = require("hardhat");
-let offsets = require("../configs/offsets.json");
-let stargate = require("../configs/stargate.json");
-let xy = require("../configs/xy.json");
-let symbiosis = require("../configs/symbiosis.json");
 
-exports.updateSelectorInfo = async function (rubicAdapter_addr, network) {
-    console.log("updateSelectorInfo ........start");
-    const RubicAdapter = await hre.ethers.getContractFactory("AggregationAdaptor");
-    const adapter = RubicAdapter.attach(rubicAdapter_addr);
-    let config = offsets[network];
+let fs = require("fs");
+let path = require("path");
+const TronWeb = require("tronweb");
 
-    let _routers = new Array();
-    let _selectors = new Array();
-    let _infos = new Array();
 
-    if (!config) {
-        console.log("unsupport network ....");
-        return;
+let file_path = "../deployments/"
+let fileName = "deploy.json"
+
+function tronAddressToHex(tronAddress) {
+    return '0x' + TronWeb.address.toHex(tronAddress).substring(2)
+}
+
+function hexToTronAddress(hexAddress) {
+    return TronWeb.address.fromHex(hexAddress)
+}
+
+async function saveDeployment(network, key1, addr, key2) {
+    let deployment = await readFromFile(network);
+  
+    if (key2 === undefined || key2 === "") {
+      deployment[network][key1] = addr;
+    } else {
+      if (!deployment[hre.network.name][key1]) {
+        deployment[hre.network.name][key1] = {};
+      }
+      deployment[hre.network.name][key1][key2] = addr;
     }
+    let p = path.join(__dirname, file_path + fileName);
+    await folder(file_path);
+    fs.writeFileSync(p, JSON.stringify(deployment, null, "\t"));
+  }
+  
+async function getDeployment(network, key1, key2) {
+    let deployment = await readFromFile(network);
+    let deployAddress = deployment[network][key1];
+    if (!deployAddress) throw `no ${key1} deployment in ${network}`;
+    if (key2 === undefined || key2 === "") {
+      return deployAddress;
+    }
+    deployAddress = deployment[network][key1][key2];
+    if (!deployAddress) throw `no ${key1[key2]} deployment in ${network}`;
+  
+    return deployAddress;
+  }
 
-    for (let i = 0; i < config.length; i++) {
-        if (config[i].isAvailable === true) {
-            _routers.push(config[i].router);
-            _selectors.push(config[i].selector);
-            _infos.push({
-                offset: config[i].offset,
-                isAvailable: config[i].isAvailable,
-            });
+async function readFromFile(network) {
+    let p = path.join(__dirname, file_path + fileName);
+    let deploy;
+    if (!fs.existsSync(p)) {
+        deploy = {};
+        deploy[network] = {};
+    } else {
+        let rawdata = fs.readFileSync(p);
+        deploy = JSON.parse(rawdata);
+        if (!deploy[network]) {
+            deploy[network] = {};
         }
     }
 
-    let result = await (await adapter.updateSelectorInfo(_routers, _selectors, _infos)).wait();
+    return deploy;
+}
 
-    if (result.status === 1) {
-        console.log("updateSelectorInfo succsece");
-    } else {
-        console.log("updateSelectorInfo fail");
+// async function writeToFile(deploy) {
+//     let p = path.join(__dirname, path + fileName);
+//     await folder(path);
+//     fs.writeFileSync(p, JSON.stringify(deploy, null, "\t"));
+// }
+
+const folder = async (reaPath) => {
+    const absPath = path.resolve(__dirname, reaPath);
+    try {
+        await fs.promises.stat(absPath);
+    } catch (e) {
+        // {recursive: true}
+        await fs.promises.mkdir(absPath, { recursive: true });
     }
 };
 
-exports.setRouters = async function (rubicAdapter_addr, network) {
-    console.log("setRouters ........start");
-    const RubicAdapter = await hre.ethers.getContractFactory("AggregationAdaptor");
-    const adapter = RubicAdapter.attach(rubicAdapter_addr);
-    let stargateRouter = stargate.routers[network]
-        ? stargate.routers[network]
-        : "0x0000000000000000000000000000000000000000";
-    let xRouter = xy.config[network].XSwapper
-        ? xy.config[network].XSwapper
-        : "0x0000000000000000000000000000000000000000";
-    let symbiosisMetaRouter = symbiosis.config[network].metaRouter
-        ? symbiosis.config[network].metaRouter
-        : "0x0000000000000000000000000000000000000000";
-    let symbiosisGateway = symbiosis.config[network].gateway
-        ? symbiosis.config[network].gateway
-        : "0x0000000000000000000000000000000000000000";
-
-    // console.log("stargateRouter",stargateRouter)
-    // console.log("xRouter",xRouter)
-    // console.log("symbiosisMetaRouter",symbiosisMetaRouter)
-    // console.log("symbiosisGateway",symbiosisGateway)
-    let result = await (
-        await adapter.setRouters(symbiosisMetaRouter, symbiosisGateway, stargateRouter, xRouter)
-    ).wait();
-
-    if (result.status === 1) {
-        console.log("setRouters succsece");
-    } else {
-        console.log("setRouters fail");
-    }
-};
-
-exports.setStargatePoolId = async function (rubicAdapter_addr, network) {
-    console.log("setStargatePoolId ........start");
-    const RubicAdapter = await hre.ethers.getContractFactory("AggregationAdaptor");
-    const adapter = RubicAdapter.attach(rubicAdapter_addr);
-    let _poolIds = stargate.pools[network];
-    if (!_poolIds) {
-        console.log("unsupport network ....");
-        return;
-    }
-
-    let poolIds = new Array();
-
-    for (let i = 0; i < _poolIds.length; i++) {
-        poolIds.push({
-            token: _poolIds[i].address,
-            poolId: _poolIds[i].id,
-        });
-    }
-
-    console.log(_poolIds);
-    let result = await (await adapter.setStargatePoolId(poolIds)).wait();
-
-    if (result.status === 1) {
-        console.log("setStargatePoolId succsece");
-    } else {
-        console.log("setLayerZeroChainId fail");
-    }
-};
-
-exports.setLayerZeroChainId = async function (rubicAdapter_addr, network) {
-    console.log("setLayerZeroChainId ........start");
-    const RubicAdapter = await hre.ethers.getContractFactory("AggregationAdaptor");
-    const adapter = RubicAdapter.attach(rubicAdapter_addr);
-    if (!stargate.chains) {
-        console.log("unsupport network ....");
-        return;
-    }
-    let _chainIds = new Array();
-    for (let i = 0; i < stargate.chains.length; i++) {
-        _chainIds.push({
-            chainId: stargate.chains[i].chainId,
-            layerZeroChainId: stargate.chains[i].lzChainId,
-        });
-    }
-
-    let result = await (await adapter.setLayerZeroChainId(_chainIds)).wait();
-
-    if (result.status === 1) {
-        console.log("setLayerZeroChainId succsece");
-    } else {
-        console.log("setLayerZeroChainId fail");
-    }
+module.exports = {
+    saveDeployment,
+    getDeployment,
+    tronAddressToHex,
+    hexToTronAddress,
 };

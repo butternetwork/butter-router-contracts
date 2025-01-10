@@ -1,275 +1,181 @@
-let { create, readFromFile, writeToFile } = require("../../utils/create.js");
+let { create, getTronContract, getTronDeployer } = require("../../utils/create.js");
+let { getDeployment, saveDeployment, tronAddressToHex } = require("../../utils/helper.js")
 let { getConfig } = require("../../configs/config");
-let { setAuthorizationV3, setFeeV3, transferOwner, setBridge } = require("../utils/util.js");
 let {
-    tronSetAuthorizationV3,
-    tronCheckAndUpdateFromConfig,
-    tronRemoveAuthFromConfig,
-    deployReceiver,
-} = require("../utils/tron.js");
-let { verify } = require("../utils/verify.js");
-let { httpGet } = require("../utils/httpUtil.js");
-const {tronSetBridge} = require("../utils/tron");
-const {tronToHex, getTronContract} = require("../../utils/create");
+    setAuthorization, 
+    setBridge,
+    setOwner, 
+    acceptOwnership, 
+    getExecutorList,
+    checkAuthorization,
+    checkBridgeAndWToken,
+    removeAuthFromConfig
+} = require("../common/common.js")
+let { verify } = require("../../utils/verify.js");
+let { httpGet } = require("../../utils/httpUtil.js");
+
+
+async function getReceiverAddress(receiver, network) {
+    if(!receiver || receiver === ""){
+        receiver = await getDeployment(network, "Receiver");
+    }
+    if (receiver === undefined) {
+        throw "can not get receiver address";
+    }
+    return receiver
+}
 
 module.exports = async (taskArgs, hre) => {
-    const { getNamedAccounts, network } = hre;
-    const { deployer } = await getNamedAccounts();
+    const { network } = hre;
     let config = getConfig(network.name);
     if (!config) {
         throw "config not set";
     }
-
-    if (network.name === "Tron" || network.name === "TronTest") {
-        await deployReceiver("Receiver", hre.artifacts, network.name, config);
-    } else {
-        console.log("Receiver deployer :", deployer);
-
-        await hre.run("receiver:deploy", { bridge: config.v3.bridge, wtoken: config.wToken });
-
-        let deploy_json = await readFromFile(network.name);
-        let router_addr = deploy_json[network.name]["Receiver"];
-
-        deploy_json = await readFromFile(network.name);
-        let adapt_addr = deploy_json[network.name]["SwapAdapterV3"];
-
-        config.v3.executors.push(adapt_addr);
-
-        let executors_s = config.v3.executors.join(",");
-
-        await hre.run("receiver:setAuthorization", { receiver: router_addr, executors: executors_s });
-    }
+    await hre.run("receiver:deploy", { bridge: config.v3.bridge, wtoken: config.wToken });
+    let receiver_addr = await getDeployment(network.name, "Receiver");
+    let adapt_addr = await getDeployment(network.name, "SwapAdapterV3");
+    config.v3.executors.push(adapt_addr);
+    let executors_s = config.v3.executors.join(",");
+    await hre.run("receiver:setAuthorization", { receiver: receiver_addr, executors: executors_s });
 };
 
 task("receiver:deploy", "deploy receiver")
     .addParam("bridge", "bridge address")
     .addParam("wtoken", "wtoken address")
     .setAction(async (taskArgs, hre) => {
+        const { network, ethers } = hre;
         const accounts = await ethers.getSigners();
         const deployer = accounts[0];
-
+        console.log("deployer: ", deployer.address)
+        let deployer_address
+        let bridge;
+        let wtoken; 
+        if(network.name === "Tron" || network.name === "TronTest"){
+            bridge = tronAddressToHex(taskArgs.bridge);
+            wtoken = tronAddressToHex(taskArgs.wtoken);
+            deployer_address = await getTronDeployer(true, network.name);
+        } else {
+            deployer_address = deployer.address
+            bridge = taskArgs.bridge;
+            wtoken = taskArgs.wtoken;
+        }
         let salt = process.env.RECEIVER_DEPLOY_SALT;
         let receiverAddr = await create(
             hre,
             deployer,
             "Receiver",
             ["address", "address", "address"],
-            [deployer.address, taskArgs.wtoken, taskArgs.bridge],
+            [deployer_address, wtoken, bridge],
             salt
         );
         console.log("Receiver address :", receiverAddr);
-
-        let deployments = await readFromFile(hre.network.name);
-        deployments[hre.network.name]["Receiver"] = receiverAddr;
-        await writeToFile(deployments);
-
+        await saveDeployment(network.name, "Receiver", receiverAddr);
         await verify(
-            hre,
             receiverAddr,
-            [deployer.address, taskArgs.wtoken, taskArgs.bridge],
+            [deployer_address, wtoken, bridge],
             "contracts/Receiver.sol:Receiver",
+            network.config.chainId,
             true
         );
     });
 
 task("receiver:setAuthorization", "set Authorization")
-    .addParam("receiver", "receiver address")
+    .addOptionalParam("receiver", "receiver address", "", types.string)
     .addParam("executors", "executors address array")
     .addOptionalParam("flag", "flag, default: true", true, types.boolean)
     .setAction(async (taskArgs, hre) => {
-        const { deployments, getNamedAccounts, ethers } = hre;
-        const { deploy } = deployments;
-        const { deployer } = await getNamedAccounts();
-
-        if (network.name === "Tron" || network.name === "TronTest") {
-            await tronSetAuthorizationV3(
-                hre.artifacts,
-                network.name,
-                taskArgs.receiver,
-                taskArgs.executors,
-                taskArgs.flag
-            );
-        } else {
-            console.log("\nsetAuthorization deployer :", deployer);
-
-            await setAuthorizationV3(taskArgs.receiver, taskArgs.executors, taskArgs.flag);
-        }
+        const { network, ethers } = hre;
+        const accounts = await ethers.getSigners();
+        const deployer = accounts[0];
+        console.log("deployer: ", deployer.address)
+        let receiver_addr = await getReceiverAddress(taskArgs.receiver, network.name);
+        let list = await getExecutorList(network.name, taskArgs.executors)
+        await setAuthorization("Receiver", hre.artifacts, network.name, receiver_addr, list, taskArgs.flag);
     });
 
 task("receiver:setBridge", "set setFee")
-    .addParam("receiver", "receiver address")
+    .addOptionalParam("receiver", "receiver address", "", types.string)
     .addParam("bridge", "bridge address")
     .setAction(async (taskArgs, hre) => {
-        const { deployments, getNamedAccounts, ethers } = hre;
-        const { deploy } = deployments;
-        const { deployer } = await getNamedAccounts();
-        if (network.name === "Tron" || network.name === "TronTest") {
-            await tronSetBridge(hre.artifacts, network.name, taskArgs.receiver, taskArgs.bridge);
-            //  await tronSetFeeV3(hre.artifacts, network.name, taskArgs.router, taskArgs.bridge);
-        } else {
-            console.log("\nset bridge :", taskArgs.bridge);
-
-            await setBridge(taskArgs.receiver, taskArgs.bridge);
-        }
+        const { ethers, network } = hre;
+        const accounts = await ethers.getSigners();
+        const deployer = accounts[0];
+        console.log("deployer: ", deployer.address)
+        let receiver_addr = await getReceiverAddress(taskArgs.receiver, network.name);
+        await setBridge("Receiver", hre.artifacts, network.name, receiver_addr, taskArgs.bridge);
     });
 
 task("receiver:updateKeepers", "set setFee")
-    .addOptionalParam("receiver", "receiver address", "receiver", types.string)
-    .addParam("keeper", "receiver address")
+    .addOptionalParam("receiver", "receiver address", "", types.string)
+    .addParam("keeper", "keeper address")
     .addOptionalParam("flag", "flag, default: true", true, types.boolean)
     .setAction(async (taskArgs, hre) => {
-        const { deployments, getNamedAccounts, ethers } = hre;
-        const { deploy } = deployments;
-        const { deployer } = await getNamedAccounts();
-        console.log("\n updateKeepers deployer :", deployer);
-        let deploy_json = await readFromFile(network.name);
-        let receiver_addr = taskArgs.receiver;
-        if (receiver_addr === "receiver") {
-            if (deploy_json[network.name]["Receiver"] === undefined) {
-                throw "can not get Receiver address";
-            }
-            receiver_addr = deploy_json[network.name]["Receiver"];
-        }
+        const { ethers, network } = hre;
+        const accounts = await ethers.getSigners();
+        const deployer = accounts[0];
+        let receiver_addr = await getReceiverAddress(taskArgs.receiver, network.name);
         console.log("Receiver: ", receiver_addr);
         console.log("keeper: ", taskArgs.keeper);
-
         if (hre.network.name === "Tron" || hre.network.name === "TronTest") {
-            let receiver = await getTronContract("Receiver", hre.artifacts, hre.network.name, receiver_addr);
-
-            await receiver.updateKeepers(taskArgs.keeper, taskArgs.flag).send();
+            console.log("deployer :", await getTronDeployer(false, network.name));
+            let receiver = await getTronContract("Receiver", hre.artifacts, network.name, receiver_addr);
+            await receiver.updateKeepers(tronAddressToHex(taskArgs.keeper), taskArgs.flag).send();
         } else {
+            console.log("\n updateKeepers deployer :", deployer.address);
             let Receiver = await ethers.getContractFactory("Receiver");
             let receiver = Receiver.attach(receiver_addr);
-
             await (await receiver.updateKeepers(taskArgs.keeper, taskArgs.flag)).wait();
         }
     });
 
 task("receiver:setOwner", "transfer owner")
-    .addParam("receiver", "receiver address")
+    .addOptionalParam("receiver", "receiver address", "", types.string)
     .addParam("owner", "owner address")
     .setAction(async (taskArgs, hre) => {
-        const { deployments, getNamedAccounts, ethers } = hre;
-        const { deploy } = deployments;
-        const { deployer } = await getNamedAccounts();
-        if (network.name === "Tron" || network.name === "TronTest") {
-        } else {
-            console.log("\ntransfer owner :", taskArgs.owner);
-            await transferOwner(taskArgs.receiver, taskArgs.owner);
-        }
+        const { ethers, network } = hre;
+        const accounts = await ethers.getSigners();
+        const deployer = accounts[0];
+        console.log("deployer: ", deployer.address)
+        let receiver_addr = await getReceiverAddress(taskArgs.receiver, network.name);
+        await setOwner("Receiver", hre.artifacts, network.name, receiver_addr, taskArgs.owner);
     });
 
 task("receiver:update", "check and Update from config file")
-    .addOptionalParam("receiver", "receiver address", "receiver", types.string)
+    .addOptionalParam("receiver", "receiver address", "", types.string)
     .setAction(async (taskArgs, hre) => {
-        const { getNamedAccounts, ethers } = hre;
-        const { deployer } = await getNamedAccounts();
+        const { ethers, network } = hre;
+        const accounts = await ethers.getSigners();
+        const deployer = accounts[0];
+        console.log("deployer: ", deployer.address)
+        let receiver_addr = await getReceiverAddress(taskArgs.receiver, network.name);
         let config = getConfig(network.name);
         if (!config) {
             throw "config not set";
         }
-        if (network.name === "Tron" || network.name === "TronTest") {
-            await tronCheckAndUpdateFromConfig(hre.artifacts, network.name, taskArgs.receiver, config, false);
-        } else {
-            console.log("\nset Authorization from config file deployer :", deployer);
-            let deploy_json = await readFromFile(network.name);
-            let receiver_addr = taskArgs.receiver;
-            if (receiver_addr === "receiver") {
-                if (deploy_json[network.name]["Receiver"] === undefined) {
-                    throw "can not get Receiver address";
-                }
-                receiver_addr = deploy_json[network.name]["Receiver"];
-            }
-            console.log("Receiver: ", receiver_addr);
-
-            let Receiver = await ethers.getContractFactory("Receiver");
-            let receiver = Receiver.attach(receiver_addr);
-            await checkAuthorization(receiver, config, deploy_json);
-            await checkBridgeAndWToken(receiver, config);
-            await hre.run("receiver:removeAuthFromConfig", { receiver: receiver_addr });
-        }
+        await checkAuthorization("Receiver", hre.artifacts, network.name, receiver_addr, config.v3.executors)
+        await checkBridgeAndWToken("Receiver", hre.artifacts, network.name, receiver_addr, config)
+        await hre.run("receiver:removeAuthFromConfig", { receiver: receiver_addr });
     });
 
-async function checkAuthorization(receiver, config, deploy_json) {
-    let adapter_address = deploy_json[network.name]["SwapAdapterV3"];
-    if (adapter_address != undefined) {
-        console.log("SwapAdapter: ", adapter_address);
-        config.v3.executors.push(adapter_address);
-    }
-    let executors = [];
-    for (let i = 0; i < config.v3.executors.length; i++) {
-        let result = await await receiver.approved(config.v3.executors[i]);
-
-        if (result === false || result === undefined) {
-            executors.push(config.v3.executors[i]);
-        }
-    }
-    if (executors.length > 0) {
-        let executors_s = executors.join(",");
-
-        console.log("receiver to set :", executors_s);
-
-        await setAuthorizationV3(receiver.address, executors_s, true);
-    }
-
-    console.log("receiver sync authorization from config file.");
-}
-
-async function checkBridgeAndWToken(router, config) {
-    let wToken = await router.wToken();
-
-    console.log("pre wToken", wToken);
-    if (wToken.toLowerCase() !== config.wToken.toLowerCase()) {
-        await (await router.setWToken(config.wToken)).wait();
-        console.log("wToken", await router.wToken());
-    }
-
-    let bridgeAddress = await router.bridgeAddress();
-    console.log("pre bridgeAddress", bridgeAddress);
-    if (bridgeAddress.toLowerCase() !== config.v3.bridge.toLowerCase()) {
-        await (await router.setBridgeAddress(config.v3.bridge)).wait();
-        console.log("bridgeAddress", await router.bridgeAddress());
-    }
-}
 
 task("receiver:removeAuthFromConfig", "remove Authorization from config file")
-    .addOptionalParam("receiver", "receiver address", "receiver", types.string)
+    .addOptionalParam("receiver", "receiver address", "", types.string)
     .setAction(async (taskArgs, hre) => {
-        const { ethers } = hre;
+        const { network } = hre;
+        const accounts = await ethers.getSigners();
+        const deployer = accounts[0];
+        console.log("deployer: ", deployer.address)
         let config = getConfig(hre.network.name);
         if (!config) {
             throw "config not set";
         }
-
-        let receiver_addr = taskArgs.receiver;
-        if (receiver_addr === "receiver") {
-            let deploy_json = await readFromFile(hre.network.name);
-
-            if (deploy_json[network.name]["Receiver"] === undefined) {
-                throw "can not get receiver address";
-            }
-            receiver_addr = deploy_json[network.name]["Receiver"];
-        }
+        let receiver_addr = await getReceiverAddress(taskArgs.receiver, network.name);
         console.log("Receiver: ", receiver_addr);
-
-        if (network.name === "Tron" || network.name === "TronTest") {
-            await tronRemoveAuthFromConfig(hre.artifacts, hre.network.name, receiver_addr, config);
-        } else {
-            let Receiver = await ethers.getContractFactory("Receiver");
-            let receiver = Receiver.attach(receiver_addr);
-            let removes = [];
-            for (let i = 0; i < config.removes.length; i++) {
-                let result = await receiver.approved(config.removes[i]);
-                if (result === true) {
-                    removes.push(config.removes[i]);
-                }
-            }
-            if (removes.length > 0) {
-                let removes_s = removes.join(",");
-                console.log("receiver to remove :", removes_s);
-                await setAuthorizationV3(receiver_addr, removes_s, false);
-            }
-        }
+        if(!config.removes || config.removes.length === 0){
+            console.log("no removes list");
+            return;
+        } 
+        await removeAuthFromConfig("Receiver", hre.artifacts, network.name, receiver_addr, config.removes);
         console.log("Receiver remove authorization from config file.");
     });
 
@@ -286,33 +192,26 @@ task("receiver:removeAuthFromConfig", "remove Authorization from config file")
 // );
 let SwapFailed_topic = "0xd457b25e0e458857e38c937f68af3100c40afd88fc5522c5820440d07b44351f";
 task("receiver:execSwap", "execSwap")
+    .addOptionalParam("receiver", "receiver address", "", types.string)
     .addParam("hash", "transation hash")
     .addOptionalParam("force", "force execSwap, default: false", false, types.boolean)
     .setAction(async (taskArgs, hre) => {
         const { ethers, network } = hre;
         let [wallet] = await ethers.getSigners();
         console.log("wallet...", wallet.address);
-        let deploy_json = await readFromFile(hre.network.name);
-        let receiver_addr = deploy_json[network.name]["Receiver"];
+        let receiver_addr = await getReceiverAddress(taskArgs.receiver, network.name);
         let chain_id = network.config.chainId;
-        if (receiver_addr === undefined) {
-            throw "can not get receiver address";
-        }
         console.log("Receiver: ", receiver_addr);
-
         let receiver;
         let receiverHex;
         if (network.name === "Tron" || network.name === "TronTest") {
             receiver = await getTronContract("Receiver", hre.artifacts, network.name, receiver_addr);
-
-            receiverHex = await tronToHex(receiver_addr, network.name);
-
+            receiverHex = tronAddressToHex(receiver_addr);
             let keeper = await receiver.keepers(wallet.address).call();
             console.log("wallet is keeper: ", keeper);
         } else {
             let Receiver = await ethers.getContractFactory("Receiver");
             receiver = await Receiver.attach(receiver_addr);
-
             receiverHex = receiver_addr.toLowerCase();
         }
 
@@ -448,6 +347,67 @@ task("receiver:execSwap", "execSwap")
     });
 
 
+task("receiver:swapRescueFunds", "swapRescueFunds")
+    .addOptionalParam("receiver", "receiver address", "", types.string)
+    .addParam("hash", "transation hash")
+    .addOptionalParam("force", "force execSwap, default: false", false, types.boolean)
+    .setAction(async (taskArgs, hre) => {
+        const { ethers, network } = hre;
+        let [wallet] = await ethers.getSigners();
+        console.log("wallet...", wallet.address);
+        let receiver_addr = await getReceiverAddress(taskArgs.receiver, network.name);
+        console.log("Receiver: ", receiver_addr);
+        let receiver;
+        let receiverHex;
+        if (network.name === "Tron" || network.name === "TronTest") {
+            receiver = await getTronContract("Receiver", hre.artifacts, network.name, receiver_addr);
+            receiverHex = tronAddressToHex(receiver_addr);
+            let keeper = await receiver.keepers(wallet.address).call();
+            console.log("wallet is keeper: ", keeper);
+        } else {
+            let Receiver = await ethers.getContractFactory("Receiver");
+            receiver = await Receiver.attach(receiver_addr);
+            receiverHex = receiver_addr.toLowerCase();
+        }
+
+        let r = await ethers.provider.getTransactionReceipt(taskArgs.hash);
+        let swapFailed;
+        if (r && r.logs) {
+            r.logs.forEach((log) => {
+                if (log.address.toLowerCase() === receiverHex && log.topics[0].toLowerCase() === SwapFailed_topic) {
+                    swapFailed = log;
+                }
+            });
+        }
+        if (swapFailed) {
+            let orderId = swapFailed.topics[1];
+            let storeHash;
+            if (network.name === "Tron" || network.name === "TronTest") {
+                storeHash = await receiver.storedFailedSwap(orderId).call();
+            } else {
+                storeHash = await receiver.storedFailedSwap(orderId);
+            }
+            if (storeHash === ethers.constants.HashZero) {
+                throw "already exec ?";
+            }
+            let decode = ethers.utils.defaultAbiCoder.decode(
+                ["uint256", "address", "address", "uint256", "address", "uint256", "bytes", "bytes"],
+                swapFailed.data
+            );
+            let fromChain = decode[0];
+            let tokenIn = decode[1];
+            let dstToken = decode[2];
+            let amount = decode[3];
+            let user_addr = decode[4];
+            let from = decode[6];
+            let callBackData = decode[7];
+            if (hre.network.name === "Tron" || hre.network.name === "TronTest") {
+                await receiver.swapRescueFunds(orderId, fromChain, tokenIn, amount, dstToken, user_addr, from, callBackData).send()
+            } else {
+                await (await receiver.swapRescueFunds(orderId, fromChain, tokenIn, amount, dstToken, user_addr, from, callBackData)).wait()
+            }
+        }
+    })
 async function decimals(token,wallet) {
     let decimals;
     if (hre.network.name === "Tron" || hre.network.name === "TronTest") {

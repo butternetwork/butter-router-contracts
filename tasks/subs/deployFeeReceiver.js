@@ -1,10 +1,17 @@
-let { create, createZk, readFromFile, writeToFile } = require("../../utils/create.js");
-let { deployFeeReceiver } = require("../utils/tron.js");
-let { verify } = require("../utils/verify.js");
+let { create, getTronDeployer} = require("../../utils/create.js");
+let { verify } = require("../../utils/verify.js");
+let { saveDeployment } = require("../../utils/helper.js")
 
 module.exports = async (taskArgs, hre) => {
-    const { deployments, getNamedAccounts, ethers } = hre;
-    const { deployer } = await getNamedAccounts();
+    const { network, ethers } = hre;
+    const accounts = await ethers.getSigners();
+    const deployer = accounts[0];
+    let deployer_address
+    if(network.name === "Tron" || network.name === "TronTest"){
+        deployer_address = await getTronDeployer(true, network.name);
+    } else {
+        deployer_address = deployer.address;
+    }
     let payees = taskArgs.payees.split(",");
     console.log("payees", payees);
     let shares = taskArgs.shares.split(",");
@@ -15,20 +22,10 @@ module.exports = async (taskArgs, hre) => {
         deployer,
         "FeeReceiver",
         ["address[]", "uint256[]", "address"],
-        [payees, shares, deployer],
+        [payees, shares, deployer_address],
         salt
     );
     console.log("FeeReceiver address :", feeReceiver);
-    let deploy = await readFromFile(network.name);
-    deploy[network.name]["FeeReceiver"] = feeReceiver;
-    await writeToFile(deploy);
-    const verifyArgs = [payees, shares, deployer].map((arg) => (typeof arg == "string" ? `'${arg}'` : arg)).join(" ");
-    console.log(`To verify, run: npx hardhat verify --network ${network.name} ${feeReceiver} ${verifyArgs}`);
-    await verify(
-        feeReceiver,
-        [payees, shares, deployer],
-        "contracts/FeeReceiver.sol:FeeReceiver",
-        hre.network.config.chainId,
-        true
-    );
+    await saveDeployment(network.name, "FeeReceiver", feeReceiver);
+    await verify(feeReceiver, [payees, shares, deployer_address], "contracts/FeeReceiver.sol:FeeReceiver", network.config.chainId, true);
 };
