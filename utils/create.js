@@ -117,7 +117,6 @@ async function getTronDeployer(hex, network) {
   }
 }
 
-
 async function getTronContract(contractName, artifacts, network, addr) {
     let tronWeb = await getTronWeb(network);
     console.log("operator address is:", tronWeb.defaultAddress);
@@ -125,6 +124,7 @@ async function getTronContract(contractName, artifacts, network, addr) {
     let c = await tronWeb.contract(C.abi, addr);
     return c;
 }
+
 
 async function getTronWeb(network) {
     if (network === "Tron" || network === "TronTest") {
@@ -144,7 +144,7 @@ async function getTronWeb(network) {
             );
         }
     } else {
-        throw "unsupport network";
+        throw "unsupported network";
     }
 }
 

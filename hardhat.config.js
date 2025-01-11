@@ -10,7 +10,7 @@ require("./tasks");
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   zksolc: {
-    version: "1.4.0",
+    version: "1.5.6",
     compilerSource: "binary",
     settings: {},
   },
@@ -18,6 +18,16 @@ module.exports = {
     compilers: [
       {
         version: "0.8.20",
+        settings: {
+          evmVersion: "london",
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
+      {
+        version: "0.8.25",
         settings: {
           evmVersion: "london",
           optimizer: {
@@ -66,7 +76,7 @@ module.exports = {
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     Klaytn: {
-      url: `https://public-en-cypress.klaytn.net`,
+      url: `https://kaia.blockpi.network/v1/rpc/public`,
       chainId: 8217,
       zksync: false,
       accounts:

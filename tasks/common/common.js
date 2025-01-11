@@ -10,7 +10,7 @@ exports.setAuthorization = async function (contractName, artifacts, network, add
         let C = await ethers.getContractFactory(contractName);
         let c = C.attach(addr);
         let result = await (await c.setAuthorization(list, flag)).wait();
-        if (result.status == 1) {
+        if (result.status === 1) {
             console.log(`${contractName} ${addr} setAuthorization ${list} succeed`);
         } else {
             console.log("setAuthorization failed");
@@ -88,7 +88,7 @@ exports.checkAuthorization = async function (contractName, artifacts, network, a
                 executors.push(e);
             }
         }
-        if(executors.length != 0){
+        if (executors.length != 0) {
             await c.setAuthorization(executors, true).send();
         }
         console.log(`${contractName} ${addr} setAuthorization ${list} succeed`);
@@ -158,7 +158,7 @@ exports.removeAuthFromConfig = async function (contractName, artifacts, network,
                 executors.push(e);
             }
         }
-        if(executors.length != 0){
+        if (executors.length != 0) {
             await c.setAuthorization(executors, false).send();
         }
         console.log(`${contractName} ${addr} removeAuthorization ${list} succeed`);

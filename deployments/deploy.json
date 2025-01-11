@@ -7,7 +7,7 @@
 		"omniAdapter": "0x3321dE36B6C29A6fa102A67bd5C48E5756Baa596",
 		"SwapAdapterV3": "0xaa301070448385cfAaC5913A67B16C4392944a8f",
 		"ButterRouterV3": "0xEE030ec6F4307411607E55aCD08e628Ae6655B86",
-		"Receiver": "0xfF0309a8f2A9D9aFe040d990BbA4eF3512E32888"
+		"Receiver": "0xFF031cc2563988Bc4afA29E2cD7Bcc2d389900a5"
 	},
 	"Bsc": {
 		"ButterRouterV2": {
@@ -54,7 +54,7 @@
 		"SwapAdapter": "TKUNfz6X5CjrSyR5YwbkSZPx6LGSWygLBK",
 		"SwapAdapterV3": "TYCXm93z8oAhhdT2C2VqEFbSnBAmWzXqo1",
 		"ButterRouterV3": "TPYm4fQJxmoBuhAbNWCBx2ehzhVJ1fxFNP",
-		"Receiver": "TRhRaMkUJR5CXJnTE4KVxtyYRbKPyerJuY",
+		"Receiver": "TJKb72SKzSmYKC4jNievJwTLx9XDmcip7n",
 		"ButterRouterV3New?": "TGsxishA85MPyKckwdUSZWK9vMTo1suxRp",
 		"ReceiverNew?": "TPBp5zTNyZJbXgsrkYMdfFVXcX44d7qDMU"
 	},
@@ -81,7 +81,7 @@
 		"SwapAdapter": "0x002162B2aEe2dD657FB131b28CC34deE6797b66f",
 		"SwapAdapterV3": "0xaa301070448385cfAaC5913A67B16C4392944a8f",
 		"ButterRouterV3": "0xEE030ec6F4307411607E55aCD08e628Ae6655B86",
-		"Receiver": "0xfF0309a8f2A9D9aFe040d990BbA4eF3512E32888"
+		"Receiver": "0xFF031cc2563988Bc4afA29E2cD7Bcc2d389900a5"
 	},
 	"Bevm": {
 		"ButterRouterV2": {

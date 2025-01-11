@@ -4,8 +4,7 @@ let { getConfig } = require("../../configs/config");
 let {
     setAuthorization, 
     setBridge,
-    setOwner, 
-    acceptOwnership, 
+    setOwner,
     getExecutorList,
     checkAuthorization,
     checkBridgeAndWToken,
@@ -16,7 +15,7 @@ let { httpGet } = require("../../utils/httpUtil.js");
 
 
 async function getReceiverAddress(receiver, network) {
-    if(!receiver || receiver === ""){
+    if(!receiver || receiver === "") {
         receiver = await getDeployment(network, "Receiver");
     }
     if (receiver === undefined) {
@@ -322,8 +321,6 @@ task("receiver:execSwap", "execSwap")
                         );
                         console.log(gasLimit);
 
-                        return;
-
                         if (gasLimit) {
                             await (
                                 await receiver.execSwap(
@@ -408,6 +405,8 @@ task("receiver:swapRescueFunds", "swapRescueFunds")
             }
         }
     })
+
+
 async function decimals(token,wallet) {
     let decimals;
     if (hre.network.name === "Tron" || hre.network.name === "TronTest") {
