@@ -41,6 +41,7 @@ contract ButterAffiliateFeeExecutor is
     error ONLY_RELAY();
     error RECEIVE_TOO_LOW();
     error FEE_BIG_THAN_IN_AMOUNT();
+    error ONLY_RETRY_ROLE();
     event SetMaxAffiliateFee(uint256 _maxAffiliateFee);
     event SetFlashSwapAndRelay(address _swap, address _relay);
     event Register(uint16 id, address _receiver, uint256 _max, uint256 _min);
@@ -121,7 +122,7 @@ contract ButterAffiliateFeeExecutor is
         bytes32 _orderId,
         address _token,
         uint256 _amount,
-        address ,
+        address _caller,
         bytes calldata ,
         bytes calldata _message,
         bytes calldata _retryMessage
@@ -139,6 +140,7 @@ contract ButterAffiliateFeeExecutor is
       if(msg.sender != relay) revert ONLY_RELAY();
       _checkReceive(_token, _amount);
       if(_retryMessage.length != 0){
+        if(!hasRole(RETRY_ROLE, _caller)) revert ONLY_RETRY_ROLE();
         (tokenOut, amountOut, target, newMessage) = _exeute(_orderId, _token, _amount, _retryMessage);
       } else {
         (tokenOut, amountOut, target, newMessage) = _exeute(_orderId, _token, _amount, _message);
