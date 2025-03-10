@@ -31,4 +31,6 @@ interface IFlash_Swap {
     function getTotalValue() external view returns(uint256 valueUSD);
 
     function getTokenValue(address _token, uint256 _amount) external view returns(uint256 valueUSD);
+
+    function getAmountOut(address _tokenIn, address _tokenOut, uint256 _amountIn) external view returns(uint256 amountOut);
 }
