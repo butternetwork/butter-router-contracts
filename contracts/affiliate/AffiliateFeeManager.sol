@@ -6,25 +6,23 @@ import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "../interface/IRelayExecutor.sol";
+import "../interface/IAffiliateFeeManager.sol";
 import "../interface/IFlash_Swap.sol";
 
-
-contract ButterAffiliateFeeExecutor is
+contract AffiliateFeeManager is
     Initializable,
     UUPSUpgradeable,
     AccessControlEnumerable,
-    IRelayExecutor
+    IAffiliateFeeManager
 {
-    bytes32 public constant RETRY_ROLE = keccak256("RETRY_ROLE");
     bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     uint256 public constant DENOMINATOR = 10000;
 
     using SafeERC20 for IERC20;
 
-    address public relay;
     IFlash_Swap public swap;
+    address public relayExecytor;
     uint16 public currentRegisterId;
     uint16 public maxAffiliateFeeRate;
     bool public isRegisterNeedWhitelist;
@@ -49,29 +47,26 @@ contract ButterAffiliateFeeExecutor is
     mapping (uint16 => AffiliateInfo) private affiliateInfos;
     mapping (uint16 => mapping(address => uint256)) private affiliateTokenFees; 
 
-
-    error INVALID_MAX_VALUE();
     error ZERO_ADDRESS();
+    error NOT_CONTRACT();
+    error ONLY_RELAY_EXCUTOR();
+    error INVALID_MAX_VALUE();
     error AFFILIATE_NOT_EXIST();
-    error ONLY_RELAY();
-    error RECEIVE_TOO_LOW();
     error FEE_BIG_THAN_IN_AMOUNT();
-    error ONLY_RETRY_ROLE();
     error WALLET_REGISTERED();
     error NICKNAME_REGISTERED();
     error ONLY_WALLET();
     error EMPTY_TOKENS();
     error ONLY_WHITELIST();
-    error ZERO_AMOUNT();
 
+    
     event Set(uint16 id, uint16 base, uint256 max);
     event UpdateWhitelist(address _user, bool _flag);
     event SetMaxAffiliateFeeRate(uint16 _maxAffiliateFee);
     event Register(uint16 id, address wallet, string nickname);
-    event SetFlashSwapAndRelay(address _swap, address _relay);
     event TriggleRegisterWhitelist(bool _isRegisterNeedWhitelist);
+    event SetExcutorAndSwap(address _relayExcutor, address _swap);
     event WithrawFee(uint16 id, address outToken, uint256 totalOutAmount, TokenFee[] fees);
-    event RelayExecute(bytes32 orderId, address inToken, uint256 inAmount, address outToken, uint256 outAmount);
     event CollectAffiliateFee(bytes32 orderId, address token, uint256 amount, uint16 affiliateId, uint256 fee, uint16 rate);
 
     constructor() {
@@ -83,15 +78,15 @@ contract ButterAffiliateFeeExecutor is
         maxAffiliateFeeRate = 3000;
         _grantRole(MANAGER_ROLE, _admin);
         _grantRole(UPGRADER_ROLE, _admin);
-        _grantRole(RETRY_ROLE, _admin);
         _grantRole(DEFAULT_ADMIN_ROLE, _admin);
     }
 
-    function setFlashSwapAndRelay(address _swap, address _relay) external onlyRole(MANAGER_ROLE) {
-        if(_swap == address(0) || _relay == address(0)) revert ZERO_ADDRESS();
-        relay = _relay;
+
+    function setExcutorAndSwap(address _relayExcutor, address _swap) external onlyRole(MANAGER_ROLE){
+        if(_relayExcutor.code.length == 0 || _swap.code.length == 0) revert NOT_CONTRACT();
         swap = IFlash_Swap(_swap);
-        emit SetFlashSwapAndRelay(_swap, _relay);
+        relayExecytor = _relayExcutor;
+        emit SetExcutorAndSwap(_relayExcutor, _swap);
     }
 
     function setMaxAffiliateFeeRate(uint16 _maxAffiliateFeeRate) external onlyRole(MANAGER_ROLE) {
@@ -109,11 +104,21 @@ contract ButterAffiliateFeeExecutor is
         emit UpdateWhitelist(_user, _flag);
     }
 
+
+    function adminRegister(address _wallet, string calldata _nickname) external onlyRole(MANAGER_ROLE) {
+        if(_wallet == address(0)) revert ZERO_ADDRESS();
+        _register(_wallet, _nickname);
+    }
+
     function register(string calldata _nickname) external {
         address _wallet = msg.sender;
         if(isRegisterNeedWhitelist){
             if(!whitelist[_wallet]) revert ONLY_WHITELIST();
         }
+        _register(_wallet, _nickname);
+    }
+
+    function _register(address _wallet, string calldata _nickname) internal {
         if(walletToId[_wallet] != 0) revert WALLET_REGISTERED();
         if(nicknameToId[_nickname] != 0) revert NICKNAME_REGISTERED();
         currentRegisterId ++;
@@ -167,7 +172,7 @@ contract ButterAffiliateFeeExecutor is
                   feeAmount: amount,
                   outAmount: outAmount
                });
-               totalOutAmount += amount;
+               totalOutAmount += outAmount;
             }
             fees[i] = fee;
         }
@@ -214,7 +219,7 @@ contract ButterAffiliateFeeExecutor is
                   feeAmount: amount,
                   outAmount: outAmount
                });
-               totalOutAmount += amount;
+               totalOutAmount += outAmount;
             }
             fees[i] = fee;
         }
@@ -224,120 +229,42 @@ contract ButterAffiliateFeeExecutor is
         return affiliateTokenFees[_id][_token];
     }
 
-    function getAffiliatesFee(uint256 _amount, bytes calldata _affiliatesFee) external view returns(uint256 totalFee) {
+    function getAffiliatesFee(uint256 amount, bytes calldata feeData) external view override returns(uint256 totalFee) {
         uint256 offset;
-        uint256 len = uint256(uint8(bytes1(_affiliatesFee[offset:1])));
-        offset += 1;
+        uint256 len = uint256(uint8(bytes1(feeData[offset: (offset += 1)])));
         if(len == 0) return totalFee;
         for (uint256 i = 0; i < len; i++) {
-            uint16 id = uint16(bytes2(_affiliatesFee[offset: (offset + 2)]));
-            offset += 2;
-            uint16 rate = uint16(bytes2(_affiliatesFee[offset: (offset + 2)]));
-            offset += 2;
-            (, uint256 fee) = _getAffiliateFee(_amount, id, rate);
+            uint16 id = uint16(bytes2(feeData[offset: (offset += 2)]));
+            uint16 rate = uint16(bytes2(feeData[offset: (offset += 2)]));
+            (, uint256 fee) = _getAffiliateFee(amount, id, rate);
             if(fee != 0){
                 totalFee += fee;
             }
         }
-        if(totalFee > _amount) totalFee = _amount;
+        if(totalFee > amount) totalFee = amount;
     }
 
-    function relayExecute(
-        uint256 ,
-        uint256 ,
-        bytes32 _orderId,
-        address _token,
-        uint256 _amount,
-        address _caller,
-        bytes calldata ,
-        bytes calldata _message,
-        bytes calldata _retryMessage
-    )
-        external
-        payable
-        override
-        returns (
-            address tokenOut,
-            uint256 amountOut,
-            bytes memory target,
-            bytes memory newMessage
-        )
-    {
-      if(msg.sender != relay) revert ONLY_RELAY();
-      if(_amount == 0) revert ZERO_AMOUNT();
-      _checkReceive(_token, _amount);
-      if(_retryMessage.length != 0){
-        if(!hasRole(RETRY_ROLE, _caller)) revert ONLY_RETRY_ROLE();
-        (tokenOut, amountOut, target, newMessage) = _exeute(_orderId, _token, _amount, _retryMessage);
-      } else {
-        (tokenOut, amountOut, target, newMessage) = _exeute(_orderId, _token, _amount, _message);
-      }
-      emit RelayExecute(_orderId, _token, _amount, tokenOut, amountOut);
-    }
-
-
-    // _message -> 
-    // 1bytes affiliate length n 
     // affiliates n * (2 byte affiliateId + 2 byte fee rate)
-    // 1 byte swap (1 - need swap | 0);
-    // need swap -> abi.encode(tokenOut, minOut, target, newMessage)
-    // no swap => abi.encode(target, swapData)
-    function _exeute(
-        bytes32 _orderId,
-        address _token,
-        uint256 _amount,
-        bytes calldata _message
-    ) internal 
-      returns (
-            address tokenOut,
-            uint256 amountOut,
-            bytes memory target,
-            bytes memory newMessage
-      ) {
+    function collectAffiliatesFee(bytes32 orderId, address token, uint256 amount, bytes calldata feeData) external override returns(uint256 totalFee){
+        if(msg.sender != relayExecytor) revert ONLY_RELAY_EXCUTOR();
+        uint256 len = feeData.length / 4;
         uint256 offset;
-        uint256 len = uint256(uint8(bytes1(_message[offset:1])));
-        offset += 1;
-        if(len != 0){
-            _amount = _collectAffiliateFee(_orderId, _token, _amount, _message[offset: (offset + len * 4)], len);
-            offset += len * 4;
-        } 
-        uint8 needSwap = uint8(bytes1(_message[offset:(offset + 1)]));
-        offset += 1;
-        if(needSwap != 0){
-            uint256 minOut;
-            (tokenOut, minOut, target, newMessage) = abi.decode(_message[offset:], (address,uint256,bytes,bytes));
-            IERC20(_token).forceApprove(address(swap), _amount);
-            amountOut = swap.swap(_token, tokenOut, _amount, minOut, address(this));
-            IERC20(tokenOut).forceApprove(msg.sender, amountOut);
-        } else {
-            tokenOut = _token;
-            amountOut = _amount;
-            (target, newMessage) = abi.decode(_message[offset:], (bytes,bytes));
-        }
-      }
-
-    function _collectAffiliateFee(bytes32 _orderId, address _token, uint256 _amount, bytes calldata _fee, uint256 _len) internal returns(uint256 afterFee){
-        uint256 offset;
-        uint256 totalFee;
-        for (uint256 i = 0; i < _len; i++) {
-            uint16 id = uint16(bytes2(_fee[offset: (offset + 2)]));
-            offset += 2;
-            uint16 rate = uint16(bytes2(_fee[offset: (offset + 2)]));
-            offset += 2;
-            (uint16 actualRate, uint256 fee) = _getAffiliateFee(_amount, id, rate);
+        for (uint256 i = 0; i < len; i++) {
+            uint16 id = uint16(bytes2(feeData[offset: (offset += 2)]));
+            uint16 rate = uint16(bytes2(feeData[offset: (offset += 2)]));
+            (uint16 actualRate, uint256 fee) = _getAffiliateFee(amount, id, rate);
             if(fee != 0){
                 totalFee += fee;
-                if(totalFee > _amount) revert FEE_BIG_THAN_IN_AMOUNT();
-                affiliateTokenFees[id][_token] += fee;
-                emit CollectAffiliateFee(_orderId, _token, _amount, id, fee, actualRate);
+                if(totalFee > amount) revert FEE_BIG_THAN_IN_AMOUNT();
+                affiliateTokenFees[id][token] += fee;
+                emit CollectAffiliateFee(orderId, token, amount, id, fee, actualRate);
             }
         }
-        afterFee = _amount - totalFee;
     }
-
 
     function _getAffiliateFee(uint256 _amount, uint16 _id, uint16 _rate) internal view returns(uint16 rate, uint256 fee){
         AffiliateInfo memory info = affiliateInfos[_id];
+        if(info.wallet == address(0)) return(0, 0);
         if(info.maxRate != 0 && _rate > info.maxRate){
             rate = info.maxRate;
         } else {
@@ -346,10 +273,6 @@ contract ButterAffiliateFeeExecutor is
         fee = _amount * rate / DENOMINATOR;
     }
 
-    function _checkReceive(address _token, uint256 _amount) private view {
-        uint256 balance = IERC20(_token).balanceOf(address(this));
-        if(balance < _amount) revert RECEIVE_TOO_LOW();
-    }
 
     /** UUPS *********************************************************/
     function _authorizeUpgrade(address) internal view override {
