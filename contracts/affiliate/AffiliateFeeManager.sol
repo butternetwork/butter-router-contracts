@@ -36,6 +36,12 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
         uint256 outAmount;
     }
 
+    struct AffiliateFee {
+        uint16 id;
+        uint16 rate;
+        uint256 fee;
+    }
+
     mapping(address => bool) public whitelist;
     mapping(string => uint16) private nicknameToId;
     mapping(address => uint16) private walletToId;
@@ -65,9 +71,7 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
         bytes32 orderId,
         address token,
         uint256 amount,
-        uint16 affiliateId,
-        uint256 fee,
-        uint16 rate
+        AffiliateFee[] fees 
     );
 
     constructor() {
@@ -144,7 +148,7 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
         AffiliateInfo storage info = affiliateInfos[_id];
         if (msg.sender != info.wallet) revert ONLY_WALLET();
         uint256 len = _tokens.length;
-        if (len != 0) revert EMPTY_TOKENS();
+        if (len == 0) revert EMPTY_TOKENS();
         TokenFee[] memory fees = new TokenFee[](len);
         uint256 totalOutAmount;
         for (uint256 i = 0; i < len; i++) {
@@ -157,6 +161,7 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
                 fee = TokenFee({token: token, feeAmount: amount, outAmount: amount});
                 totalOutAmount += amount;
             } else {
+                IERC20(token).forceApprove(address(swap), amount);
                 uint256 outAmount = swap.swap(token, _outToken, amount, 1, address(this));
                 fee = TokenFee({token: token, feeAmount: amount, outAmount: outAmount});
                 totalOutAmount += outAmount;
@@ -234,19 +239,26 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
         bytes calldata feeData
     ) external override returns (uint256 totalFee) {
         if (msg.sender != relayExecutor) revert ONLY_RELAY_EXECUTOR();
-        uint256 len = feeData.length / 4;
+
         uint256 offset;
+        uint256 len = feeData.length / 4;
+        AffiliateFee[] memory fees = new AffiliateFee[](len);
         for (uint256 i = 0; i < len; i++) {
             uint16 id = uint16(bytes2(feeData[offset:(offset += 2)]));
             uint16 rate = uint16(bytes2(feeData[offset:(offset += 2)]));
             (uint16 actualRate, uint256 fee) = _getAffiliateFee(amount, id, rate);
+            fees[i] = AffiliateFee({
+                id: id,
+                rate: actualRate,
+                fee : fee
+            });
             if (fee != 0) {
                 totalFee += fee;
                 if (totalFee > amount) revert FEE_BIG_THAN_IN_AMOUNT();
                 affiliateTokenFees[id][token] += fee;
-                emit CollectAffiliateFee(orderId, token, amount, id, fee, actualRate);
             }
         }
+        emit CollectAffiliateFee(orderId, token, amount, fees);
     }
 
     function _getAffiliateFee(

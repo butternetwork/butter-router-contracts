@@ -15,7 +15,7 @@ task("AffiliateFeeManager:deploy", "deploy AffiliateFeeManager").setAction(async
     await saveDeployment(network.name, "AffiliateFeeManager", affiliateFeeManager.address);
 });
 
-task("AffiliateFeeManager:setExcutorAndSwap", "setExcutorAndSwap")
+task("AffiliateFeeManager:setExecutorAndSwap", "setExecutorAndSwap")
     .addParam("excutor", "relay address")
     .addParam("swap", "swap address")
     .setAction(async (taskArgs, hre) => {
@@ -28,10 +28,10 @@ task("AffiliateFeeManager:setExcutorAndSwap", "setExcutorAndSwap")
         let affiliateFeeManager_address = getDeployment(network.name, "AffiliateFeeManager");
         let affiliateFeeManager = AffiliateFeeManager.attach(affiliateFeeManager_address);
         console.log("pre swap address is：", await affiliateFeeManager.swap());
-        console.log("pre excutor address is：", await affiliateFeeManager.relayExecytor());
-        await (await affiliateFeeManager.setExcutorAndSwap(taskArgs.excutor, taskArgs.swap)).wait();
+        console.log("pre excutor address is：", await affiliateFeeManager.relayExecutor());
+        await (await affiliateFeeManager.setExecutorAndSwap(taskArgs.excutor, taskArgs.swap)).wait();
         console.log("after swap address is：", await affiliateFeeManager.swap());
-        console.log("after excutor address is：", await affiliateFeeManager.relayExecytor());
+        console.log("after excutor address is：", await affiliateFeeManager.relayExecutor());
     });
 
 task("AffiliateFeeManager:setMaxAffiliateFee", "setMaxAffiliateFee")
