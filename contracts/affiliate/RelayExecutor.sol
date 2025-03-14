@@ -60,54 +60,72 @@ contract RelayExecutor is AccessControlEnumerable, IRelayExecutor {
         override
         returns (address tokenOut, uint256 amountOut, bytes memory target, bytes memory newMessage)
     {
+        address token = _token;
+        bytes32 orderId = _orderId;
         if (msg.sender != relay) revert ONLY_RELAY();
         if (_amount == 0) revert ZERO_AMOUNT();
-        _checkReceive(_token, _amount);
-        if (_retryMessage.length != 0) {
-            if (!hasRole(RETRY_ROLE, _caller)) revert ONLY_RETRY_ROLE();
-            (tokenOut, amountOut, target, newMessage) = _execute(_orderId, _token, _amount, _retryMessage);
+        _checkReceive(token, _amount);
+
+        // _message ->
+        // 1bytes affiliate length n
+        // affiliates n * (2 byte affiliateId + 2 byte fee rate)
+        // 1 byte swap (1 - need swap | 0);
+        // need swap -> abi.encode(tokenOut, minOut, target, newMessage)
+        // no swap => abi.encode(target, swapData)
+
+        uint256 offset;
+        (offset, amountOut) = _collectFee(orderId, token, _amount, _message);
+
+        uint8 needSwap = uint8(bytes1(_message[offset:(offset += 1)]));
+        if (needSwap == 0) {
+            tokenOut = token;
+            amountOut = _amount;
+            (target, newMessage) = abi.decode(_message[offset:], (bytes, bytes));
         } else {
-            (tokenOut, amountOut, target, newMessage) = _execute(_orderId, _token, _amount, _message);
+            (tokenOut, amountOut, target, newMessage) = _execute(offset, token, amountOut, _caller, _message, _retryMessage);
         }
-        emit RelayExecute(_orderId, _token, _amount, tokenOut, amountOut);
+
+        IERC20(tokenOut).forceApprove(msg.sender, amountOut);
+
+        emit RelayExecute(orderId, token, _amount, tokenOut, amountOut);
     }
 
-    // _message ->
-    // 1bytes affiliate length n
-    // affiliates n * (2 byte affiliateId + 2 byte fee rate)
-    // 1 byte swap (1 - need swap | 0);
-    // need swap -> abi.encode(tokenOut, minOut, target, newMessage)
-    // no swap => abi.encode(target, swapData)
+    function _collectFee(bytes32 _orderId, address _token, uint256 _amount, bytes calldata _message) internal returns (uint256 offset, uint256 amountOut) {
+        uint256 len = uint256(uint8(bytes1(_message[offset:(offset += 1)])));
+        if (len == 0) {
+            return (offset, _amount);
+        }
+        try
+        feeManager.collectAffiliatesFee(_orderId, _token, _amount, _message[offset:(offset += len * 4)])
+        returns (uint256 totalFee) {
+            IERC20(_token).safeTransfer(address(feeManager), totalFee);
+            amountOut = _amount - totalFee;
+        } catch (bytes memory) {
+            // do nothing
+        }
+    }
+
+
     function _execute(
-        bytes32 _orderId,
+        uint256 _offset,
         address _token,
         uint256 _amount,
-        bytes calldata _message
+        address _caller,
+        bytes calldata _message,
+        bytes calldata _retryMessage
     ) internal returns (address tokenOut, uint256 amountOut, bytes memory target, bytes memory newMessage) {
-        uint256 offset;
-        uint256 len = uint256(uint8(bytes1(_message[offset:(offset += 1)])));
-        if (len != 0) {
-            try
-                feeManager.collectAffiliatesFee(_orderId, _token, _amount, _message[offset:(offset += len * 4)])
-            returns (uint256 totalFee) {
-                IERC20(_token).safeTransfer(address(feeManager), totalFee);
-                _amount -= totalFee;
-            } catch (bytes memory) {
-                // do nothing
-            }
-        }
-        uint8 needSwap = uint8(bytes1(_message[offset:(offset += 1)]));
-        if (needSwap != 0) {
+
             uint256 minOut;
-            (tokenOut, minOut, target, newMessage) = abi.decode(_message[offset:], (address, uint256, bytes, bytes));
+            if ((_retryMessage.length != 0) && hasRole(RETRY_ROLE, _caller)) {
+                (tokenOut, minOut, target, newMessage) = abi.decode(_message[_offset:], (address, uint256, bytes, bytes));
+            } else {
+                (tokenOut, minOut, target, newMessage) = abi.decode(_retryMessage, (address, uint256, bytes, bytes));
+            }
+
             IERC20(_token).forceApprove(address(swap), _amount);
             amountOut = swap.swap(_token, tokenOut, _amount, minOut, address(this));
             _clearAllowance(_token, address(swap));
-        } else {
-            tokenOut = _token;
-            amountOut = _amount;
-            (target, newMessage) = abi.decode(_message[offset:], (bytes, bytes));
-        }
+
     }
 
     function _checkReceive(address _token, uint256 _amount) private view {
