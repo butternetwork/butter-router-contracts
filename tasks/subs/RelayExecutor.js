@@ -1,19 +1,19 @@
 let { task } = require("hardhat/config");
 let { getDeployment, saveDeployment } = require("../../utils/helper.js");
 
-task("RelayExecytor:deploy", "deploy RelayExecytor").setAction(async (taskArgs, hre) => {
+task("RelayExecutor:deploy", "deploy RelayExecutor").setAction(async (taskArgs, hre) => {
     const { network, ethers } = hre;
     const accounts = await ethers.getSigners();
     const deployer = accounts[0];
     console.log("deployer address is:", deployer.address);
-    let RelayExecytor = await ethers.getContractFactory("RelayExecytor");
+    let RelayExecytor = await ethers.getContractFactory("RelayExecutor");
     let relayExecytor = await RelayExecytor.deploy(deployer.address);
     await relayExecytor.deployed();
-    console.log("RelayExecytor deploy to: ", relayExecytor.address);
-    await saveDeployment(network.name, "RelayExecytor", relayExecytor.address);
+    console.log("RelayExecutor deploy to: ", relayExecytor.address);
+    await saveDeployment(network.name, "RelayExecutor", relayExecytor.address);
 });
 
-task("RelayExecytor:set", "set")
+task("RelayExecutor:set", "set")
     .addParam("relay", "relay address")
     .addParam("swap", "swap address")
     .addParam("fee", "fee manager address")
@@ -23,8 +23,8 @@ task("RelayExecytor:set", "set")
         const deployer = accounts[0];
         console.log("deployer address is:", deployer.address);
 
-        let RelayExecytor = await ethers.getContractFactory("RelayExecytor");
-        let relayExecytor_addr = getDeployment(network.name, "RelayExecytor");
+        let RelayExecytor = await ethers.getContractFactory("RelayExecutor");
+        let relayExecytor_addr = getDeployment(network.name, "RelayExecutor");
         let relayExecytor = RelayExecytor.attach(relayExecytor_addr);
         console.log("pre swap address is：", await relayExecytor.swap());
         console.log("pre relay address is：", await relayExecytor.relay());
@@ -35,7 +35,7 @@ task("RelayExecytor:set", "set")
         console.log("after feeManager address is：", await relayExecytor.feeManager());
     });
 
-task("RelayExecytor:grantRole", "grantRole")
+task("RelayExecutor:grantRole", "grantRole")
     .addParam("role", "Affiliate id")
     .addParam("user", "user address")
     .addOptionalParam("flag", "flag, default: true", true, types.boolean)
@@ -44,8 +44,8 @@ task("RelayExecytor:grantRole", "grantRole")
         const accounts = await ethers.getSigners();
         const deployer = accounts[0];
         console.log("deployer address is:", deployer.address);
-        let RelayExecytor = await ethers.getContractFactory("RelayExecytor");
-        let relayExecytor_addr = getDeployment(network.name, "RelayExecytor");
+        let RelayExecytor = await ethers.getContractFactory("RelayExecutor");
+        let relayExecytor_addr = getDeployment(network.name, "RelayExecutor");
         let relayExecytor = RelayExecytor.attach(relayExecytor_addr);
         let role;
         if (taskArgs.role === "manage") {
