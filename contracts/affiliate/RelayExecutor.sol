@@ -60,11 +60,9 @@ contract RelayExecutor is AccessControlEnumerable, IRelayExecutor {
         override
         returns (address tokenOut, uint256 amountOut, bytes memory target, bytes memory newMessage)
     {
-        address token = _token;
-        bytes32 orderId = _orderId;
         if (msg.sender != relay) revert ONLY_RELAY();
         if (_amount == 0) revert ZERO_AMOUNT();
-        _checkReceive(token, _amount);
+        _checkReceive(_token, _amount);
 
         // _message ->
         // 1bytes affiliate length n
@@ -72,22 +70,30 @@ contract RelayExecutor is AccessControlEnumerable, IRelayExecutor {
         // 1 byte swap (1 - need swap | 0);
         // need swap -> abi.encode(tokenOut, minOut, target, newMessage)
         // no swap => abi.encode(target, swapData)
+        return _relayExecute(_orderId, _token, _amount, _caller, _message, _retryMessage);
+    }
 
+    function _relayExecute(        
+        bytes32 _orderId,
+        address _token,
+        uint256 _amount,
+        address _caller,
+        bytes calldata _message,
+        bytes calldata _retryMessage
+    ) internal returns (address tokenOut, uint256 amountOut, bytes memory target, bytes memory newMessage)
+    {
         uint256 offset;
-        (offset, amountOut) = _collectFee(orderId, token, _amount, _message);
+        (offset, amountOut) = _collectFee(_orderId, _token, _amount, _message);
 
         uint8 needSwap = uint8(bytes1(_message[offset:(offset += 1)]));
         if (needSwap == 0) {
-            tokenOut = token;
-            amountOut = _amount;
+            tokenOut = _token;
             (target, newMessage) = abi.decode(_message[offset:], (bytes, bytes));
         } else {
-            (tokenOut, amountOut, target, newMessage) = _execute(offset, token, amountOut, _caller, _message, _retryMessage);
+            (tokenOut, amountOut, target, newMessage) = _execute(offset, _token, amountOut, _caller, _message, _retryMessage);
         }
-
         IERC20(tokenOut).forceApprove(msg.sender, amountOut);
-
-        emit RelayExecute(orderId, token, _amount, tokenOut, amountOut);
+        emit RelayExecute(_orderId, _token, _amount, tokenOut, amountOut);
     }
 
     function _collectFee(bytes32 _orderId, address _token, uint256 _amount, bytes calldata _message) internal returns (uint256 offset, uint256 amountOut) {
@@ -115,16 +121,16 @@ contract RelayExecutor is AccessControlEnumerable, IRelayExecutor {
         bytes calldata _retryMessage
     ) internal returns (address tokenOut, uint256 amountOut, bytes memory target, bytes memory newMessage) {
 
-            uint256 minOut;
-            if ((_retryMessage.length != 0) && hasRole(RETRY_ROLE, _caller)) {
-                (tokenOut, minOut, target, newMessage) = abi.decode(_message[_offset:], (address, uint256, bytes, bytes));
-            } else {
-                (tokenOut, minOut, target, newMessage) = abi.decode(_retryMessage, (address, uint256, bytes, bytes));
-            }
+        uint256 minOut;
+        if ((_retryMessage.length != 0) && hasRole(RETRY_ROLE, _caller)) {
+            (tokenOut, minOut, target, newMessage) = abi.decode(_retryMessage, (address, uint256, bytes, bytes));
+        } else {
+            (tokenOut, minOut, target, newMessage) = abi.decode(_message[_offset:], (address, uint256, bytes, bytes));
+        }
 
-            IERC20(_token).forceApprove(address(swap), _amount);
-            amountOut = swap.swap(_token, tokenOut, _amount, minOut, address(this));
-            _clearAllowance(_token, address(swap));
+        IERC20(_token).forceApprove(address(swap), _amount);
+        amountOut = swap.swap(_token, tokenOut, _amount, minOut, address(this));
+        _clearAllowance(_token, address(swap));
 
     }
 
