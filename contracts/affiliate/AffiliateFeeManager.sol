@@ -148,7 +148,7 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
         AffiliateInfo storage info = affiliateInfos[_id];
         if (msg.sender != info.wallet) revert ONLY_WALLET();
         uint256 len = _tokens.length;
-        if (len != 0) revert EMPTY_TOKENS();
+        if (len == 0) revert EMPTY_TOKENS();
         TokenFee[] memory fees = new TokenFee[](len);
         uint256 totalOutAmount;
         for (uint256 i = 0; i < len; i++) {
@@ -161,6 +161,7 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
                 fee = TokenFee({token: token, feeAmount: amount, outAmount: amount});
                 totalOutAmount += amount;
             } else {
+                IERC20(token).forceApprove(address(swap), amount);
                 uint256 outAmount = swap.swap(token, _outToken, amount, 1, address(this));
                 fee = TokenFee({token: token, feeAmount: amount, outAmount: outAmount});
                 totalOutAmount += outAmount;
