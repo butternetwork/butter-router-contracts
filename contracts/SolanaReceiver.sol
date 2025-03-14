@@ -114,17 +114,7 @@ contract SolanaReceiver is Ownable2Step, SwapCall, ReentrancyGuard, IButterRecei
         uint256 minAmountOut;
         address receiver;
         (dstToken, receiver, minAmountOut) = _decodeSwapData(_swapData);
-        _store(
-            _orderId,
-            _fromChain,
-            _srcToken,
-            dstToken,
-            _amount,
-            receiver,
-            minAmountOut,
-            _from,
-            bytes("")
-        );
+        _store(_orderId, _fromChain, _srcToken, dstToken, _amount, receiver, minAmountOut, _from, bytes(""));
         // _afterCheck(swapTemp.nativeBalance);
         // _emitRemoteSwapAndCall(_orderId, swapTemp);
     }
@@ -134,7 +124,9 @@ contract SolanaReceiver is Ownable2Step, SwapCall, ReentrancyGuard, IButterRecei
     //address dstToken
     //address receiver
     //uint256 minAmountOut
-    function _decodeSwapData(bytes calldata _swapData) private pure returns(address dstToken, address receiver, uint256 minAmountOut){
+    function _decodeSwapData(
+        bytes calldata _swapData
+    ) private pure returns (address dstToken, address receiver, uint256 minAmountOut) {
         dstToken = address(bytes20(_swapData[2:22]));
         receiver = address(bytes20(_swapData[22:42]));
         minAmountOut = uint256(bytes32(_swapData[42:]));
@@ -289,7 +281,17 @@ contract SolanaReceiver is Ownable2Step, SwapCall, ReentrancyGuard, IButterRecei
             abi.encodePacked(_fromChain, _srcToken, _dstToken, _amount, _receiver, _from, _callbackData)
         );
         storedFailedSwap[_orderId] = hash;
-        emit SwapFailed(_orderId, _fromChain, _srcToken, _dstToken, _amount, _receiver, _minReceived, _from, _callbackData);
+        emit SwapFailed(
+            _orderId,
+            _fromChain,
+            _srcToken,
+            _dstToken,
+            _amount,
+            _receiver,
+            _minReceived,
+            _from,
+            _callbackData
+        );
     }
 
     function _setBridgeAddress(address _bridgeAddress) internal returns (bool) {

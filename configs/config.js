@@ -41,7 +41,7 @@ let config = new Map([
             },
             removes: [
                 "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
-            ]
+            ],
         },
     ],
 
@@ -86,7 +86,7 @@ let config = new Map([
             },
             removes: [
                 "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
-            ]
+            ],
         },
     ],
 
@@ -135,7 +135,7 @@ let config = new Map([
             removes: [
                 "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
                 "0xaaab45a0ea5d8615411877178de9fa7a54068dde",
-            ]
+            ],
         },
     ],
 
@@ -174,7 +174,7 @@ let config = new Map([
             },
             removes: [
                 "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
-            ]
+            ],
         },
     ],
 
@@ -208,7 +208,7 @@ let config = new Map([
             },
             removes: [
                 "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
-            ]
+            ],
         },
     ],
 
@@ -245,13 +245,12 @@ let config = new Map([
 
                     "0x273290B6dCe557B2889b8B5aF7ea4d989689E1CC", // chainpool
                     "0x63d13711AFcD6Ddd07154c19F020b490C25bDCD0", // test chainpool
-                    "0xd2947E481666B80D1fC130f9539812de6030de19"  // mapoX
+                    "0xd2947E481666B80D1fC130f9539812de6030de19", // mapoX
                 ],
             },
             removes: [
                 "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
-
-            ]
+            ],
         },
     ],
 
@@ -291,7 +290,7 @@ let config = new Map([
             },
             removes: [
                 "TYMpgB8Q9vSoGtkyE3hXsvUrpte3KCDGj6", // bridge
-            ]
+            ],
         },
     ],
 
@@ -323,7 +322,7 @@ let config = new Map([
             },
             removes: [
                 "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
-            ]
+            ],
         },
     ],
     [
@@ -358,7 +357,7 @@ let config = new Map([
             },
             removes: [
                 "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
-            ]
+            ],
         },
     ],
     [
@@ -397,7 +396,7 @@ let config = new Map([
             },
             removes: [
                 "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
-            ]
+            ],
         },
     ],
     [
@@ -430,7 +429,7 @@ let config = new Map([
             },
             removes: [
                 "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
-            ]
+            ],
         },
     ],
     [
@@ -465,7 +464,7 @@ let config = new Map([
             },
             removes: [
                 "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
-            ]
+            ],
         },
     ],
     [
@@ -497,7 +496,7 @@ let config = new Map([
             },
             removes: [
                 "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
-            ]
+            ],
         },
     ],
     [
@@ -529,7 +528,7 @@ let config = new Map([
             },
             removes: [
                 "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
-            ]
+            ],
         },
     ],
     [
@@ -561,7 +560,7 @@ let config = new Map([
             },
             removes: [
                 "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
-            ]
+            ],
         },
     ],
     [
@@ -590,7 +589,7 @@ let config = new Map([
             },
             removes: [
                 "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
-            ]
+            ],
         },
     ],
     [
@@ -625,7 +624,7 @@ let config = new Map([
             },
             removes: [
                 "0xBEf06a32166C4B819fF04cCfa887733B8bb67eB5", // bridge
-            ]
+            ],
         },
     ],
 

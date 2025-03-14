@@ -1,11 +1,11 @@
 let { getTronContract, getTronDeployer } = require("../../utils/create.js");
-let { tronAddressToHex, getDeployment, hexToTronAddress } = require("../../utils/helper.js")
+let { tronAddressToHex, getDeployment, hexToTronAddress } = require("../../utils/helper.js");
 
 exports.setAuthorization = async function (contractName, artifacts, network, addr, list, flag) {
     if (network === "Tron" || network === "TronTest") {
         console.log("deployer :", await getTronDeployer(false, network));
         let c = await getTronContract(contractName, artifacts, network, addr);
-        await c.setAuthorization(list, flag).send() 
+        await c.setAuthorization(list, flag).send();
     } else {
         let C = await ethers.getContractFactory(contractName);
         let c = C.attach(addr);
@@ -22,7 +22,7 @@ exports.setBridge = async function (contractName, artifacts, network, addr, brid
     if (network === "Tron" || network === "TronTest") {
         console.log("deployer :", await getTronDeployer(false, network));
         let c = await getTronContract(contractName, artifacts, network, addr);
-        await c.setBridgeAddress(tronAddressToHex(bridge)).send() 
+        await c.setBridgeAddress(tronAddressToHex(bridge)).send();
     } else {
         let C = await ethers.getContractFactory(contractName);
         let c = C.attach(addr);
@@ -35,12 +35,11 @@ exports.setBridge = async function (contractName, artifacts, network, addr, brid
     }
 };
 
-
 exports.setOwner = async function (contractName, artifacts, network, addr, owner) {
     if (network === "Tron" || network === "TronTest") {
         console.log("deployer :", await getTronDeployer(false, network));
         let c = await getTronContract(contractName, artifacts, network, addr);
-        await c.transferOwnership(tronAddressToHex(owner)).send() 
+        await c.transferOwnership(tronAddressToHex(owner)).send();
     } else {
         let C = await ethers.getContractFactory(contractName);
         let c = C.attach(addr);
@@ -53,12 +52,11 @@ exports.setOwner = async function (contractName, artifacts, network, addr, owner
     }
 };
 
-
 exports.acceptOwnership = async function (contractName, artifacts, network, addr) {
     if (network === "Tron" || network === "TronTest") {
         console.log("deployer :", await getTronDeployer(false, network));
         let c = await getTronContract(contractName, artifacts, network, addr);
-        await c.acceptOwnership().send() 
+        await c.acceptOwnership().send();
     } else {
         let C = await ethers.getContractFactory(contractName);
         let c = C.attach(addr);
@@ -76,7 +74,7 @@ exports.checkAuthorization = async function (contractName, artifacts, network, a
     if (adapter_address != undefined) {
         console.log("SwapAdapter: ", adapter_address);
         list.push(adapter_address);
-    } 
+    }
     let executors = [];
     if (network === "Tron" || network === "TronTest") {
         console.log("deployer :", await getTronDeployer(false, network));
@@ -101,7 +99,7 @@ exports.checkAuthorization = async function (contractName, artifacts, network, a
                 executors.push(list[index]);
             }
         }
-        if(executors.length != 0){
+        if (executors.length != 0) {
             let result = await (await c.setAuthorization(executors, true)).wait();
             if (result.status == 1) {
                 console.log(`${contractName} ${addr} setAuthorization ${list} succeed`);
@@ -171,7 +169,7 @@ exports.removeAuthFromConfig = async function (contractName, artifacts, network,
                 executors.push(list[index]);
             }
         }
-        if(executors.length != 0){
+        if (executors.length != 0) {
             let result = await (await c.setAuthorization(executors, false)).wait();
             if (result.status == 1) {
                 console.log(`${contractName} ${addr} removeAuthorization ${list} succeed`);
@@ -182,7 +180,6 @@ exports.removeAuthFromConfig = async function (contractName, artifacts, network,
     }
 };
 
-
 exports.checkFee = async function (contractName, artifacts, network, addr, config) {
     if (network === "Tron" || network === "TronTest") {
         console.log("deployer :", await getTronDeployer(false, network));
@@ -191,10 +188,10 @@ exports.checkFee = async function (contractName, artifacts, network, addr, confi
         console.log("pre feeReceiver", hexToTronAddress(feeReceiver));
         let routerFixedFee = await c.routerFixedFee().call();
         console.log("pre routerFixedFee", routerFixedFee);
-    
+
         let routerFeeRate = await c.routerFeeRate().call();
         console.log("pre routerFeeRate", routerFeeRate);
-    
+
         let hexReceiver = tronAddressToHex(config.v3.fee.receiver);
         if (
             feeReceiver.toLowerCase() !== hexReceiver.toLowerCase() ||
@@ -265,12 +262,10 @@ exports.getExecutorList = async function (network, executors) {
         console.log("executors is empty ...");
         return;
     }
-    if(network === "Tron" || network === "TronTest") {
+    if (network === "Tron" || network === "TronTest") {
         for (let index = 0; index < list.length; index++) {
             list[index] = tronAddressToHex(list[index]);
         }
     }
     return list;
 };
-
-

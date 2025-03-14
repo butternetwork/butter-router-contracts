@@ -93,28 +93,27 @@ async function createTron(contractName, args, artifacts, network) {
 async function tronContractCall(hre, contract, method, args, read) {
     let result;
     if (hre.network.name === "Tron" || hre.network.name === "TronTest") {
-      let methodFunc = contract.methods[method];
-      if (read) {
-        result = await methodFunc(args).call();
-      } else {
-        result = await methodFunc(args).send();
-      }
+        let methodFunc = contract.methods[method];
+        if (read) {
+            result = await methodFunc(args).call();
+        } else {
+            result = await methodFunc(args).send();
+        }
     } else {
-      let methodFunc = contract.funcs[method];
-      result = await methodFunc(args);
+        let methodFunc = contract.funcs[method];
+        result = await methodFunc(args);
     }
-  
+
     return result;
 }
 
-
 async function getTronDeployer(hex, network) {
-  let tronWeb = await getTronWeb(network);
-  if (hex) {
-    return tronWeb.defaultAddress.hex.replace(/^(41)/, "0x");
-  } else {
-    return tronWeb.defaultAddress;
-  }
+    let tronWeb = await getTronWeb(network);
+    if (hex) {
+        return tronWeb.defaultAddress.hex.replace(/^(41)/, "0x");
+    } else {
+        return tronWeb.defaultAddress;
+    }
 }
 
 async function getTronContract(contractName, artifacts, network, addr) {
@@ -124,7 +123,6 @@ async function getTronContract(contractName, artifacts, network, addr) {
     let c = await tronWeb.contract(C.abi, addr);
     return c;
 }
-
 
 async function getTronWeb(network) {
     if (network === "Tron" || network === "TronTest") {
@@ -153,5 +151,5 @@ module.exports = {
     createZk,
     getTronContract,
     tronContractCall,
-    getTronDeployer
+    getTronDeployer,
 };

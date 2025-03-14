@@ -1,6 +1,6 @@
 let { task } = require("hardhat/config");
-let { create, getTronContract, getTronDeployer} = require("../../utils/create.js");
-let { getDeployment, saveDeployment, tronAddressToHex } = require("../../utils/helper.js")
+let { create, getTronContract, getTronDeployer } = require("../../utils/create.js");
+let { getDeployment, saveDeployment, tronAddressToHex } = require("../../utils/helper.js");
 let { getFeeManagerConfig } = require("../../configs/FeeManagerConfig.js");
 
 task("IntegratorManager:deploy", "deploy IntegratorManager").setAction(async (taskArgs, hre) => {
@@ -8,21 +8,26 @@ task("IntegratorManager:deploy", "deploy IntegratorManager").setAction(async (ta
     const accounts = await ethers.getSigners();
     const deployer = accounts[0];
     let salt = process.env.FEE_MANAGER_SALT;
-    let deployer_address
-    if(network.name === "Tron" || network.name === "TronTest"){
+    let deployer_address;
+    if (network.name === "Tron" || network.name === "TronTest") {
         deployer_address = await getTronDeployer(true, network.name);
     } else {
-        deployer_address = deployer.address
+        deployer_address = deployer.address;
     }
     let integratorManager = await create(hre, deployer, "IntegratorManager", ["address"], [deployer_address], salt);
     console.log("IntegratorManager address :", integratorManager);
     await saveDeployment(network.name, "IntegratorManager", integratorManager);
-    await verify(integratorManager, [deployer.address], "contracts/IntegratorManager.sol:IntegratorManager", network.config.chainId, true);
+    await verify(
+        integratorManager,
+        [deployer.address],
+        "contracts/IntegratorManager.sol:IntegratorManager",
+        network.config.chainId,
+        true
+    );
     await hre.run("IntegratorManager:setRouterFeeFromConfig", {});
 });
 
 task("IntegratorManager:setRouterFeeFromConfig", "setRouterFee feeManager").setAction(async (taskArgs, hre) => {
-    
     let feeManagerConfig = getFeeManagerConfig(network.name);
     if (feeManagerConfig) {
         await hre.run("IntegratorManager:setRouterFee", {
@@ -47,17 +52,19 @@ task("IntegratorManager:setRouterFee", "initialFeeStruct feeManager")
         const accounts = await ethers.getSigners();
         const deployer = accounts[0];
         let addr = getDeployment(network.name, "IntegratorManager");
-        if(!addr) throw "IntegratorManager not deploy"
+        if (!addr) throw "IntegratorManager not deploy";
         if (network.name === "Tron" || network.name === "TronTest") {
             console.log("deployer :", await getTronDeployer(false, network.name));
-            let c = await getTronContract("IntegratorManager", hre.artifacts, network.name, addr)
-            await c.setRouterFee(
-                tronAddressToHex(taskArgs.receiver),
-                taskArgs.fixednative,
-                taskArgs.tokenfeerate,
-                taskArgs.routershare,
-                taskArgs.routernativeshare
-            ).send()
+            let c = await getTronContract("IntegratorManager", hre.artifacts, network.name, addr);
+            await c
+                .setRouterFee(
+                    tronAddressToHex(taskArgs.receiver),
+                    taskArgs.fixednative,
+                    taskArgs.tokenfeerate,
+                    taskArgs.routershare,
+                    taskArgs.routernativeshare
+                )
+                .send();
         } else {
             console.log("deployer :", deployer.address);
             let FeeManager = await ethers.getContractFactory("IntegratorManager");
@@ -86,18 +93,20 @@ task("IntegratorManager:setIntegratorFee", "setIntegratorFees feeManager")
         const accounts = await ethers.getSigners();
         const deployer = accounts[0];
         let addr = getDeployment(network.name, "IntegratorManager");
-        if(!addr) throw "IntegratorManager not deploy"
+        if (!addr) throw "IntegratorManager not deploy";
         if (network.name === "Tron" || network.name === "TronTest") {
             console.log("deployer :", await getTronDeployer(false, network.name));
-            let c = await getTronContract("IntegratorManager", hre.artifacts, network.name, addr)
-            await c.setIntegratorFee(
-                tronAddressToHex(taskArgs.integrator),
-                tronAddressToHex(taskArgs.receiver),
-                taskArgs.fixednative,
-                taskArgs.tokenfeerate,
-                taskArgs.routershare,
-                taskArgs.routernativeshare
-            ).send()
+            let c = await getTronContract("IntegratorManager", hre.artifacts, network.name, addr);
+            await c
+                .setIntegratorFee(
+                    tronAddressToHex(taskArgs.integrator),
+                    tronAddressToHex(taskArgs.receiver),
+                    taskArgs.fixednative,
+                    taskArgs.tokenfeerate,
+                    taskArgs.routershare,
+                    taskArgs.routernativeshare
+                )
+                .send();
         } else {
             console.log("deployer :", deployer.address);
             let FeeManager = await ethers.getContractFactory("IntegratorManager");

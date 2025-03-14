@@ -17,9 +17,7 @@ exports.httpPost = async function (url, requestData) {
             resolve(body);
         });
     });
-}
-
-
+};
 
 exports.httpGet = async function (url, requestData) {
     return new Promise((resolve, reject) => {
@@ -33,6 +31,4 @@ exports.httpGet = async function (url, requestData) {
             resolve(body);
         });
     });
-}
-
-
+};

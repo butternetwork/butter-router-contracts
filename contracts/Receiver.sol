@@ -369,7 +369,17 @@ contract Receiver is Ownable2Step, SwapCall, ReentrancyGuard, IButterReceiver {
             abi.encodePacked(_fromChain, _srcToken, _dstToken, _amount, _receiver, _from, _callbackData)
         );
         storedFailedSwap[_orderId] = hash;
-        emit SwapFailed(_orderId, _fromChain, _srcToken, _dstToken, _amount, _receiver, _minReceived, _from, _callbackData);
+        emit SwapFailed(
+            _orderId,
+            _fromChain,
+            _srcToken,
+            _dstToken,
+            _amount,
+            _receiver,
+            _minReceived,
+            _from,
+            _callbackData
+        );
     }
 
     function _setBridgeAddress(address _bridgeAddress) internal returns (bool) {
