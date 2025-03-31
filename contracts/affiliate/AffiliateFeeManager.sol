@@ -48,6 +48,8 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
     mapping(uint16 => AffiliateInfo) private affiliateInfos;
     mapping(uint16 => mapping(address => uint256)) private affiliateTokenFees;
 
+    uint256 public registerFee;
+
     error ZERO_ADDRESS();
     error NOT_CONTRACT();
     error ONLY_RELAY_EXECUTOR();
@@ -59,13 +61,17 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
     error ONLY_WALLET();
     error EMPTY_TOKENS();
     error ONLY_WHITELIST();
+    error INVALID_NICKNAME();
+    error ZERO_AMOUNT();
 
+    event UpdateRegisterFee(uint256 _registerFee);
     event Set(uint16 id, uint16 base, uint256 max);
     event UpdateWhitelist(address _user, bool _flag);
     event SetMaxAffiliateFeeRate(uint16 _maxAffiliateFee);
     event Register(uint16 id, address wallet, string nickname);
     event TriggerRegisterWhitelist(bool _isRegisterNeedWhitelist);
     event SetExecutorAndSwap(address _relayExcutor, address _swap);
+    event AdminWithdraw(address _token, address _receiver, uint256 _amount);
     event WithdrawFee(uint16 id, address outToken, uint256 totalOutAmount, TokenFee[] fees);
     event CollectAffiliateFee(
         bytes32 orderId,
@@ -108,20 +114,47 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
         emit UpdateWhitelist(_user, _flag);
     }
 
+    function updateRegisterFee(uint256 _registerFee) external onlyRole(MANAGER_ROLE) {
+        registerFee = _registerFee;
+        emit UpdateRegisterFee(_registerFee);
+    }
+
     function adminRegister(address _wallet, string calldata _nickname) external onlyRole(MANAGER_ROLE) {
         if (_wallet == address(0)) revert ZERO_ADDRESS();
         _register(_wallet, _nickname);
     }
 
-    function register(string calldata _nickname) external {
+    function register(string calldata _nickname) external payable {
         address _wallet = msg.sender;
-        if (isRegisterNeedWhitelist) {
-            if (!whitelist[_wallet]) revert ONLY_WHITELIST();
-        }
+        uint256 fee = getUserRegisterFee(_wallet);
+        if(msg.value != fee) revert ONLY_WHITELIST();
         _register(_wallet, _nickname);
     }
 
+    function updateWallet(uint16 _id, address _wallet) external {
+        if(_wallet == address(0)) revert ZERO_ADDRESS();
+        if (walletToId[_wallet] != 0) revert WALLET_REGISTERED();
+        AffiliateInfo storage info = affiliateInfos[_id];
+        _check(info.wallet);
+        walletToId[info.wallet] = 0;
+        walletToId[_wallet] = info.id;
+        info.wallet = _wallet;
+        emit Register(_id, _wallet, info.nickname);
+    }
+
+    function updateNickname(uint16 _id, string calldata _nickname) external {
+        if(!_isValidNickname(_nickname)) revert INVALID_NICKNAME();
+        if (nicknameToId[_nickname] != 0) revert NICKNAME_REGISTERED();
+        AffiliateInfo storage info = affiliateInfos[_id];
+        _check(info.wallet);
+        nicknameToId[info.nickname] = 0;
+        nicknameToId[_nickname] = info.id;
+        info.nickname = _nickname;
+        emit Register(_id, info.wallet, _nickname);
+    }
+
     function _register(address _wallet, string calldata _nickname) internal {
+        if(!_isValidNickname(_nickname)) revert INVALID_NICKNAME();
         if (walletToId[_wallet] != 0) revert WALLET_REGISTERED();
         if (nicknameToId[_nickname] != 0) revert NICKNAME_REGISTERED();
         currentRegisterId++;
@@ -136,7 +169,7 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
 
     function set(uint16 _id, uint16 _base, uint16 _max) external {
         AffiliateInfo storage info = affiliateInfos[_id];
-        if (msg.sender != info.wallet) revert ONLY_WALLET();
+        _check(info.wallet);
         require(_max >= _base);
         if (_max > maxAffiliateFeeRate) revert INVALID_MAX_VALUE();
         info.maxRate = _max;
@@ -146,7 +179,7 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
 
     function withdrawFee(uint16 _id, address[] calldata _tokens, address _outToken) external {
         AffiliateInfo storage info = affiliateInfos[_id];
-        if (msg.sender != info.wallet) revert ONLY_WALLET();
+        _check(info.wallet);
         uint256 len = _tokens.length;
         if (len == 0) revert EMPTY_TOKENS();
         TokenFee[] memory fees = new TokenFee[](len);
@@ -154,6 +187,7 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
         for (uint256 i = 0; i < len; i++) {
             address token = _tokens[i];
             uint256 amount = affiliateTokenFees[_id][token];
+            affiliateTokenFees[_id][token] = 0;
             TokenFee memory fee;
             if (amount == 0) {
                 fee = TokenFee({token: token, feeAmount: 0, outAmount: 0});
@@ -168,8 +202,13 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
             }
             fees[i] = fee;
         }
-        IERC20(_outToken).safeTransfer(msg.sender, totalOutAmount);
+        if(totalOutAmount == 0) revert ZERO_AMOUNT();
+        IERC20(_outToken).safeTransfer(info.wallet, totalOutAmount);
         emit WithdrawFee(_id, _outToken, totalOutAmount, fees);
+    }
+
+    function getUserRegisterFee(address _wallet) public view returns(uint256 fee) {
+        fee = whitelist[_wallet] ? 0 : registerFee;
     }
 
     function getInfoById(uint16 _id) external view returns (AffiliateInfo memory info) {
@@ -268,12 +307,40 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
     ) internal view returns (uint16 rate, uint256 fee) {
         AffiliateInfo memory info = affiliateInfos[_id];
         if (info.wallet == address(0)) return (0, 0);
-        if (info.maxRate != 0 && _rate > info.maxRate) {
-            rate = info.maxRate;
+        if (info.maxRate != 0) {
+            rate = (_rate > info.maxRate) ? info.maxRate : _rate;
         } else {
-            rate = _rate;
+            rate = (_rate > maxAffiliateFeeRate) ? maxAffiliateFeeRate : _rate;
         }
         fee = (_amount * rate) / DENOMINATOR;
+    }
+
+    function _isValidNickname(string memory str) internal pure returns (bool) {
+        bytes memory strBytes = bytes(str);
+        uint256 len = strBytes.length;
+        if(len > 32 || len < 3) return false;
+        for (uint256 i = 0; i < len; i++) {
+            bytes1 char = strBytes[i];
+            // a-z (ASCII 97-122)
+            if (char >= 0x61 && char <= 0x7A) {
+                continue;
+            }
+            // 0-9 (ASCII 48-57)
+            if (char >= 0x30 && char <= 0x39) {
+                continue;
+            }
+            // - (ASCII 45) and _ (ASCII 95)
+            if (char == 0x2D || char == 0x5F) {
+                continue;
+            }
+            return false;
+        }
+        return true;
+    }
+
+    function _check(address wallet) internal view {
+        if(wallet == address(0)) revert AFFILIATE_NOT_EXIST();
+        if(!(wallet == msg.sender || hasRole(MANAGER_ROLE, msg.sender))) revert ONLY_WALLET();
     }
 
     /** UUPS *********************************************************/
@@ -283,5 +350,16 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
 
     function getImplementation() external view returns (address) {
         return _getImplementation();
+    }
+
+    function adminWithdraw(address _token, address _receiver, uint256 _amount) external onlyRole(MANAGER_ROLE){
+        if(_receiver == address(0)) revert ZERO_ADDRESS();
+        if(_token == address(0)){
+            (bool result, )= payable(_receiver).call{value: _amount}("");
+            require(result);
+        } else {
+            IERC20(_token).safeTransfer(_receiver, _amount);
+        }
+        emit AdminWithdraw(_token, _receiver, _amount);
     }
 }
