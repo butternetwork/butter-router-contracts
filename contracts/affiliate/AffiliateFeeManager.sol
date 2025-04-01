@@ -50,6 +50,8 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
 
     uint256 public registerFee;
 
+    mapping(uint16 => mapping(address => uint256)) private totalWithdrawedTokenFees;
+
     error ZERO_ADDRESS();
     error NOT_CONTRACT();
     error ONLY_RELAY_EXECUTOR();
@@ -188,6 +190,7 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
             address token = _tokens[i];
             uint256 amount = affiliateTokenFees[_id][token];
             affiliateTokenFees[_id][token] = 0;
+            totalWithdrawedTokenFees[_id][token] += amount;
             TokenFee memory fee;
             if (amount == 0) {
                 fee = TokenFee({token: token, feeAmount: 0, outAmount: 0});
@@ -205,6 +208,10 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
         if(totalOutAmount == 0) revert ZERO_AMOUNT();
         IERC20(_outToken).safeTransfer(info.wallet, totalOutAmount);
         emit WithdrawFee(_id, _outToken, totalOutAmount, fees);
+    }
+
+    function getTokenWithdrawedAmount(uint16 _id, address _token) external view returns(uint256) {
+        return totalWithdrawedTokenFees[_id][_token];
     }
 
     function getUserRegisterFee(address _wallet) public view returns(uint256 fee) {
