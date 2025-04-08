@@ -85,6 +85,21 @@ task("AffiliateFeeManager:updateWhitelist", "updateWhitelist")
         );
     });
 
+task("AffiliateFeeManager:updateRegisterFee", "admin Register")
+    .addParam("fee", "fee amount")
+    .setAction(async (taskArgs, hre) => {
+        const { network, ethers } = hre;
+        const accounts = await ethers.getSigners();
+        const deployer = accounts[0];
+        console.log("deployer address is:", deployer.address);
+        let AffiliateFeeManager = await ethers.getContractFactory("AffiliateFeeManager");
+        let affiliateFeeManager_address = getDeployment(network.name, "AffiliateFeeManager");
+        let affiliateFeeManager = AffiliateFeeManager.attach(affiliateFeeManager_address);
+        console.log("pre registerFee: ", await affiliateFeeManager.registerFee());
+        await (await affiliateFeeManager.updateRegisterFee(taskArgs.fee)).wait();
+        console.log("after registerFee: ", await affiliateFeeManager.registerFee());
+    });
+
 task("AffiliateFeeManager:adminRegister", "admin Register")
     .addParam("wallet", "Affiliate id")
     .addParam("nickname", "nickname")
