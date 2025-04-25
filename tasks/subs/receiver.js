@@ -16,6 +16,7 @@ let { httpGet } = require("../../utils/httpUtil.js");
 async function getReceiverAddress(receiver, network) {
     if (!receiver || receiver === "") {
         receiver = await getDeployment(network, "Receiver");
+        if(!receiver) receiver = await getDeployment(network, "ReceiverV2");
     }
     if (receiver === undefined) {
         throw "can not get receiver address";
@@ -30,7 +31,7 @@ module.exports = async (taskArgs, hre) => {
         throw "config not set";
     }
     await hre.run("receiver:deploy", { bridge: config.v3.bridge, wtoken: config.wToken });
-    let receiver_addr = await getDeployment(network.name, "Receiver");
+    let receiver_addr = await getDeployment(network.name, "ReceiverV2");
     let adapt_addr = await getDeployment(network.name, "SwapAdapterV3");
     config.v3.executors.push(adapt_addr);
     let executors_s = config.v3.executors.join(",");
@@ -61,17 +62,17 @@ task("receiver:deploy", "deploy receiver")
         let receiverAddr = await create(
             hre,
             deployer,
-            "Receiver",
+            "ReceiverV2",
             ["address", "address", "address"],
             [deployer_address, wtoken, bridge],
             salt
         );
         console.log("Receiver address :", receiverAddr);
-        await saveDeployment(network.name, "Receiver", receiverAddr);
+        await saveDeployment(network.name, "ReceiverV2", receiverAddr);
         await verify(
             receiverAddr,
             [deployer_address, wtoken, bridge],
-            "contracts/Receiver.sol:Receiver",
+            "contracts/ReceiverV2.sol:ReceiverV2",
             network.config.chainId,
             true
         );

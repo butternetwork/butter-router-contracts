@@ -17,6 +17,7 @@ let { verify } = require("../../utils/verify.js");
 async function getRouterAddress(router, network) {
     if (!router || router === "") {
         router = await getDeployment(network, "ButterRouterV3");
+        if(!router) router = await getDeployment(network, "ButterRouterV4");
     }
     return router;
 }
@@ -28,7 +29,7 @@ module.exports = async (taskArgs, hre) => {
         throw "config not set";
     }
     await hre.run("routerV3:deploy", { bridge: config.v3.bridge, wtoken: config.wToken });
-    let router_addr = await getDeployment(network.name, "ButterRouterV3");
+    let router_addr = await getDeployment(network.name, "ButterRouterV4");
     let adapt_addr = await getDeployment(network.name, "SwapAdapterV3");
     config.v3.executors.push(adapt_addr);
     let executors_s = config.v3.executors.join(",");
@@ -69,18 +70,18 @@ task("routerV3:deploy", "deploy butterRouterV3")
         let routerAddr = await create(
             hre,
             deployer,
-            "ButterRouterV3",
+            "ButterRouterV4",
             ["address", "address", "address"],
             [bridge, deployer_address, wtoken],
             salt
         );
 
         console.log("router v3 address :", routerAddr);
-        await saveDeployment(network.name, "ButterRouterV3", routerAddr);
+        await saveDeployment(network.name, "ButterRouterV4", routerAddr);
         await verify(
             routerAddr,
             [bridge, deployer_address, wtoken],
-            "contracts/ButterRouterV3.sol:ButterRouterV3",
+            "contracts/ButterRouterV4.sol:ButterRouterV4",
             network.config.chainId,
             true
         );
