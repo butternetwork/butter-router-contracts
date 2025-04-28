@@ -127,12 +127,12 @@ async function getTronContract(contractName, artifacts, network, addr) {
 async function getTronWeb(network) {
     if (network === "Tron" || network === "TronTest") {
         if (network === "Tron") {
-            return new TronWeb(
-                "https://api.trongrid.io/",
-                "https://api.trongrid.io/",
-                "https://api.trongrid.io/",
-                process.env.TRON_PRIVATE_KEY
-            );
+            return new TronWeb({
+                fullHost: process.env.TRON_RPC_URL,
+                // solidityNode: "https://api.trongrid.io/",
+                // eventServer: "https://api.trongrid.io/",
+                privateKey: process.env.TRON_PRIVATE_KEY
+            });
         } else {
             return new TronWeb(
                 "https://api.nileex.io/",
