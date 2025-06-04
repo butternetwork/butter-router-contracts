@@ -72,14 +72,9 @@ library DexExecutor {
                 (_result, ) = mixSwaps[i].callTo.call{value: _amount}(callDatas);
             } else {
                 if (i != 0) {
-                    IERC20(_srcToken).safeIncreaseAllowance(mixSwaps[i].approveTo, _amount);
+                    IERC20(_srcToken).forceApprove(mixSwaps[i].approveTo, _amount);
                 }
-
                 (_result, ) = mixSwaps[i].callTo.call(callDatas);
-
-                if (i != 0) {
-                    IERC20(_srcToken).safeApprove(mixSwaps[i].approveTo, 0);
-                }
             }
             if (!_result) {
                 break;

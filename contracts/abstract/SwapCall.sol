@@ -135,10 +135,10 @@ abstract contract SwapCall {
         if (_isNative(_token)) {
             (_result, ) = callParam.target.call{value: _amount}(callPayload);
         } else {
-            if (_amount != 0) IERC20(_token).safeIncreaseAllowance(callParam.approveTo, _amount);
+            if (_amount != 0) IERC20(_token).forceApprove(callParam.approveTo, _amount);
             // this contract not save money make sure send value can cover this
             (_result, ) = callParam.target.call{value: callParam.extraNativeAmount}(callPayload);
-            if (_amount != 0) IERC20(_token).safeApprove(callParam.approveTo, 0);
+            // if (_amount != 0) IERC20(_token).safeApprove(callParam.approveTo, 0);
         }
         if (!_result) revert Errors.CALL_BACK_FAIL();
         _callAmount = _callAmount - _getBalance(_token, address(this));
@@ -171,12 +171,12 @@ abstract contract SwapCall {
                 }
             }
             if (!isNative) {
-                IERC20(_token).safeIncreaseAllowance(_swaps[i].approveTo, _swaps[i].fromAmount);
+                IERC20(_token).forceApprove(_swaps[i].approveTo, _swaps[i].fromAmount);
             }
             _execute(_swaps[i].dexType, isNative, _swaps[i].callTo, _token, _swaps[i].fromAmount, _swaps[i].callData);
-            if (!isNative) {
-                IERC20(_token).safeApprove(_swaps[i].approveTo, 0);
-            }
+            // if (!isNative) {
+            //     IERC20(_token).safeApprove(_swaps[i].approveTo, 0);
+            // }
             unchecked {
                 i++;
             }
@@ -252,14 +252,14 @@ abstract contract SwapCall {
                 (_result, ) = mixSwaps[i].callTo.call{value: _amount}(callData);
             } else {
                 if (i != 0) {
-                    IERC20(_srcToken).safeIncreaseAllowance(mixSwaps[i].approveTo, _amount);
+                    IERC20(_srcToken).forceApprove(mixSwaps[i].approveTo, _amount);
                 }
 
                 (_result, ) = mixSwaps[i].callTo.call(callData);
 
-                if (i != 0) {
-                    IERC20(_srcToken).safeApprove(mixSwaps[i].approveTo, 0);
-                }
+                // if (i != 0) {
+                //     IERC20(_srcToken).safeApprove(mixSwaps[i].approveTo, 0);
+                // }
             }
             if (!_result) {
                 break;

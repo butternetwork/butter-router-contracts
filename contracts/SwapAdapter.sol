@@ -69,8 +69,7 @@ contract SwapAdapter is Ownable2Step, ReentrancyGuard {
             }
             bool isNative = Helper._isNative(params.srcToken);
             if (!isNative) {
-                IERC20(params.srcToken).safeApprove(_swaps[i].approveTo, 0);
-                IERC20(params.srcToken).safeApprove(_swaps[i].approveTo, _swaps[i].fromAmount);
+                IERC20(params.srcToken).forceApprove(_swaps[i].approveTo, _swaps[i].fromAmount);
             }
             DexExecutor.execute(
                 _swaps[i].dexType,
@@ -80,9 +79,6 @@ contract SwapAdapter is Ownable2Step, ReentrancyGuard {
                 _swaps[i].fromAmount,
                 _swaps[i].callData
             );
-            if (!isNative) {
-                IERC20(params.srcToken).safeApprove(_swaps[i].approveTo, 0);
-            }
         }
         outAmount = Helper._getBalance(params.dstToken, address(this)) - finalTokenAmount;
         require(outAmount >= params.minAmount, "ButterAgg: swap received too low");

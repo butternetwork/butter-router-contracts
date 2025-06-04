@@ -606,7 +606,7 @@ let config = new Map([
                 executors: [],
             },
             v3: {
-                bridge: "0xBEf06a32166C4B819fF04cCfa887733B8bb67eB5",
+                bridge: "0xdeF84C4B412361E3A98A5277C108D7F0Df02fA3d",
                 fee: {
                     receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
                     routerFeeRate: "0", //denominator is 10000
