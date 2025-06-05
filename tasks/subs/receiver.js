@@ -31,7 +31,7 @@ module.exports = async (taskArgs, hre) => {
         throw "config not set";
     }
     await hre.run("receiver:deploy", { bridge: config.v3.bridge, wtoken: config.wToken });
-    let receiver_addr = await getDeployment(network.name, "ReceiverV2");
+    let receiver_addr = await getReceiverAddress("",network.name);
     let adapt_addr = await getDeployment(network.name, "SwapAdapterV3");
     config.v3.executors.push(adapt_addr);
     let executors_s = config.v3.executors.join(",");
@@ -62,17 +62,17 @@ task("receiver:deploy", "deploy receiver")
         let receiverAddr = await create(
             hre,
             deployer,
-            "ReceiverV2",
+            "Receiver",
             ["address", "address", "address"],
             [deployer_address, wtoken, bridge],
             salt
         );
         console.log("Receiver address :", receiverAddr);
-        await saveDeployment(network.name, "ReceiverV2", receiverAddr);
+        await saveDeployment(network.name, "Receiver", receiverAddr);
         await verify(
             receiverAddr,
             [deployer_address, wtoken, bridge],
-            "contracts/ReceiverV2.sol:ReceiverV2",
+            "contracts/Receiver.sol:Receiver",
             network.config.chainId,
             true
         );
