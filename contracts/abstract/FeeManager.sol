@@ -55,7 +55,7 @@ abstract contract FeeManager is Ownable2Step, IFeeManager {
         address _inputToken,
         uint256 _inputAmount,
         bytes calldata _feeData
-    ) internal  view  returns (FeeDetail memory feeDetail) {
+    ) internal view returns (FeeDetail memory feeDetail) {
         IButterRouterV3.Fee memory fee = _checkFeeData(_feeData);
         if (feeReceiver == address(0) && fee.referrer == address(0)) {
             return feeDetail;

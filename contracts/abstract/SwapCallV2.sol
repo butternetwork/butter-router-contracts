@@ -13,7 +13,7 @@ abstract contract SwapCallV2 {
     address internal constant NATIVE_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
     address immutable wToken;
-    
+
     mapping(address => bool) public approved;
     mapping(bytes4 => bool) public funcBlackList;
     event EditFuncBlackList(bytes4 _func, bool flag);
@@ -131,7 +131,7 @@ abstract contract SwapCallV2 {
         callAmount = _getBalance(_token, self);
         uint256 offset = callParam.offset;
         bytes memory callPayload = callParam.data;
-        if(offset > 35) {
+        if (offset > 35) {
             //32 length + 4 funcSig
             assembly {
                 mstore(add(callPayload, offset), _amount)
@@ -139,7 +139,7 @@ abstract contract SwapCallV2 {
         }
         bytes4 sig;
         assembly {
-            sig := mload(add(callPayload, 32)) 
+            sig := mload(add(callPayload, 32))
         }
         _checkApprove(target, sig);
         uint256 value = callParam.extraNativeAmount + _approveToken(_token, callParam.approveTo, _amount);
@@ -174,12 +174,12 @@ abstract contract SwapCallV2 {
                     isUp ? amount += amountAdjust : amount -= amountAdjust;
                 }
             }
-            
+
             bool result;
             DexType dexType = swap.dexType;
-            if(dexType == DexType.FILL) {
+            if (dexType == DexType.FILL) {
                 result = _makeAggFill(_token, swap.callTo, amount, swap.callData);
-            } else if(dexType == DexType.MIX) {
+            } else if (dexType == DexType.MIX) {
                 result = _makeMixSwap(_token, amount, swap.callData);
             } else {
                 revert Errors.UNSUPPORT_DEX_TYPE();
@@ -197,7 +197,7 @@ abstract contract SwapCallV2 {
         SwapData[] memory _swaps
     ) private pure returns (uint256 amountAdjust, uint256 firstAdjust, bool isUp) {
         uint256 total = 0;
-        for (uint256 i = 0; i < _len;) {
+        for (uint256 i = 0; i < _len; ) {
             total += _swaps[i].fromAmount;
             unchecked {
                 ++i;
@@ -228,8 +228,8 @@ abstract contract SwapCallV2 {
         MixSwap[] memory mixSwaps = abi.decode(_swapData, (MixSwap[]));
         uint256 length = mixSwaps.length;
         address self = address(this);
-        
-        for (uint256 i = 0; i < length;) {
+
+        for (uint256 i = 0; i < length; ) {
             MixSwap memory mix = mixSwaps[i];
             if (i != 0) {
                 _srcToken = mix.srcToken;
@@ -237,7 +237,7 @@ abstract contract SwapCallV2 {
             }
             bytes memory callData = mix.callData;
             uint256 offset = mix.offset;
-            if(offset > 35) {
+            if (offset > 35) {
                 //32 length + 4 funcSig
                 assembly {
                     mstore(add(callData, offset), _amount)
@@ -245,19 +245,18 @@ abstract contract SwapCallV2 {
             }
             bytes4 sig;
             assembly {
-                sig := mload(add(callData, 32)) 
+                sig := mload(add(callData, 32))
             }
             address target = mix.callTo;
             _checkApprove(target, sig);
             uint256 value = _approveToken(_srcToken, mix.approveTo, _amount);
             (result, ) = target.call{value: value}(callData);
-            if(!result) break;
+            if (!result) break;
             unchecked {
                 ++i;
             }
         }
     }
-
 
     function _makeAggFill(
         address _token,
@@ -267,34 +266,34 @@ abstract contract SwapCallV2 {
     ) internal returns (bool result) {
         (uint256[] memory offsets, bytes memory callData) = abi.decode(_swapData, (uint256[], bytes));
         uint256 len = offsets.length;
-        
-        for (uint i = 0; i < len;) {
+
+        for (uint i = 0; i < len; ) {
             uint256 offset = offsets[i];
-            if(offset > 35){
+            if (offset > 35) {
                 //32 length + 4 funcSig
                 assembly {
                     mstore(add(callData, offset), _amount)
                 }
             }
             unchecked {
-               ++i;
+                ++i;
             }
         }
         bytes4 sig;
         assembly {
-            sig := mload(add(callData, 32)) 
+            sig := mload(add(callData, 32))
         }
         _checkApprove(_router, sig);
         uint256 value = _approveToken(_token, _router, _amount);
         (result, ) = _router.call{value: value}(callData);
     }
 
-    function _approveToken(address token, address spender, uint256 amount) internal returns(uint256 value){
-        if(_isNative(token)) {
+    function _approveToken(address token, address spender, uint256 amount) internal returns (uint256 value) {
+        if (_isNative(token)) {
             value = amount;
         } else {
-            uint256 allowance =  IERC20(token).allowance(address(this), spender);
-            if(allowance < amount){
+            uint256 allowance = IERC20(token).allowance(address(this), spender);
+            if (allowance < amount) {
                 IERC20(token).forceApprove(spender, amount);
             }
         }

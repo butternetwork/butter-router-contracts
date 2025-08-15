@@ -15,7 +15,6 @@ contract ReceiverV2 is Ownable2Step, SwapCallV2, ReentrancyGuard, IButterReceive
     using SafeERC20 for IERC20;
     using Address for address;
 
-
     mapping(address => bool) public keepers;
     mapping(bytes32 => bytes32) public storedFailedSwap;
 
@@ -161,7 +160,7 @@ contract ReceiverV2 is Ownable2Step, SwapCallV2, ReentrancyGuard, IButterReceive
                 return;
             }
         }
-        
+
         if (_callbackData.length != 0) {
             gaslf = gasleft();
             if (gaslf > minExecGas) {
@@ -173,7 +172,7 @@ contract ReceiverV2 is Ownable2Step, SwapCallV2, ReentrancyGuard, IButterReceive
                     swapTemp.receiver = receiver;
                 } catch {}
             }
-            if(swapTemp.receiver == address(0)){
+            if (swapTemp.receiver == address(0)) {
                 CallbackParam memory callParam = abi.decode(_callbackData, (CallbackParam));
                 swapTemp.receiver = callParam.receiver;
             }
@@ -274,7 +273,11 @@ contract ReceiverV2 is Ownable2Step, SwapCallV2, ReentrancyGuard, IButterReceive
             uint256 minExecGas = gasForReFund;
             if (gasleft() > minExecGas) {
                 try
-                    this.remoteCall{gas: (gasleft() - minExecGas)}(swapTemp.swapToken, swapTemp.swapAmount, _callbackData)
+                    this.remoteCall{gas: (gasleft() - minExecGas)}(
+                        swapTemp.swapToken,
+                        swapTemp.swapAmount,
+                        _callbackData
+                    )
                 returns (address target, uint256 callAmount, address receiver) {
                     swapTemp.target = target;
                     swapTemp.callAmount = callAmount;
@@ -387,7 +390,6 @@ contract ReceiverV2 is Ownable2Step, SwapCallV2, ReentrancyGuard, IButterReceive
             _callbackData
         );
     }
-
 
     // function _setBridgeAddress(address _bridgeAddress) internal returns (bool) {
     //     if (!_bridgeAddress.isContract()) revert Errors.NOT_CONTRACT();

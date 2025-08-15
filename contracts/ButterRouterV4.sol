@@ -51,7 +51,11 @@ contract ButterRouterV4 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRoute
 
     // event SetBridgeAddress(address indexed _bridgeAddress);
 
-    constructor(address _bridgeAddress, address _owner, address _wToken) payable SwapCallV2(_wToken) FeeManager(_owner) {
+    constructor(
+        address _bridgeAddress,
+        address _owner,
+        address _wToken
+    ) payable SwapCallV2(_wToken) FeeManager(_owner) {
         if (!_bridgeAddress.isContract()) revert Errors.NOT_CONTRACT();
         bridgeAddress = _bridgeAddress;
         // _setBridgeAddress(_bridgeAddress);
@@ -115,7 +119,12 @@ contract ButterRouterV4 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRoute
             _permitData
         );
         FeeDetail memory fd;
-        (fd, swapTemp.swapAmount, swapTemp.referrer) = _collectFee(swapTemp.srcToken, swapTemp.srcAmount, _feeData, (bridge_len > 0));
+        (fd, swapTemp.swapAmount, swapTemp.referrer) = _collectFee(
+            swapTemp.srcToken,
+            swapTemp.srcAmount,
+            _feeData,
+            (bridge_len > 0)
+        );
         if (_swapData.length != 0) {
             (swapTemp.swapToken, swapTemp.swapAmount, swapTemp.receiver) = _swap(
                 swapTemp.srcToken,
@@ -127,9 +136,14 @@ contract ButterRouterV4 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRoute
         bytes memory receiver;
         if (bridge_len == 0) {
             receiver = abi.encodePacked(swapTemp.receiver);
-            if(swapTemp.swapAmount != 0) _transfer(swapTemp.swapToken, swapTemp.receiver, swapTemp.swapAmount);
+            if (swapTemp.swapAmount != 0) _transfer(swapTemp.swapToken, swapTemp.receiver, swapTemp.swapAmount);
         } else {
-            (orderId, swapTemp.toChain, receiver) = _doBridge(msg.sender, swapTemp.swapToken, swapTemp.swapAmount, _bridgeData);
+            (orderId, swapTemp.toChain, receiver) = _doBridge(
+                msg.sender,
+                swapTemp.swapToken,
+                swapTemp.swapAmount,
+                _bridgeData
+            );
         }
         emit CollectFee(
             swapTemp.srcToken,
@@ -179,7 +193,12 @@ contract ButterRouterV4 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRoute
         );
         if ((_swapData.length + _callbackData.length) == 0) revert Errors.DATA_EMPTY();
         FeeDetail memory fd;
-        (fd, swapTemp.swapAmount, swapTemp.referrer) = _collectFee(swapTemp.srcToken, swapTemp.srcAmount, _feeData, false);
+        (fd, swapTemp.swapAmount, swapTemp.referrer) = _collectFee(
+            swapTemp.srcToken,
+            swapTemp.srcAmount,
+            _feeData,
+            false
+        );
         emit CollectFee(
             swapTemp.srcToken,
             fd.routerReceiver,
@@ -226,7 +245,6 @@ contract ButterRouterV4 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRoute
         IFeeManager.FeeDetail memory fd = _getFee(_inputToken, _inputAmount, _feeData, true);
         feeToken = fd.feeToken;
         (tokenFee, nativeFee, afterFeeAmount) = _calculateFee(_inputToken, _inputAmount, fd);
-
     }
 
     function getFee(
@@ -243,7 +261,7 @@ contract ButterRouterV4 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRoute
         address _inputToken,
         uint256 _inputAmount,
         IFeeManager.FeeDetail memory fd
-    ) internal pure returns(uint256 tokenFee, uint256 nativeFee, uint256 afterFeeAmount) {
+    ) internal pure returns (uint256 tokenFee, uint256 nativeFee, uint256 afterFeeAmount) {
         if (_isNative(_inputToken)) {
             tokenFee = 0;
             nativeFee = fd.routerNativeFee + fd.routerTokenFee + fd.integratorTokenFee + fd.integratorNativeFee;
@@ -292,7 +310,7 @@ contract ButterRouterV4 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRoute
             (dstToken, swapOutAmount, receiver) = _swap(_srcToken, _amount, _initBalance, _swapData);
         }
         if (_callbackData.length > 0) {
-            (callAmount, receiver, target)= _callBack(swapOutAmount, dstToken, _callbackData);
+            (callAmount, receiver, target) = _callBack(swapOutAmount, dstToken, _callbackData);
         }
     }
 
