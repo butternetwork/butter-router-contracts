@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable2Step.sol";
 import "../interface/IFeeManager.sol";
@@ -48,6 +48,14 @@ abstract contract FeeManager is Ownable2Step, IFeeManager {
         uint256 _inputAmount,
         bytes calldata _feeData
     ) external view virtual override returns (FeeDetail memory feeDetail) {
+        return _getFeeDetailInternal(_inputToken, _inputAmount, _feeData);
+    }
+
+    function _getFeeDetailInternal(
+        address _inputToken,
+        uint256 _inputAmount,
+        bytes calldata _feeData
+    ) internal  view  returns (FeeDetail memory feeDetail) {
         IButterRouterV3.Fee memory fee = _checkFeeData(_feeData);
         if (feeReceiver == address(0) && fee.referrer == address(0)) {
             return feeDetail;

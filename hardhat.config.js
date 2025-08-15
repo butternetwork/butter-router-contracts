@@ -17,6 +17,21 @@ module.exports = {
   solidity: {
     compilers: [
       {
+        version: "0.8.19",
+        settings: {
+          evmVersion: "london",
+           metadata: {
+            // Not including the metadata hash
+            // https://github.com/paulrberg/hardhat-template/issues/31
+            bytecodeHash: "none",
+          },
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
+      {
         version: "0.8.20",
         settings: {
           evmVersion: "london",
@@ -64,6 +79,7 @@ module.exports = {
     Matic: {
       url: `https://rpc.ankr.com/polygon`,
       chainId: 137,
+      // gasPrice: 140000000000,
       zksync: false,
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
