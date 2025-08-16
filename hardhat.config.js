@@ -5,7 +5,64 @@ require('@nomiclabs/hardhat-ethers');
 require("@matterlabs/hardhat-zksync-deploy");
 require("@matterlabs/hardhat-zksync-solc");
 require("@matterlabs/hardhat-zksync-verify");
+require("hardhat-preprocessor");
+require("@xplorfin/hardhat-solc-excludes");
 require("./tasks");
+
+const fs = require('fs');
+const path = require('path');
+
+function getRemappings() {
+  return fs
+    .readFileSync("remappings.txt", "utf8")
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => line.trim().split("="));
+}
+
+// Function to remove duplicate SPDX license identifiers and pragma versions
+function removeRedundantHeaders(source, absolutePath) {
+  // Ensure source is a string
+  if (typeof source !== 'string') {
+    console.log(`Warning: preprocessor received non-string source, type: ${typeof source}`);
+    return source;
+  }
+
+  // Track license identifiers and pragma versions we've seen
+  const seenLicenses = new Set();
+  const seenPragmas = new Set();
+
+  // Split source into lines
+  const lines = source.split('\n');
+  const filteredLines = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+
+    // Check for SPDX license identifier
+    if (line.startsWith('// SPDX-License-Identifier:')) {
+      if (!seenLicenses.has(line)) {
+        seenLicenses.add(line);
+        filteredLines.push(lines[i]);
+      }
+      continue;
+    }
+
+    // Check for pragma solidity
+    if (line.startsWith('pragma solidity')) {
+      if (!seenPragmas.has(line)) {
+        seenPragmas.add(line);
+        filteredLines.push(lines[i]);
+      }
+      continue;
+    }
+
+    // Keep all other lines
+    filteredLines.push(lines[i]);
+  }
+
+  return filteredLines.join('\n');
+}
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
@@ -14,7 +71,17 @@ module.exports = {
     compilerSource: "binary",
     settings: {},
   },
+  paths: {
+    sources: "./contracts",
+    tests: "./test",
+    cache: "./cache",
+    artifacts: "./artifacts"
+  },
+  // Solidity 编译器配置
   solidity: {
+    excludes: {
+      directories: ["contracts/legacy"]
+    },
     compilers: [
       {
         version: "0.8.19",
@@ -63,7 +130,7 @@ module.exports = {
       initialBaseFeePerGas: 0,
     },
     Eth: {
-      url: `https://mainnet.infura.io/v3/` + process.env.INFURA_KEY,
+      url: "https://eth-mainnet.public.blastapi.io",
       chainId: 1,
       zksync: false,
       accounts:
@@ -248,7 +315,8 @@ module.exports = {
       Arbitrum: process.env.API_KEY_ARBITRUM,
       Linea: process.env.API_KEY_LINEA,
       Scroll: process.env.API_KEY_SCROLL,
-      Mantle: process.env.API_KEY_MANTLE
+      Mantle: process.env.API_KEY_MANTLE,
+      Map:' '
     },
     customChains: [
       {
@@ -345,6 +413,14 @@ module.exports = {
         urls: {
           apiURL: "https://api.mantlescan.xyz/api",
           browserURL: "https://mantlescan.xyz/",
+        },
+      },
+      {
+        network: "Map",
+        chainId: 22776,
+        urls: {
+          apiURL: "https://explorer-api.chainservice.io/api",
+          browserURL: "https://explorer.mapprotocol.io"
         },
       }
     ],

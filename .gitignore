@@ -118,3 +118,6 @@ artifacts-zk
 #hardhat plugin
 abi
 #deployments
+
+# Flattened contracts
+flattened/

@@ -114,12 +114,13 @@ exports.checkBridgeAndWToken = async function (contractName, artifacts, network,
     if (network === "Tron" || network === "TronTest") {
         console.log("deployer :", await getTronDeployer(false, network));
         let c = await getTronContract(contractName, artifacts, network, addr);
+        /*
         let wToken = hexToTronAddress(await c.wToken().call());
         console.log("pre wToken", wToken);
         if (wToken.toLowerCase() !== config.wToken.toLowerCase()) {
             await c.setWToken(tronAddressToHex(config.wToken)).send();
             console.log("wToken", hexToTronAddress(await c.wToken().call()));
-        }
+        }*/
         let bridgeAddress = hexToTronAddress(await c.bridgeAddress().call());
         console.log("pre bridgeAddress", bridgeAddress);
         if (bridgeAddress.toLowerCase() !== config.v3.bridge.toLowerCase()) {
@@ -129,12 +130,14 @@ exports.checkBridgeAndWToken = async function (contractName, artifacts, network,
     } else {
         let C = await ethers.getContractFactory(contractName);
         let c = C.attach(addr);
+        /*
         let wToken = await c.wToken();
         console.log("pre wToken", wToken);
         if (wToken.toLowerCase() !== config.wToken.toLowerCase()) {
             await (await c.setWToken(config.wToken)).wait();
             console.log("wToken", await c.wToken());
         }
+        */
         let bridgeAddress = await c.bridgeAddress();
         console.log("pre bridgeAddress", bridgeAddress);
         if (bridgeAddress.toLowerCase() !== config.v3.bridge.toLowerCase()) {

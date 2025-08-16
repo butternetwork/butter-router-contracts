@@ -133,8 +133,6 @@ let config = new Map([
                 ],
             },
             removes: [
-                "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
-                "0xaaab45a0ea5d8615411877178de9fa7a54068dde",
             ],
         },
     ],
@@ -283,13 +281,15 @@ let config = new Map([
                 },
                 executors: [
                     "TFVisXFaijZfeyeSjCEVkHfex7HGdTxzF9", // sun smart router
-                    "TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ax", // sun v2 route
+                    "TXF1xDbVGdxFGbovmmmXvBGu8ZiE3Lq4mR", // sun v2 router new
                     "TQAvWQpT9H916GckwWDJNhYZvQMkuRL7PN", // sun v3 route
-                    "TJ4NNy8xZEqsowCBhLvZ45LCqPdGjkET5j", // sun smart router
+                    "TCFNp179Lg46D16zKoumd4Poa2WFFdtqYj"  // sun smart router new
                 ],
             },
             removes: [
                 "TYMpgB8Q9vSoGtkyE3hXsvUrpte3KCDGj6", // bridge
+              "TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ax", // sun v2 route deprecated
+              "TJ4NNy8xZEqsowCBhLvZ45LCqPdGjkET5j", // sun smart router deprecated
             ],
         },
     ],

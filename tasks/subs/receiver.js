@@ -12,6 +12,7 @@ let {
 } = require("../common/common.js");
 let { verify } = require("../../utils/verify.js");
 let { httpGet } = require("../../utils/httpUtil.js");
+const {hexToTronAddress} = require("../../utils/helper");
 
 async function getReceiverAddress(receiver, network) {
     if (!receiver || receiver === "") {
@@ -147,13 +148,14 @@ task("receiver:update", "check and Update from config file")
         const deployer = accounts[0];
         console.log("deployer: ", deployer.address);
         let receiver_addr = await getReceiverAddress(taskArgs.receiver, network.name);
+        console.log("Receiver: ", receiver_addr);
         let config = getConfig(network.name);
         if (!config) {
             throw "config not set";
         }
         await checkAuthorization("Receiver", hre.artifacts, network.name, receiver_addr, config.v3.executors);
-        await checkBridgeAndWToken("Receiver", hre.artifacts, network.name, receiver_addr, config);
-        await hre.run("receiver:removeAuthFromConfig", { receiver: receiver_addr });
+        //await checkBridgeAndWToken("Receiver", hre.artifacts, network.name, receiver_addr, config);
+        //await hre.run("receiver:removeAuthFromConfig", { receiver: receiver_addr });
     });
 
 task("receiver:removeAuthFromConfig", "remove Authorization from config file")
@@ -191,7 +193,7 @@ task("receiver:removeAuthFromConfig", "remove Authorization from config file")
 let SwapFailed_topic = "0xd457b25e0e458857e38c937f68af3100c40afd88fc5522c5820440d07b44351f";
 task("receiver:execSwap", "execSwap")
     .addOptionalParam("receiver", "receiver address", "", types.string)
-    .addParam("hash", "transation hash")
+    .addParam("hash", "transaction hash")
     .addOptionalParam("force", "force execSwap, default: false", false, types.boolean)
     .setAction(async (taskArgs, hre) => {
         const { ethers, network } = hre;
@@ -426,9 +428,16 @@ task("receiver:swapRescueFunds", "swapRescueFunds")
 
 async function decimals(token, wallet) {
     let decimals;
+
     if (hre.network.name === "Tron" || hre.network.name === "TronTest") {
-        // TRX or USDT
-        decimals = 6;
+        if (token.toLowerCase() === ethers.constants.AddressZero) {
+            // TRX
+            decimals = 6;
+        } else {
+            let tokenAddr = hexToTronAddress(token);
+            let t = await getTronContract("MockToken", hre.artifacts, hre.network.name, tokenAddr);
+            decimals = await t.decimals().call();
+        }
     } else {
         if (token.toLowerCase() === ethers.constants.AddressZero) {
             decimals = 18;
