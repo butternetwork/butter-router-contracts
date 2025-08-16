@@ -15,7 +15,7 @@ contract ButterRouterV4 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRoute
     using SafeERC20 for IERC20;
     using Address for address;
 
-    address immutable bridgeAddress;
+    address public bridgeAddress;
     IFeeManager public feeManager;
 
     // use to solve deep stack
@@ -49,7 +49,7 @@ contract ButterRouterV4 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRoute
         bytes32 transferId
     );
 
-    // event SetBridgeAddress(address indexed _bridgeAddress);
+    event SetBridgeAddress(address indexed _bridgeAddress);
 
     constructor(
         address _bridgeAddress,
@@ -57,8 +57,8 @@ contract ButterRouterV4 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRoute
         address _wToken
     ) payable SwapCallV2(_wToken) FeeManager(_owner) {
         if (!_bridgeAddress.isContract()) revert Errors.NOT_CONTRACT();
-        bridgeAddress = _bridgeAddress;
-        // _setBridgeAddress(_bridgeAddress);
+        // bridgeAddress = _bridgeAddress;
+        _setBridgeAddress(_bridgeAddress);
     }
 
     function setAuthorization(address[] calldata _executors, bool _flag) external onlyOwner {
@@ -75,14 +75,10 @@ contract ButterRouterV4 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRoute
         emit ApproveToken(token, spender, amount);
     }
 
-    // function setBridgeAddress(address _bridgeAddress) public onlyOwner returns (bool) {
-    //     _setBridgeAddress(_bridgeAddress);
-    //     return true;
-    // }
-
-    // function setWToken(address _wToken) external onlyOwner {
-    //     _setWToken(_wToken);
-    // }
+    function setBridgeAddress(address _bridgeAddress) public onlyOwner returns (bool) {
+        _setBridgeAddress(_bridgeAddress);
+        return true;
+    }
 
     function setFeeManager(address _feeManager) public onlyOwner {
         if (!_feeManager.isContract()) revert Errors.NOT_CONTRACT();
@@ -145,16 +141,20 @@ contract ButterRouterV4 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRoute
                 _bridgeData
             );
         }
-        emit CollectFee(
-            swapTemp.srcToken,
-            fd.routerReceiver,
-            fd.integrator,
-            fd.routerTokenFee,
-            fd.integratorTokenFee,
-            fd.routerNativeFee,
-            fd.integratorNativeFee,
-            orderId
-        );
+        if (fd.integratorNativeFee + fd.integratorTokenFee + fd.routerNativeFee + fd.routerTokenFee > 0) {
+            // emit when collecting any fee
+            emit CollectFee(
+                swapTemp.srcToken,
+                fd.routerReceiver,
+                fd.integrator,
+                fd.routerTokenFee,
+                fd.integratorTokenFee,
+                fd.routerNativeFee,
+                fd.integratorNativeFee,
+                orderId
+            );
+        }
+
         emit SwapAndBridge(
             swapTemp.referrer,
             swapTemp.initiator,
@@ -199,16 +199,18 @@ contract ButterRouterV4 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRoute
             _feeData,
             false
         );
-        emit CollectFee(
-            swapTemp.srcToken,
-            fd.routerReceiver,
-            fd.integrator,
-            fd.routerTokenFee,
-            fd.integratorTokenFee,
-            fd.routerNativeFee,
-            fd.integratorNativeFee,
-            swapTemp.transferId
-        );
+        if (fd.integratorNativeFee + fd.integratorTokenFee + fd.routerNativeFee + fd.routerTokenFee > 0) {
+            emit CollectFee(
+                swapTemp.srcToken,
+                fd.routerReceiver,
+                fd.integrator,
+                fd.routerTokenFee,
+                fd.integratorTokenFee,
+                fd.routerNativeFee,
+                fd.integratorNativeFee,
+                swapTemp.transferId
+            );
+        }
         (
             swapTemp.receiver,
             swapTemp.target,
@@ -319,12 +321,12 @@ contract ButterRouterV4 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRoute
         address _token,
         uint256 _amount,
         bytes calldata _bridgeData
-    ) internal returns (bytes32 orderId, uint256 tochain, bytes memory receiver) {
+    ) internal returns (bytes32 orderId, uint256 toChain, bytes memory receiver) {
         BridgeParam memory _bridge = abi.decode(_bridgeData, (BridgeParam));
-        tochain = _bridge.toChain;
+        toChain = _bridge.toChain;
         receiver = _bridge.receiver;
         address bridge = bridgeAddress;
-        // not approve (aproved by function approveToken)
+        // not approve (approved by function approveToken)
         //uint256 value = _bridge.nativeFee + _approveToken(_token, bridge, _amount);
         uint256 value = _isNative(_token) ? (_bridge.nativeFee + _amount) : _bridge.nativeFee;
         orderId = IButterBridgeV3(bridge).swapOutToken{value: value}(
@@ -332,7 +334,7 @@ contract ButterRouterV4 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRoute
             _token,
             receiver,
             _amount,
-            tochain,
+            toChain,
             _bridge.data
         );
     }
@@ -375,12 +377,11 @@ contract ButterRouterV4 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRoute
         if (remain == 0) revert Errors.ZERO_IN();
     }
 
-    // function _setBridgeAddress(address _bridgeAddress) internal returns (bool) {
-    //     if (!_bridgeAddress.isContract()) revert Errors.NOT_CONTRACT();
-    //     bridgeAddress = _bridgeAddress;
-    //     emit SetBridgeAddress(_bridgeAddress);
-    //     return true;
-    // }
+     function _setBridgeAddress(address _bridgeAddress) internal {
+         if (!_bridgeAddress.isContract()) revert Errors.NOT_CONTRACT();
+         bridgeAddress = _bridgeAddress;
+         emit SetBridgeAddress(_bridgeAddress);
+     }
 
     function _transferIn(
         address token,

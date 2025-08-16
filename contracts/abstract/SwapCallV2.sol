@@ -88,12 +88,6 @@ abstract contract SwapCallV2 {
         emit EditFuncBlackList(_func, _flag);
     }
 
-    // function _setWToken(address _wToken) internal {
-    //     if (!_wToken.isContract()) revert Errors.NOT_CONTRACT();
-    //     wToken = _wToken;
-    //     emit SetWrappedToken(_wToken);
-    // }
-
     function _afterCheck(uint256 nativeBalanceBeforeExec) internal view {
         if (address(this).balance < nativeBalanceBeforeExec) revert Errors.NATIVE_VALUE_OVERSPEND();
     }
@@ -141,14 +135,14 @@ abstract contract SwapCallV2 {
         assembly {
             sig := mload(add(callPayload, 32))
         }
-        _checkApprove(target, sig);
+        _checkApproval(target, sig);
         uint256 value = callParam.extraNativeAmount + _approveToken(_token, callParam.approveTo, _amount);
         (bool result, ) = target.call{value: value}(callPayload);
         if (!result) revert Errors.CALL_BACK_FAIL();
         callAmount = callAmount - _getBalance(_token, self);
     }
 
-    function _checkApprove(address _callTo, bytes4 sig) private view {
+    function _checkApproval(address _callTo, bytes4 sig) private view {
         address wTokenAddr = wToken;
         if (_callTo != wTokenAddr && (!approved[_callTo])) revert Errors.NO_APPROVE();
 
@@ -248,7 +242,7 @@ abstract contract SwapCallV2 {
                 sig := mload(add(callData, 32))
             }
             address target = mix.callTo;
-            _checkApprove(target, sig);
+            _checkApproval(target, sig);
             uint256 value = _approveToken(_srcToken, mix.approveTo, _amount);
             (result, ) = target.call{value: value}(callData);
             if (!result) break;
@@ -283,7 +277,7 @@ abstract contract SwapCallV2 {
         assembly {
             sig := mload(add(callData, 32))
         }
-        _checkApprove(_router, sig);
+        _checkApproval(_router, sig);
         uint256 value = _approveToken(_token, _router, _amount);
         (result, ) = _router.call{value: value}(callData);
     }
