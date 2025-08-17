@@ -20,49 +20,6 @@ function getRemappings() {
     .map((line) => line.trim().split("="));
 }
 
-// Function to remove duplicate SPDX license identifiers and pragma versions
-function removeRedundantHeaders(source, absolutePath) {
-  // Ensure source is a string
-  if (typeof source !== 'string') {
-    console.log(`Warning: preprocessor received non-string source, type: ${typeof source}`);
-    return source;
-  }
-
-  // Track license identifiers and pragma versions we've seen
-  const seenLicenses = new Set();
-  const seenPragmas = new Set();
-
-  // Split source into lines
-  const lines = source.split('\n');
-  const filteredLines = [];
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-
-    // Check for SPDX license identifier
-    if (line.startsWith('// SPDX-License-Identifier:')) {
-      if (!seenLicenses.has(line)) {
-        seenLicenses.add(line);
-        filteredLines.push(lines[i]);
-      }
-      continue;
-    }
-
-    // Check for pragma solidity
-    if (line.startsWith('pragma solidity')) {
-      if (!seenPragmas.has(line)) {
-        seenPragmas.add(line);
-        filteredLines.push(lines[i]);
-      }
-      continue;
-    }
-
-    // Keep all other lines
-    filteredLines.push(lines[i]);
-  }
-
-  return filteredLines.join('\n');
-}
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
@@ -77,7 +34,7 @@ module.exports = {
     cache: "./cache",
     artifacts: "./artifacts"
   },
-  // Solidity 编译器配置
+
   solidity: {
     excludes: {
       directories: ["contracts/legacy"]
@@ -86,12 +43,6 @@ module.exports = {
       {
         version: "0.8.19",
         settings: {
-          evmVersion: "london",
-           metadata: {
-            // Not including the metadata hash
-            // https://github.com/paulrberg/hardhat-template/issues/31
-            bytecodeHash: "none",
-          },
           optimizer: {
             enabled: true,
             runs: 200,
@@ -101,7 +52,6 @@ module.exports = {
       {
         version: "0.8.20",
         settings: {
-          evmVersion: "london",
           optimizer: {
             enabled: true,
             runs: 200,
@@ -111,13 +61,12 @@ module.exports = {
       {
         version: "0.8.25",
         settings: {
-          evmVersion: "london",
           optimizer: {
             enabled: true,
             runs: 200,
           },
         },
-      },
+      }
     ],
   },
   namedAccounts: {

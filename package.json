@@ -1,6 +1,6 @@
 {
   "name": "@butternetwork/router",
-  "version": "1.4.0",
+  "version": "1.3.1",
   "description": "Butter omni-chain aggregate swap contracts based on MAP Protocol",
   "main": "index.js",
   "files": [
@@ -12,11 +12,10 @@
     "!contracts/mock/*.sol"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "format:sol": "prettier --print-width 120 --tab-width 4 --write ./contracts",
     "format": "prettier --print-width 120 --write ./scripts ./tasks ./test ./utils ./configs",
     "flatten:all": "npx hardhat flatten:all",
-    "flatten:v31": "npx hardhat flatten:contract --contract ButterRouterV31",
+    "flatten:v31": "npx hardhat flatten:contract --contract ButterRouterV31"
   },
   "repository": {
     "type": "git",

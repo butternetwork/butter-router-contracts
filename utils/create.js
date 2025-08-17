@@ -138,7 +138,7 @@ async function getTronWeb(network) {
                 "https://api.nileex.io/",
                 "https://api.nileex.io/",
                 "https://api.nileex.io/",
-                process.env.TRON_PRIVATE_KEY
+                process.env.TRON_TESTNET_PRIVATE_KEY
             );
         }
     } else {

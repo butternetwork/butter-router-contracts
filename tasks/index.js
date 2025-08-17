@@ -1,7 +1,6 @@
 let { task } = require("hardhat/config");
 require("./subs/IntegratorManager.js");
 require("./subs/flatten.js");
-task("routerV2", "deploy butter router V2 contract and set", require("./subs/routerV2.js"));
 task("routerV3", "deploy butter router V3 contract and set", require("./subs/routerV3.js"));
 task("routerV31", "deploy butter router V31 contract and set", require("./subs/routerV31.js"));
 task("receiver", "deploy receiver contract and set", require("./subs/receiver.js"));
