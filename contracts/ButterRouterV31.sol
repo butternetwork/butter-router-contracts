@@ -101,7 +101,7 @@ contract ButterRouterV31 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRout
         bytes calldata _feeData
     ) external payable override nonReentrant returns (bytes32 orderId) {
         uint256 bridge_len = _bridgeData.length;
-        if ((_swapData.length + bridge_len) == 0) revert Errors.DATA_EMPTY();
+        if (bridge_len == 0) revert Errors.DATA_EMPTY();
         SwapTemp memory swapTemp;
         swapTemp.initiator = _initiator;
         swapTemp.srcToken = _srcToken;
@@ -114,47 +114,22 @@ contract ButterRouterV31 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRout
             swapTemp.srcAmount,
             _permitData
         );
-        FeeDetail memory fd;
-        (fd, swapTemp.swapAmount, swapTemp.referrer) = _collectFee(
-            swapTemp.srcToken,
-            swapTemp.srcAmount,
-            _feeData,
-            (bridge_len > 0)
-        );
         if (_swapData.length != 0) {
-            (swapTemp.swapToken, swapTemp.swapAmount, swapTemp.receiver) = _swap(
+            (swapTemp.swapToken, swapTemp.swapAmount, ) = _swap(
                 swapTemp.srcToken,
                 swapTemp.swapAmount,
                 swapTemp.inputBalance,
                 _swapData
             );
         }
+        swapTemp.referrer = _getReferrerFromFeeData(_feeData);
         bytes memory receiver;
-        if (bridge_len == 0) {
-            receiver = abi.encodePacked(swapTemp.receiver);
-            if (swapTemp.swapAmount != 0) _transfer(swapTemp.swapToken, swapTemp.receiver, swapTemp.swapAmount);
-        } else {
-            (orderId, swapTemp.toChain, receiver) = _doBridge(
-                msg.sender,
-                swapTemp.swapToken,
-                swapTemp.swapAmount,
-                _bridgeData
-            );
-        }
-        if (fd.integratorNativeFee + fd.integratorTokenFee + fd.routerNativeFee + fd.routerTokenFee > 0) {
-            // emit when collecting any fee
-            emit CollectFee(
-                swapTemp.srcToken,
-                fd.routerReceiver,
-                fd.integrator,
-                fd.routerTokenFee,
-                fd.integratorTokenFee,
-                fd.routerNativeFee,
-                fd.integratorNativeFee,
-                orderId
-            );
-        }
-
+        (orderId, swapTemp.toChain, receiver) = _doBridge(
+            msg.sender,
+            swapTemp.swapToken,
+            swapTemp.swapAmount,
+            _bridgeData
+        );
         emit SwapAndBridge(
             swapTemp.referrer,
             swapTemp.initiator,
@@ -196,8 +171,7 @@ contract ButterRouterV31 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRout
         (fd, swapTemp.swapAmount, swapTemp.referrer) = _collectFee(
             swapTemp.srcToken,
             swapTemp.srcAmount,
-            _feeData,
-            false
+            _feeData
         );
         if (fd.integratorNativeFee + fd.integratorTokenFee + fd.routerNativeFee + fd.routerTokenFee > 0) {
             emit CollectFee(
@@ -239,22 +213,12 @@ contract ButterRouterV31 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRout
         _afterCheck(swapTemp.nativeBalance);
     }
 
-    function getFeeBridge(
-        address _inputToken,
-        uint256 _inputAmount,
-        bytes calldata _feeData
-    ) external view returns (address feeToken, uint256 tokenFee, uint256 nativeFee, uint256 afterFeeAmount) {
-        IFeeManager.FeeDetail memory fd = _getFee(_inputToken, _inputAmount, _feeData, true);
-        feeToken = fd.feeToken;
-        (tokenFee, nativeFee, afterFeeAmount) = _calculateFee(_inputToken, _inputAmount, fd);
-    }
-
     function getFee(
         address _inputToken,
         uint256 _inputAmount,
         bytes calldata _feeData
     ) external view override returns (address feeToken, uint256 tokenFee, uint256 nativeFee, uint256 afterFeeAmount) {
-        IFeeManager.FeeDetail memory fd = _getFee(_inputToken, _inputAmount, _feeData, false);
+        IFeeManager.FeeDetail memory fd = _getFee(_inputToken, _inputAmount, _feeData);
         feeToken = fd.feeToken;
         (tokenFee, nativeFee, afterFeeAmount) = _calculateFee(_inputToken, _inputAmount, fd);
     }
@@ -278,10 +242,9 @@ contract ButterRouterV31 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRout
     function _getFee(
         address _inputToken,
         uint256 _inputAmount,
-        bytes calldata _feeData,
-        bool bridge
+        bytes calldata _feeData
     ) internal view returns (FeeDetail memory fd) {
-        if (bridge || address(feeManager) == ZERO_ADDRESS) {
+     if (address(feeManager) == ZERO_ADDRESS) {
             fd = _getFeeDetailInternal(_inputToken, _inputAmount, _feeData);
         } else {
             fd = feeManager.getFeeDetail(_inputToken, _inputAmount, _feeData);
@@ -342,10 +305,9 @@ contract ButterRouterV31 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRout
     function _collectFee(
         address _token,
         uint256 _amount,
-        bytes calldata _feeData,
-        bool bridge
+        bytes calldata _feeData
     ) internal returns (FeeDetail memory fd, uint256 remain, address referrer) {
-        fd = _getFee(_token, _amount, _feeData, bridge);
+        fd = _getFee(_token, _amount, _feeData);
         referrer = fd.integrator;
         if (_isNative(_token)) {
             uint256 routerNative = fd.routerNativeFee + fd.routerTokenFee;
@@ -401,6 +363,13 @@ contract ButterRouterV31 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRout
         } else {
             initInputTokenBalance = _getBalance(token, self);
             SafeERC20.safeTransferFrom(IERC20(token), msg.sender, self, amount);
+        }
+    }
+
+    function _getReferrerFromFeeData(bytes calldata feeData) internal pure returns(address referrer) {
+        if(feeData.length < 64) return referrer;
+        assembly {
+            referrer := calldataload(add(feeData.offset, 32))
         }
     }
 
