@@ -11,7 +11,7 @@ This is the Butter Network Router smart contracts repository - a cross-chain omn
 ### Core Router Contracts
 - **ButterRouterV2.sol**: Legacy router contract for cross-chain swaps
 - **ButterRouterV3.sol**: Enhanced router with improved fee management and multi-bridge support
-- **ButterRouterV31.sol**: Gas-optimized version of V3 with adjusted fee strategy (no fees on bridge operations)
+- **ButterRouterV31.sol**: Gas-optimized version of V3 with zero-fee cross-chain strategy (NO fees on ANY bridge operations)
 - **SwapAdapter.sol**: Aggregates multiple DEX protocols for optimal routing
 
 ### Abstract Base Contracts
@@ -65,7 +65,7 @@ npx hardhat routerV31:deploy --bridge <bridge_address> --wtoken <wtoken_address>
 # Configure executors (DEX routers)
 npx hardhat routerV31:setAuthorization --router <router_address> --executors <executor1,executor2> --flag <true/false> --network <network>
 
-# Set fee parameters (applies only to swap and swapAndCall, NOT bridge operations)
+# Set fee parameters (ONLY applies to swapAndCall, NEVER to swapAndBridge)
 npx hardhat routerV31:setFee --router <router_address> --feereceiver <receiver_address> --feerate <rate> --fixedfee <fee> --network <network>
 
 # Set referrer max fees
@@ -163,7 +163,7 @@ npx hardhat routerV31:approveToken --router <router_address> --token <token_addr
 # Edit function blacklist
 npx hardhat routerV31:editFuncBlackList --router <router_address> --func <function_selector> --flag <true/false> --network <network>
 
-# Execute bridge transactions (no fees collected - gas optimized)
+# Execute bridge transactions (ZERO fees - fully gas optimized)
 npx hardhat routerV31:bridge --router <router_address> --token <token_address> --amount <amount> --chain <target_chain_id> --network <network>
 
 # Get contract information
@@ -174,10 +174,11 @@ npx hardhat routerV31:update --router <router_address> --network <network>
 ```
 
 #### V31 vs V3 Key Differences
-- **Gas Optimization**: V31 optimized for lower gas consumption
-- **Bridge Fee Strategy**: V31 does not collect fees on `swapAndBridge` operations
-- **Fee Collection**: V31 only collects fees on pure swap and `swapAndCall` operations
-- **Same Interface**: V31 maintains compatibility with V3 deployment and management commands
+- **Gas Optimization**: V31 significantly optimized for lower gas consumption on cross-chain operations
+- **Bridge Fee Strategy**: V31 NEVER collects ANY fees on `swapAndBridge` operations (zero-fee cross-chain)
+- **Fee Collection**: V31 ONLY collects fees on `swapAndCall` operations (same-chain only)
+- **Implementation**: V31 completely bypasses fee logic for bridge operations, not just sets fees to zero
+- **Same Interface**: V31 maintains full compatibility with V3 deployment and management commands
 
 ## Configuration System
 
@@ -197,15 +198,18 @@ Configured networks include:
 
 ### Version Evolution
 - **V2**: Original router with MOS bridge integration
-- **V3**: Enhanced with improved fee management and multi-bridge support
-- **V31**: Gas-optimized version of V3 with adjusted fee strategy - bridge operations do not incur fees
+- **V3**: Enhanced with improved fee management and multi-bridge support  
+- **V31**: Gas-optimized version with zero-fee cross-chain strategy - completely removes fee collection from bridge operations
 
 ### Fee System
 - Router fees are collected as percentage + fixed amounts
 - Referrer/integrator fees supported in V3+
 - Fee denominators: V2 uses 1,000,000, V3/V31 use 10,000
-- **V31 Key Difference**: Bridge operations (`swapAndBridge`) do not collect fees for gas optimization
-- V31 maintains fee collection only for pure swap and swap-and-call operations
+- **V31 Zero-Fee Cross-Chain**: 
+  - `swapAndBridge` NEVER collects any fees (router or integrator)
+  - Fee logic completely bypassed for bridge operations
+  - Significant gas savings from skipping fee calculations
+- **V31 Same-Chain Fees**: Only `swapAndCall` operations collect fees
 
 ### Cross-Chain Flow
 1. User calls `swapAndBridge()` on source chain

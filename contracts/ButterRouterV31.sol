@@ -168,11 +168,7 @@ contract ButterRouterV31 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRout
         );
         if ((_swapData.length + _callbackData.length) == 0) revert Errors.DATA_EMPTY();
         FeeDetail memory fd;
-        (fd, swapTemp.swapAmount, swapTemp.referrer) = _collectFee(
-            swapTemp.srcToken,
-            swapTemp.srcAmount,
-            _feeData
-        );
+        (fd, swapTemp.swapAmount, swapTemp.referrer) = _collectFee(swapTemp.srcToken, swapTemp.srcAmount, _feeData);
         if (fd.integratorNativeFee + fd.integratorTokenFee + fd.routerNativeFee + fd.routerTokenFee > 0) {
             emit CollectFee(
                 swapTemp.srcToken,
@@ -244,7 +240,7 @@ contract ButterRouterV31 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRout
         uint256 _inputAmount,
         bytes calldata _feeData
     ) internal view returns (FeeDetail memory fd) {
-     if (address(feeManager) == ZERO_ADDRESS) {
+        if (address(feeManager) == ZERO_ADDRESS) {
             fd = _getFeeDetailInternal(_inputToken, _inputAmount, _feeData);
         } else {
             fd = feeManager.getFeeDetail(_inputToken, _inputAmount, _feeData);
@@ -339,11 +335,11 @@ contract ButterRouterV31 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRout
         if (remain == 0) revert Errors.ZERO_IN();
     }
 
-     function _setBridgeAddress(address _bridgeAddress) internal {
-         if (!_bridgeAddress.isContract()) revert Errors.NOT_CONTRACT();
-         bridgeAddress = _bridgeAddress;
-         emit SetBridgeAddress(_bridgeAddress);
-     }
+    function _setBridgeAddress(address _bridgeAddress) internal {
+        if (!_bridgeAddress.isContract()) revert Errors.NOT_CONTRACT();
+        bridgeAddress = _bridgeAddress;
+        emit SetBridgeAddress(_bridgeAddress);
+    }
 
     function _transferIn(
         address token,
@@ -366,8 +362,8 @@ contract ButterRouterV31 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRout
         }
     }
 
-    function _getReferrerFromFeeData(bytes calldata feeData) internal pure returns(address referrer) {
-        if(feeData.length < 64) return referrer;
+    function _getReferrerFromFeeData(bytes calldata feeData) internal pure returns (address referrer) {
+        if (feeData.length < 64) return referrer;
         assembly {
             referrer := calldataload(add(feeData.offset, 32))
         }
