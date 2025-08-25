@@ -95,14 +95,14 @@ task("routerV31:deploy", "Deploy ButterRouterV31 contract")
 
         console.log("ButterRouterV31 address:", routerAddr);
         await saveDeployment(network.name, "ButterRouterV31", routerAddr);
-        /*
+
         await verify(
             routerAddr,
             [bridge, deployer_address, wtoken],
             "contracts/ButterRouterV31.sol:ButterRouterV31",
             network.config.chainId,
             true
-        );*/
+        );
     });
 
 task("routerV31:setAuthorization", "Set executor authorization for ButterRouterV31")

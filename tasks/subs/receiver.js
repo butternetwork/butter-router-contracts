@@ -246,10 +246,11 @@ task("receiver:execSwap", "execSwap")
             let amount_decimals = decode[3];
             let user_addr = decode[4];
             let from = decode[6];
+            let req_from = receiver_addr;
             let callBackData = decode[7];
             let slippage = 30;
             let inTokenDecimals = await decimals(tokenIn, wallet);
-            console.log(inTokenDecimals);
+            // console.log(inTokenDecimals);
             /*
             let amount = ethers.FixedNumber.from(amount_decimals).divUnsafe(
                 ethers.FixedNumber.from(ethers.BigNumber.from(10).pow(inTokenDecimals))
@@ -261,7 +262,8 @@ task("receiver:execSwap", "execSwap")
             console.log("amount ：", amount);
 
             let minReceived = ethers.BigNumber.from(decode[5]);
-            let get_param = `fromChainId=${chain_id}&toChainId=${chain_id}&amount=${amount}&tokenInAddress=${tokenIn}&tokenOutAddress=${dstToken}&type=exactIn&slippage=${slippage}&from=${from}&receiver=${user_addr}&callData=${callBackData}&entrance=Butter%2B&swapCaller=${receiver_addr}`;
+            let get_param = `fromChainId=${chain_id}&toChainId=${chain_id}&amount=${amount}&tokenInAddress=${tokenIn}&tokenOutAddress=${dstToken}&type=exactIn&slippage=${slippage}&from=${req_from}&receiver=${user_addr}&callData=${callBackData}&entrance=Butter%2B&swapCaller=${receiver_addr}`;
+            console.log(get_param);
             let response = await httpGet(url, get_param);
             if (!response) {
                 throw "get swap router failed";
