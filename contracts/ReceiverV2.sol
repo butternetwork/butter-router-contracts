@@ -69,8 +69,6 @@ contract ReceiverV2 is Ownable2Step, SwapCallV2, ReentrancyGuard, IButterReceive
     constructor(address _owner, address _wToken, address _bridgeAddress) payable SwapCallV2(_wToken) {
         if (_owner == address(0)) revert Errors.ZERO_ADDRESS();
         _transferOwnership(_owner);
-        if (!_bridgeAddress.isContract()) revert Errors.NOT_CONTRACT();
-        bridgeAddress = _bridgeAddress;
         _setBridgeAddress(_bridgeAddress);
     }
 

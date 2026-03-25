@@ -288,7 +288,6 @@ contract ButterRouterV4 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRoute
         receiver = _bridge.receiver;
         address bridge = bridgeAddress;
         // not approve (approved by function approveToken)
-        //uint256 value = _bridge.nativeFee + _approveToken(_token, bridge, _amount);
         uint256 value = _isNative(_token) ? _amount : 0;
         orderId = IGateway(bridge).bridgeOut{value: value}(
             _token,
