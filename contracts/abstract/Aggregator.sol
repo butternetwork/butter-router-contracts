@@ -114,8 +114,7 @@ abstract contract Aggregator {
             }
             bytes memory callData = mix.callData;
             uint256 offset = mix.offset;
-            if (offset > 35) {
-                //32 length + 4 funcSig
+            if (_checkOffset(offset, callData.length)) {
                 assembly {
                     mstore(add(callData, offset), _amount)
                 }
@@ -154,10 +153,10 @@ abstract contract Aggregator {
         (uint256[] memory offsets, bytes memory callData) = abi.decode(_swapData, (uint256[], bytes));
         
         uint256 len = offsets.length;
+        uint256 callDataLen = callData.length;
         for (uint i = 0; i < len; ) {
             uint256 offset = offsets[i];
-            if (offset > 35) {
-                //32 length + 4 funcSig
+            if (_checkOffset(offset, callDataLen)) {
                 assembly {
                     mstore(add(callData, offset), _amount)
                 }
@@ -298,6 +297,13 @@ abstract contract Aggregator {
                 permit.approve(token, _callTo, uint160(amount), uint48(block.timestamp + 1));
             }
         }
+    }
+
+    function _checkOffset(uint256 offset, uint256 length) internal pure returns (bool) {
+        // offset is relative to the bytes object start (first 32 bytes is length slot).
+        // 4bytes funcSig + 32 bytes amount = 36, so offset should be larger than 35.
+        // Writing 32 bytes at `offset` is safe when: offset > 35 and offset <= length.
+        return offset > 35 && offset<= length;
     }
 
 }

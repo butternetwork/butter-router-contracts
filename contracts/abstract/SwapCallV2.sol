@@ -125,8 +125,7 @@ abstract contract SwapCallV2 {
         callAmount = _getBalance(_token, self);
         uint256 offset = callParam.offset;
         bytes memory callPayload = callParam.data;
-        if (offset > 35) {
-            //32 length + 4 funcSig
+        if (_checkOffset(offset, callPayload.length)) {
             assembly {
                 mstore(add(callPayload, offset), _amount)
             }
@@ -233,8 +232,7 @@ abstract contract SwapCallV2 {
             }
             bytes memory callData = mix.callData;
             uint256 offset = mix.offset;
-            if (offset > 35) {
-                //32 length + 4 funcSig
+            if (_checkOffset(offset, callData.length)) {
                 assembly {
                     mstore(add(callData, offset), _amount)
                 }
@@ -263,11 +261,10 @@ abstract contract SwapCallV2 {
     ) internal returns (bool result) {
         (uint256[] memory offsets, bytes memory callData) = abi.decode(_swapData, (uint256[], bytes));
         uint256 len = offsets.length;
-
+        uint256 callDataLen = callData.length;
         for (uint i = 0; i < len; ) {
             uint256 offset = offsets[i];
-            if (offset > 35) {
-                //32 length + 4 funcSig
+            if (_checkOffset(offset, callDataLen)) {
                 assembly {
                     mstore(add(callData, offset), _amount)
                 }
@@ -320,5 +317,12 @@ abstract contract SwapCallV2 {
                 IERC20(_token).safeTransfer(_to, _amount);
             }
         }
+    }
+
+    function _checkOffset(uint256 offset, uint256 length) internal pure returns (bool) {
+        // offset is relative to the bytes object start (first 32 bytes is length slot).
+        // 4bytes funcSig + 32 bytes amount = 36, so offset should be larger than 35.
+        // Writing 32 bytes at `offset` is safe when: offset > 35 and offset <= length.
+        return offset > 35 && offset<= length;
     }
 }
