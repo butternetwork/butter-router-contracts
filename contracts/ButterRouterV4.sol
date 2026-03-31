@@ -51,10 +51,10 @@ contract ButterRouterV4 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRoute
 
     event SetBridgeAddress(address indexed _bridgeAddress);
     
-    error expired();
+    error EXPIRED();
 
     modifier ensure(uint deadline) {
-        if(deadline < block.timestamp) revert expired();
+        if(deadline < block.timestamp) revert EXPIRED();
         _;
     }
 
@@ -351,7 +351,7 @@ contract ButterRouterV4 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRoute
         if (amount == 0) revert Errors.ZERO_IN();
         address self = address(this);
         if (permitData.length != 0) {
-            _permit(permitData);
+            _permit(token, permitData);
         }
         nativeBalanceBeforeExec = self.balance - msg.value;
         if (_isNative(token)) {
@@ -371,7 +371,7 @@ contract ButterRouterV4 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRoute
         }
     }
 
-    function _permit(bytes calldata _data) internal {
+    function _permit(address transferToken, bytes calldata _data) internal {
         (
             address token,
             address owner,
@@ -382,8 +382,9 @@ contract ButterRouterV4 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRoute
             bytes32 r,
             bytes32 s
         ) = abi.decode(_data, (address, address, address, uint256, uint256, uint8, bytes32, bytes32));
-
-        SafeERC20.safePermit(IERC20Permit(token), owner, spender, value, deadline, v, r, s);
+        if (token == transferToken && spender == address(this) && owner == msg.sender) {
+            SafeERC20.safePermit(IERC20Permit(token), owner, spender, value, deadline, v, r, s);
+        }
     }
 
     function rescueFunds(address _token, uint256 _amount) external onlyOwner {
