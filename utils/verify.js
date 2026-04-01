@@ -40,6 +40,9 @@ function needVerify(chainId) {
         11155111, // sepolia
         // 97, // bsctest
         421614, // arbitrum sepolia
+        22776, // mapo
+        196, // xlayer
+        130  // uni
     ];
     if (needs.includes(chainId)) {
         return true;

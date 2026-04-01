@@ -16,12 +16,35 @@ const {hexToTronAddress} = require("../../utils/helper");
 
 async function getReceiverAddress(receiver, network) {
     if (!receiver || receiver === "") {
-        receiver = await getDeployment(network, "ReceiverV2");
+        let prefix = getNetworkPrefix(network);
+
+        receiver = await getDeployment(network, prefix + "ReceiverV2");
     }
     if (receiver === undefined) {
         throw "can not get receiver address";
     }
     return receiver;
+}
+
+function getNetworkPrefix(network) { 
+
+    if(network.indexOf("Test") >= 0 || network.indexOf("test") >= 0 || network == 'Makalu' || network == 'Sepolia'){
+        console.log("conrrent environment is testnet test, use testnet config");
+        return "";
+    } else {
+        let SUFFIX = process.env.NETWORK_SUFFIX;
+
+        if(SUFFIX === "main") {
+            console.log("conrrent environment is mainnet test, use mainnet config");
+            console.log("if you want to use prod config, please set env NETWORK_SUFFIX=prod");
+            return "main_";
+        } else {
+            console.log("conrrent environment is mainnet prod, use prod config");
+            console.log("if you want to use test config, please set env NETWORK_SUFFIX=test");
+            return "prod_";
+        }
+        
+    }
 }
 
 module.exports = async (taskArgs, hre) => {
@@ -30,22 +53,35 @@ module.exports = async (taskArgs, hre) => {
     if (!config) {
         throw "config not set";
     }
-    await hre.run("receiver:deploy", { bridge: config.v3.bridge, wtoken: config.wToken });
+    let prefix = getNetworkPrefix(network.name);
+    let bridge;
+    if(prefix === "main_") {
+        bridge = config.tss_main_gateway;
+    }  else if(prefix === "prod_") { 
+        bridge = config.tss_prod_gateway;
+    } else {
+        bridge = config.tss_gateway;
+    }
+
+    console.log("deploy ReceiverV2 with bridge: ", bridge);
+    await hre.run("receiverV2:deploy", { bridge: bridge, wtoken: config.wToken, prefix: prefix });
     let receiver_addr = await getReceiverAddress("",network.name);
     let adapt_addr = await getDeployment(network.name, "SwapAdapterV3");
     config.v3.executors.push(adapt_addr);
     let executors_s = config.v3.executors.join(",");
-    await hre.run("receiver:setAuthorization", { receiver: receiver_addr, executors: executors_s });
+    await hre.run("receiverV2:setAuthorization", { receiver: receiver_addr, executors: executors_s });
 };
 
 task("receiverV2:deploy", "deploy receiver")
     .addParam("bridge", "bridge address")
     .addParam("wtoken", "wtoken address")
+    .addParam("prefix", "network prefix")
     .setAction(async (taskArgs, hre) => {
         const { network, ethers } = hre;
         const accounts = await ethers.getSigners();
         const deployer = accounts[0];
-        console.log("deployer: ", deployer.address);
+        console.log("network: ", network.name);
+
         let deployer_address;
         let bridge;
         let wtoken;
@@ -53,7 +89,9 @@ task("receiverV2:deploy", "deploy receiver")
             bridge = tronAddressToHex(taskArgs.bridge);
             wtoken = tronAddressToHex(taskArgs.wtoken);
             deployer_address = await getTronDeployer(true, network.name);
+            console.log("deployer: ", deployer_address);
         } else {
+            console.log("deployer: ", deployer.address);
             deployer_address = deployer.address;
             bridge = taskArgs.bridge;
             wtoken = taskArgs.wtoken;
@@ -68,7 +106,7 @@ task("receiverV2:deploy", "deploy receiver")
             salt
         );
         console.log("ReceiverV2 address :", receiverAddr);
-        await saveDeployment(network.name, "ReceiverV2", receiverAddr);
+        await saveDeployment(network.name, taskArgs.prefix + "ReceiverV2", receiverAddr);
         await verify(
             receiverAddr,
             [deployer_address, wtoken, bridge],
@@ -86,7 +124,7 @@ task("receiverV2:setAuthorization", "set Authorization")
         const { network, ethers } = hre;
         const accounts = await ethers.getSigners();
         const deployer = accounts[0];
-        console.log("deployer: ", deployer.address);
+        console.log("deployer: ", deployer? deployer.address : "undefined");
         let receiver_addr = await getReceiverAddress(taskArgs.receiver, network.name);
         let list = await getExecutorList(network.name, taskArgs.executors);
         await setAuthorization("ReceiverV2", hre.artifacts, network.name, receiver_addr, list, taskArgs.flag);
@@ -99,7 +137,7 @@ task("receiverV2:setBridge", "set setFee")
         const { ethers, network } = hre;
         const accounts = await ethers.getSigners();
         const deployer = accounts[0];
-        console.log("deployer: ", deployer.address);
+        console.log("deployer: ", deployer? deployer.address : "undefined");
         let receiver_addr = await getReceiverAddress(taskArgs.receiver, network.name);
         await setBridge("ReceiverV2", hre.artifacts, network.name, receiver_addr, taskArgs.bridge);
     });
@@ -134,7 +172,7 @@ task("receiverV2:setOwner", "transfer owner")
         const { ethers, network } = hre;
         const accounts = await ethers.getSigners();
         const deployer = accounts[0];
-        console.log("deployer: ", deployer.address);
+        console.log("deployer: ", deployer? deployer.address : "undefined");
         let receiver_addr = await getReceiverAddress(taskArgs.receiver, network.name);
         await setOwner("ReceiverV2", hre.artifacts, network.name, receiver_addr, taskArgs.owner);
     });
@@ -145,7 +183,7 @@ task("receiverV2:update", "check and Update from config file")
         const { ethers, network } = hre;
         const accounts = await ethers.getSigners();
         const deployer = accounts[0];
-        console.log("deployer: ", deployer.address);
+        console.log("deployer: ", deployer? deployer.address : "undefined");
         let receiver_addr = await getReceiverAddress(taskArgs.receiver, network.name);
         console.log("Receiver: ", receiver_addr);
         let config = getConfig(network.name);
@@ -163,7 +201,7 @@ task("receiverV2:removeAuthFromConfig", "remove Authorization from config file")
         const { network } = hre;
         const accounts = await ethers.getSigners();
         const deployer = accounts[0];
-        console.log("deployer: ", deployer.address);
+        console.log("deployer: ", deployer? deployer.address : "undefined");
         let config = getConfig(hre.network.name);
         if (!config) {
             throw "config not set";
@@ -197,7 +235,7 @@ task("receiverV2:execSwap", "execSwap")
     .setAction(async (taskArgs, hre) => {
         const { ethers, network } = hre;
         let [wallet] = await ethers.getSigners();
-        console.log("wallet...", wallet.address);
+        console.log("wallet...", wallet? wallet.address : "undefined");
         let receiver_addr = await getReceiverAddress(taskArgs.receiver, network.name);
         let chain_id = network.config.chainId;
         console.log("Receiver: ", receiver_addr);
@@ -357,7 +395,7 @@ task("receiverV2:swapRescueFunds", "swapRescueFunds")
     .setAction(async (taskArgs, hre) => {
         const { ethers, network } = hre;
         let [wallet] = await ethers.getSigners();
-        console.log("wallet...", wallet.address);
+        console.log("wallet...", wallet? wallet.address : "undefined");
         let receiver_addr = await getReceiverAddress(taskArgs.receiver, network.name);
         console.log("Receiver: ", receiver_addr);
         let receiver;

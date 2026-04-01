@@ -79,7 +79,7 @@ module.exports = {
       initialBaseFeePerGas: 0,
     },
     Eth: {
-      url: "https://eth-mainnet.public.blastapi.io",
+      url: "https://eth.llamarpc.com",
       chainId: 1,
       zksync: false,
       accounts:
@@ -93,7 +93,7 @@ module.exports = {
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     Matic: {
-      url: `https://rpc.ankr.com/polygon`,
+      url: `https://api.zan.top/polygon-mainnet`,
       chainId: 137,
       // gasPrice: 140000000000,
       zksync: false,
@@ -101,14 +101,14 @@ module.exports = {
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     Bsc: {
-      url: `https://rpc.ankr.com/bsc`,
+      url: `https://1rpc.io/bnb`,
       chainId: 56,
       zksync: false,
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     Klaytn: {
-      url: `https://kaia.blockpi.network/v1/rpc/public`,
+      url: `https://kaia-public.nodies.app`,
       chainId: 8217,
       zksync: false,
       accounts:
@@ -135,7 +135,7 @@ module.exports = {
           process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     Blast: {
-      url: `https://blast.blockpi.network/v1/rpc/public`,
+      url: `https://blast-rpc.publicnode.com`,
       chainId : 81457,
       accounts:
           process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
@@ -176,13 +176,13 @@ module.exports = {
           process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     Optimism: {
-      url: `https://mainnet.optimism.io`,
+      url: `https://optimism.rpc.subquery.network/public`,
       chainId : 10,
       accounts:
           process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     Arbitrum: {
-      url: `https://arb1.arbitrum.io/rpc`,
+      url: `https://arb-one.api.pocket.network`,
       chainId : 42161,
       accounts:
           process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
@@ -206,6 +206,19 @@ module.exports = {
           process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
 
+    Mon: {
+      url: `https://rpc1.monad.xyz`,
+      chainId : 143,
+      accounts:
+          process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+
+    Avalanche: {
+      url: `https://avalanche-c-chain-rpc.publicnode.com`,
+      chainId: 43114,
+      accounts:
+        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
     Tron: {
       url: `https://api.trongrid.io/jsonrpc`,
       chainId: 728126428,
@@ -213,6 +226,19 @@ module.exports = {
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
 
+    Unichain: {
+      url: `https://unichain-rpc.publicnode.com`,
+      chainId: 130,
+      accounts:
+        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+
+    Xlayer: {
+      url: `https://rpc.xlayer.tech`,
+      chainId : 196,
+      accounts:
+          process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
 
     Makalu: {
       chainId: 212,
@@ -245,8 +271,8 @@ module.exports = {
       accounts: process.env.TESTNET_PRIVATE_KEY !== undefined ? [process.env.TESTNET_PRIVATE_KEY] : [],
     },
     TronTest: {
-      url: `https://mainnet-rpc.thundertoken.net`,
-      chainId: 108,
+      url: `https://evmtestnet.confluxrpc.com`,
+      chainId: 71,
       accounts: process.env.TRON_TESTNET_PRIVATE_KEY !== undefined ? [process.env.TRON_TESTNET_PRIVATE_KEY] : [],
     },
   },
@@ -255,17 +281,23 @@ module.exports = {
     apiKey: {
       Bttc: process.env.API_KEY_BTTC,
       Eth:  process.env.API_KEY_ETH,
-      Bsc:  process.env.API_KEY_BSC,
-      Matic: process.env.API_KEY_MATIC,
+      Bsc:  process.env.API_KEY_ETH,
+      Matic: process.env.API_KEY_ETH,
       Blast: process.env.API_KEY_BLAST,
-      Base: process.env.API_KEY_BASE,
+      Base: process.env.API_KEY_ETH,
       zkSync: process.env.API_KEY_ZKSYNC,
-      Optimism: process.env.API_KEY_OP,
-      Arbitrum: process.env.API_KEY_ARBITRUM,
+      Optimism: process.env.API_KEY_ETH,
+      Arbitrum: process.env.API_KEY_ETH,
       Linea: process.env.API_KEY_LINEA,
       Scroll: process.env.API_KEY_SCROLL,
       Mantle: process.env.API_KEY_MANTLE,
-      Map:' '
+      Map:' ',
+      Klaytn: ' ',
+      zkSync: ' ',
+      Unichain:  process.env.API_KEY_ETH,
+      Mon:  process.env.API_KEY_ETH,
+      Avalanche: process.env.API_KEY_ETH,
+      Xlayer: ' '
     },
     customChains: [
       {
@@ -280,15 +312,34 @@ module.exports = {
         network: "Eth",
         chainId: 1,
         urls: {
-          apiURL: "https://api.etherscan.io/api",
-          browserURL: "https://etherscan.com/",
+          apiURL: "https://www.oklink.com/api/v5/explorer/contract/verify-source-code-plugin/Eth",
+          browserURL: "https://www.oklink.com",
+        },
+      },
+
+      {
+        network: "Unichain",
+        chainId: 130,
+        urls: {
+          // apiurl: "https://api.etherscan.io/v2/api?chainid=130",
+          apiURL: "https://api.etherscan.io/v2/api?chainid=130",
+          browserURL: "https://uniscan.xyz/",
+        },
+      },
+      {
+        network: "Mon",
+        chainId: 143,
+        urls: {
+          // apiurl: "https://api.etherscan.io/v2/api?chainid=130",
+          apiURL: "https://api.etherscan.io/v2/api?chainid=143",
+          browserURL: "https://monadscan.com/",
         },
       },
       {
         network: "Bsc",
         chainId: 56,
         urls: {
-          apiURL: "https://api.bscscan.com/api",
+          apiURL: "https://api.etherscan.io/v2/api?chainid=56",
           browserURL: "https://bscscan.com/",
         },
       },
@@ -296,10 +347,29 @@ module.exports = {
         network: "Matic",
         chainId: 137,
         urls: {
-          apiURL: "https://api.polygonscan.com/api",
+          apiURL: "https://api.etherscan.io/v2/api?chainid=137",
           browserURL: "https://polygonscan.com/",
         },
       },
+
+     {
+        network: "Klaytn",
+        chainId: 8217,
+        urls: {
+          apiURL: "https://www.oklink.com/api/v5/explorer/contract/verify-source-code-plugin/Kaia",
+          browserURL: "https://www.oklink.com",
+        },
+      },
+
+      {
+        network: "Avalanche",
+        chainId: 43114,
+        urls: {
+          apiURL: "https://api.etherscan.io/v2/api?chainid=43114",
+          browserURL: "https://snowscan.xyz/",
+        },
+      },
+
       {
         network: "Blast",
         chainId: 81457,
@@ -312,7 +382,7 @@ module.exports = {
         network: "Base",
         chainId: 8453,
         urls: {
-          apiURL: "https://api.basescan.org/api",
+          apiURL: "https://api.etherscan.io/v2/api?chainid=8453",
           browserURL: "https://basescan.org/",
         },
       },
@@ -328,7 +398,7 @@ module.exports = {
         network: "Optimism",
         chainId: 10,
         urls: {
-          apiURL: "https://api-optimistic.etherscan.io/api",
+          apiURL: "https://api.etherscan.io/v2/api?chainid=10",
           browserURL: "https://optimistic.etherscan.io/",
         },
       },
@@ -336,8 +406,10 @@ module.exports = {
         network: "Arbitrum",
         chainId: 42161,
         urls: {
-          apiURL: "https://api.arbiscan.io/api",
+          apiURL: "https://api.etherscan.io/v2/api?chainid=42161",
           browserURL: "https://arbiscan.io/",
+          // apiURL: "https://www.oklink.com/api/v5/explorer/contract/verify-source-code-plugin/arbitrum",
+          // browserURL: "https://www.oklink.com",
         },
       },
       {
@@ -370,6 +442,15 @@ module.exports = {
         urls: {
           apiURL: "https://explorer-api.chainservice.io/api",
           browserURL: "https://explorer.mapprotocol.io"
+        },
+      },
+
+      {
+        network: "Xlayer",
+        chainId: 196,
+        urls: {
+          apiURL: "https://www.oklink.com/api/v5/explorer/contract/verify-source-code-plugin/xlayer",
+          browserURL: "https://www.oklink.com",
         },
       }
     ],

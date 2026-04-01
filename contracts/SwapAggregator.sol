@@ -1,18 +1,17 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
+import { Aggregator } from "./abstract/Aggregator.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable2Step.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Multicall.sol";
-import "./lib/DexExecutorV2.sol";
 
 
-contract SwapAggregator is Ownable2Step, ReentrancyGuard, Multicall {
+contract SwapAggregator is Aggregator, Ownable2Step, ReentrancyGuard, Multicall {
     using Address for address;
     using SafeERC20 for IERC20;
-    address immutable wToken;
-
+    address public wToken;
 
     struct Param {
         address srcToken;
@@ -32,6 +31,8 @@ contract SwapAggregator is Ownable2Step, ReentrancyGuard, Multicall {
         uint256 fromAmount;
         bytes callData;
     }
+
+    event SetWtoken(address _wToken);
     event EditFuncBlackList(bytes4 _func, bool flag);
     event SwapComplete(
         address indexed from,
@@ -52,49 +53,37 @@ contract SwapAggregator is Ownable2Step, ReentrancyGuard, Multicall {
     );
 
     uint256 public immutable selfChainId = block.chainid;
-    mapping(bytes4 => bool) public funcBlackList;
-    
-    error expired();
+
+    error SwapAggregator_expired();
     error SwapAggregator_zero_input();
     error SwapAggregator_input_mismatch();
     error SwapAggregator_swap_received_too_low();
     error SwapAggregator_unwrap_failed();
 
     modifier ensure(uint256 deadline) {
-        if(deadline < block.timestamp) revert expired();
+        if(deadline < block.timestamp) revert SwapAggregator_expired();
         _;
     }
 
-    constructor(address _owner, address _wToken) {
-        require(_owner != DexExecutorV2.ZERO_ADDRESS && _wToken != DexExecutorV2.ZERO_ADDRESS);
+    constructor(address _owner, address _wToken, address _uniPermit2) Aggregator(_uniPermit2) {
+        require(_owner != ZERO_ADDRESS);
         _transferOwnership(_owner);
-        wToken = _wToken;
-        //| a9059cbb | transfer(address,uint256)
-        funcBlackList[bytes4(0xa9059cbb)] = true;
-        //| 095ea7b3 | approve(address,uint256) |
-        funcBlackList[bytes4(0x095ea7b3)] = true;
-        //| 23b872dd | transferFrom(address,address,uint256) |
-        funcBlackList[bytes4(0x23b872dd)] = true;
-        //| 39509351 | increaseAllowance(address,uint256)
-        funcBlackList[bytes4(0x39509351)] = true;
-        //| a22cb465 | setApprovalForAll(address,bool) |
-        funcBlackList[bytes4(0xa22cb465)] = true;
-        //| 42842e0e | safeTransferFrom(address,address,uint256) |
-        funcBlackList[bytes4(0x42842e0e)] = true;
-        //| b88d4fde | safeTransferFrom(address,address,uint256,bytes) |
-        funcBlackList[bytes4(0xb88d4fde)] = true;
-        //| 9bd9bbc6 | send(address,uint256,bytes) |
-        funcBlackList[bytes4(0x9bd9bbc6)] = true;
-        //| fe9d9303 | burn(uint256,bytes) |
-        funcBlackList[bytes4(0xfe9d9303)] = true;
-        //| 959b8c3f | authorizeOperator
-        funcBlackList[bytes4(0x959b8c3f)] = true;
-        //| f242432a | safeTransferFrom(address,address,uint256,uint256,bytes) |
-        funcBlackList[bytes4(0xf242432a)] = true;
-        //| 2eb2c2d6 | safeBatchTransferFrom(address,address,uint256[],uint256[],bytes) |
-        funcBlackList[bytes4(0x2eb2c2d6)] = true;
+        _setWToken(_wToken);
     }
 
+    function setWToken(address _wToken) external onlyOwner {
+        _setWToken(_wToken);
+    }
+
+    function setUniPermits(address _uniPermit2) external onlyOwner {
+        _setUniPermits(_uniPermit2);
+    }
+
+    function _setWToken(address _wToken) internal {
+        require(_wToken != ZERO_ADDRESS);
+        wToken = _wToken;
+        emit SetWtoken(_wToken);
+    }
 
     function editFuncBlackList(bytes4 _func, bool _flag) external onlyOwner {
         funcBlackList[_func] = _flag;
@@ -108,7 +97,7 @@ contract SwapAggregator is Ownable2Step, ReentrancyGuard, Multicall {
         uint8 v,
         bytes32 r,
         bytes32 s
-    ) external {
+    ) external nonReentrant {
         IERC20Permit(token).permit(msg.sender, address(this), amount, deadline, v, r, s);
     }
 
@@ -129,13 +118,13 @@ contract SwapAggregator is Ownable2Step, ReentrancyGuard, Multicall {
                     isUp ? amount += amountAdjust : amount -= amountAdjust;
                 }
             }
-            DexExecutorV2.execute(
+            _execute(
                 swapStruct.dexType,
                 swapStruct.callTo,
+                swapStruct.approveTo,
                 params.srcToken,
                 amount,
-                swapStruct.callData,
-                funcBlackList
+                swapStruct.callData
             );
 
             unchecked {
@@ -143,19 +132,19 @@ contract SwapAggregator is Ownable2Step, ReentrancyGuard, Multicall {
             }
         }
         address self = address(this);
-        if(DexExecutorV2.isNative(params.dstToken)) {
+        if(_isNative(params.dstToken)) {
             address _wToken = wToken;
-            uint256 wrapAmount = DexExecutorV2.getBalance(_wToken, self);
+            uint256 wrapAmount = _getBalance(_wToken, self);
             if(wrapAmount> 0) _safeWithdraw(_wToken, wrapAmount);
         }
-        outAmount = DexExecutorV2.getBalance(params.dstToken, self);
+        outAmount = _getBalance(params.dstToken, self);
         if(outAmount < params.minAmount) revert SwapAggregator_swap_received_too_low();
-        uint256 left = DexExecutorV2.getBalance(params.srcToken, self);
+        uint256 left = _getBalance(params.srcToken, self);
         if (left > 0) {
-            DexExecutorV2.transfer(selfChainId, params.srcToken, params.leftReceiver, left);
+            _transfer(selfChainId, params.srcToken, params.leftReceiver, left);
         }
         address receiver = params.receiver == address(0) ? msg.sender : params.receiver;
-        if(receiver != self) DexExecutorV2.transfer(selfChainId, params.dstToken, receiver, outAmount);
+        if(receiver != self) _transfer(selfChainId, params.dstToken, receiver, outAmount);
         emit SwapComplete(msg.sender, params.srcToken, params.inputAmount, params.dstToken, outAmount, receiver);
     }
 
@@ -165,17 +154,17 @@ contract SwapAggregator is Ownable2Step, ReentrancyGuard, Multicall {
         address recipient,
         uint256 feeBips,
         address feeRecipient
-    ) external {
+    ) external nonReentrant {
         require(feeBips > 0 && feeBips <= 100);
-        require(recipient != DexExecutorV2.ZERO_ADDRESS && feeRecipient != DexExecutorV2.ZERO_ADDRESS);
-        uint256 balanceToken = DexExecutorV2.getBalance(token, address(this));
+        require(recipient != ZERO_ADDRESS && feeRecipient != ZERO_ADDRESS);
+        uint256 balanceToken = _getBalance(token, address(this));
 
         if (balanceToken > 0) {
             uint256 feeAmount = balanceToken * feeBips / 10_000;
-            if (feeAmount > 0) DexExecutorV2.transfer(selfChainId, token, feeRecipient, feeAmount);
+            if (feeAmount > 0) _transfer(selfChainId, token, feeRecipient, feeAmount);
 
             uint256 recipientAmount = balanceToken - feeAmount;
-            DexExecutorV2.transfer(selfChainId, token, recipient, recipientAmount);
+            _transfer(selfChainId, token, recipient, recipientAmount);
             emit SweepTokenWithFee(
                 token,
                 balanceToken,
@@ -190,7 +179,7 @@ contract SwapAggregator is Ownable2Step, ReentrancyGuard, Multicall {
 
     function _depositToken(address _token, uint256 _amount) private {
         if(_amount == 0) revert SwapAggregator_zero_input();
-        if (DexExecutorV2.isNative(_token)) {
+        if (_isNative(_token)) {
             if(_amount != msg.value) revert SwapAggregator_input_mismatch();
         } else {
             IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
@@ -223,8 +212,8 @@ contract SwapAggregator is Ownable2Step, ReentrancyGuard, Multicall {
     }
 
     function rescueFunds(address _token, address _receiver, uint256 _amount) external onlyOwner {
-        require(_receiver != address(0));
-        DexExecutorV2.transfer(selfChainId, _token, _receiver, _amount);
+        require(_receiver != ZERO_ADDRESS);
+        _transfer(selfChainId, _token, _receiver, _amount);
     }
 
     receive() external payable {}

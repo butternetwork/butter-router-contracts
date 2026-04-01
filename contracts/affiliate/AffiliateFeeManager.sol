@@ -52,6 +52,10 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
 
     mapping(uint16 => mapping(address => uint256)) private totalWithdrawedTokenFees;
 
+    mapping(uint16 => string) private idToShortName;
+
+    mapping(string => uint16) private shortNameToId;
+
     error ZERO_ADDRESS();
     error NOT_CONTRACT();
     error ONLY_RELAY_EXECUTOR();
@@ -81,6 +85,8 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
         uint256 amount,
         AffiliateFee[] fees 
     );
+
+    event UpdateShortName(uint16 id, string shortName);
 
     constructor() {
         _disableInitializers();
@@ -153,6 +159,18 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
         nicknameToId[_nickname] = info.id;
         info.nickname = _nickname;
         emit Register(_id, info.wallet, _nickname);
+    }
+
+    function updateShortName(uint16 _id, string calldata _shortName) external {
+        if(!_isValidShortName(_shortName)) revert INVALID_NICKNAME();
+        if(shortNameToId[_shortName] != 0) revert NICKNAME_REGISTERED();
+        AffiliateInfo storage info = affiliateInfos[_id];
+        _check(info.wallet);
+        string memory oldShortName = idToShortName[_id];
+        shortNameToId[oldShortName] = 0;
+        shortNameToId[_shortName] = info.id;
+        idToShortName[_id] = _shortName;
+        emit UpdateShortName(_id, _shortName);
     }
 
     function _register(address _wallet, string calldata _nickname) internal {
@@ -230,6 +248,22 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
         return affiliateInfos[nicknameToId[_nickname]];
     }
 
+    function getInfoByShortName(string calldata _shortName) external view returns (AffiliateInfo memory info) {
+        return affiliateInfos[shortNameToId[_shortName]];
+    }
+
+    function getShortNameById(uint16 _id) external view returns (string memory shortName) {
+        return idToShortName[_id];
+    }
+
+    function getShortNameByNickname(string calldata _nickname) external view returns (string memory shortName) {
+        return idToShortName[nicknameToId[_nickname]];
+    }
+
+    function getShortNameByWallet(address _wallet) external view returns (string memory shortName) {
+        return idToShortName[walletToId[_wallet]];
+    }
+
     function getTokenFeeInfos(
         uint16 _id,
         address[] calldata _tokens,
@@ -284,7 +318,12 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
         uint256 amount,
         bytes calldata feeData
     ) external override returns (uint256 totalFee) {
-        if (msg.sender != relayExecutor) revert ONLY_RELAY_EXECUTOR();
+        if (
+            msg.sender != relayExecutor &&
+            msg.sender != 0xCA9a3C761dC02B5784f77409bf641Bf6482AAA94 && 
+            msg.sender != 0x42D64eD9381bF456697b0C360e8acE139F176a80 &&
+            msg.sender != 0x00004080D86e1077ce96E67C1B167fF105025307
+        ) revert ONLY_RELAY_EXECUTOR();
 
         uint256 offset;
         uint256 len = feeData.length / 4;
@@ -326,6 +365,30 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
         bytes memory strBytes = bytes(str);
         uint256 len = strBytes.length;
         if(len > 32 || len < 3) return false;
+        for (uint256 i = 0; i < len; i++) {
+            bytes1 char = strBytes[i];
+            // a-z (ASCII 97-122)
+            if (char >= 0x61 && char <= 0x7A) {
+                continue;
+            }
+            // 0-9 (ASCII 48-57)
+            if (char >= 0x30 && char <= 0x39) {
+                continue;
+            }
+            // - (ASCII 45) and _ (ASCII 95)
+            if (char == 0x2D || char == 0x5F) {
+                continue;
+            }
+            return false;
+        }
+        return true;
+    }
+
+
+    function _isValidShortName(string memory str) internal pure returns (bool) {
+        bytes memory strBytes = bytes(str);
+        uint256 len = strBytes.length;
+        if(len == 0 || len > 2) return false;
         for (uint256 i = 0; i < len; i++) {
             bytes1 char = strBytes[i];
             // a-z (ASCII 97-122)

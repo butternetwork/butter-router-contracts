@@ -4,6 +4,9 @@ let config = new Map([
         "Eth",
         {
             wToken: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+            uniPermit2: "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+            tss_main_gateway: "0x42D64eD9381bF456697b0C360e8acE139F176a80",
+            tss_prod_gateway: "0x00004080D86e1077ce96E67C1B167fF105025307",
             v2: {
                 mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
@@ -49,6 +52,9 @@ let config = new Map([
         "Bsc",
         {
             wToken: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+            uniPermit2: "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+            tss_main_gateway: "0x42D64eD9381bF456697b0C360e8acE139F176a80",
+            tss_prod_gateway: "0x00004080D86e1077ce96E67C1B167fF105025307",
             v2: {
                 mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
@@ -94,6 +100,9 @@ let config = new Map([
         "Matic",
         {
             wToken: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
+            uniPermit2: "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+            tss_main_gateway: "0x42D64eD9381bF456697b0C360e8acE139F176a80",
+            tss_prod_gateway: "0x00004080D86e1077ce96E67C1B167fF105025307",
             v2: {
                 mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
@@ -141,6 +150,8 @@ let config = new Map([
         "Klaytn",
         {
             wToken: "0x19aac5f612f524b754ca7e7c41cbfa2e981a4432",
+            tss_main_gateway: "",
+            tss_prod_gateway: "",
             v2: {
                 mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
@@ -180,6 +191,8 @@ let config = new Map([
         "Conflux",
         {
             wToken: "0x14b2d3bc65e74dae1030eafd8ac30c533c976a9b",
+            tss_main_gateway: "",
+            tss_prod_gateway: "",
             v2: {
                 mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
@@ -214,6 +227,8 @@ let config = new Map([
         "Map",
         {
             wToken: "0x13cb04d4a5dfb6398fc5ab005a6c84337256ee23",
+            tss_main_gateway: "0x42D64eD9381bF456697b0C360e8acE139F176a80",
+            tss_prod_gateway: "0x00004080D86e1077ce96E67C1B167fF105025307",
             v2: {
                 mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
@@ -256,6 +271,8 @@ let config = new Map([
         "Tron",
         {
             wToken: "TNUC9Qb1rRpS5CbWLmNMxXBjyFoydXjWFR",
+            tss_main_gateway: "",
+            tss_prod_gateway: "",
             v2: {
                 mos: "TYMpgB8Q9vSoGtkyE3hXsvUrpte3KCDGj6",
                 fee: {
@@ -298,6 +315,8 @@ let config = new Map([
         "Merlin",
         {
             wToken: "0xF6D226f9Dc15d9bB51182815b320D3fBE324e1bA",
+            tss_main_gateway: "",
+            tss_prod_gateway: "",
             v2: {
                 mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
@@ -329,6 +348,9 @@ let config = new Map([
         "Blast",
         {
             wToken: "0x4300000000000000000000000000000000000004",
+            uniPermit2: "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+            tss_main_gateway: "",
+            tss_prod_gateway: "",
             v2: {
                 mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
@@ -364,6 +386,9 @@ let config = new Map([
         "Base",
         {
             wToken: "0x4200000000000000000000000000000000000006",
+            uniPermit2: "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+            tss_main_gateway: "0x42D64eD9381bF456697b0C360e8acE139F176a80",
+            tss_prod_gateway: "0x00004080D86e1077ce96E67C1B167fF105025307",
             v2: {
                 mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
@@ -403,6 +428,9 @@ let config = new Map([
         "Optimism",
         {
             wToken: "0x4200000000000000000000000000000000000006",
+            uniPermit2: "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+            tss_main_gateway: "0x42D64eD9381bF456697b0C360e8acE139F176a80",
+            tss_prod_gateway: "0x00004080D86e1077ce96E67C1B167fF105025307",
             v2: {
                 mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
@@ -436,6 +464,9 @@ let config = new Map([
         "Arbitrum",
         {
             wToken: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
+            uniPermit2: "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+            tss_main_gateway: "0x42D64eD9381bF456697b0C360e8acE139F176a80",
+            tss_prod_gateway: "0x00004080D86e1077ce96E67C1B167fF105025307",
             v2: {
                 mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
@@ -471,6 +502,8 @@ let config = new Map([
         "Linea",
         {
             wToken: "0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f",
+            tss_main_gateway: "",
+            tss_prod_gateway: "",
             v2: {
                 mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
@@ -503,6 +536,8 @@ let config = new Map([
         "Scroll",
         {
             wToken: "0x5300000000000000000000000000000000000004",
+            tss_main_gateway: "",
+            tss_prod_gateway: "",
             v2: {
                 mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
@@ -535,6 +570,8 @@ let config = new Map([
         "Mantle",
         {
             wToken: "0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8",
+            tss_main_gateway: "",
+            tss_prod_gateway: "",
             v2: {
                 mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
@@ -567,6 +604,8 @@ let config = new Map([
         "Ainn",
         {
             wToken: "0x1470a4831F76954686BfB4dE8180F7469EA8dE6F",
+            tss_main_gateway: "",
+            tss_prod_gateway: "",
             v2: {
                 mos: "0xfeB2b97e4Efce787c08086dC16Ab69E063911380",
                 fee: {
@@ -596,6 +635,9 @@ let config = new Map([
         "zkSync",
         {
             wToken: "0x5AEa5775959fBC2557Cc8789bC1bf90A239D9a91",
+            tss_main_gateway: "",
+            tss_prod_gateway: "",
+
             v2: {
                 mos: "0xBEf06a32166C4B819fF04cCfa887733B8bb67eB5",
                 fee: {
@@ -628,12 +670,111 @@ let config = new Map([
         },
     ],
 
+    [
+        "Unichain",
+        {  
+            wToken: "0x4200000000000000000000000000000000000006",
+            uniPermit2: "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+            tss_main_gateway: "",
+            tss_prod_gateway: "",
+
+            v3: {
+                bridge: "0x0000317Bec33Af037b5fAb2028f52d14658F6A56",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    routerFeeRate: "0", //denominator is 10000
+                    routerFixedFee: "0",
+                    maxReferrerFeeRate: "2000",
+                    maxReferrerNativeFee: "6000000000000000",
+                },
+                executors: [
+                    "0x111111125421cA6dc452d289314280a0f8842A65", //1inch v6
+                ],
+            },
+            removes: [],
+        },
+    ],
+
+    [
+        "Xlayer",
+        {
+            wToken: "0xe538905cf8410324e03a5a23c1c177a474d59b2b",
+            uniPermit2: "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+            tss_main_gateway: "0x42D64eD9381bF456697b0C360e8acE139F176a80",
+            tss_prod_gateway: "0x00004080D86e1077ce96E67C1B167fF105025307",
+            v3: {
+                bridge: "0x0000317Bec33Af037b5fAb2028f52d14658F6A56",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    routerFeeRate: "0", //denominator is 10000
+                    routerFixedFee: "0",
+                    maxReferrerFeeRate: "2000",
+                    maxReferrerNativeFee: "6000000000000000",
+                },
+                executors: [
+                    "0x111111125421cA6dc452d289314280a0f8842A65", //1inch v6
+                ],
+            },
+            removes: [],
+        },
+    ],
+
+    [
+        "Mon",
+        {
+            wToken: "0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A",
+            uniPermit2: "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+            tss_main_gateway: "",
+            tss_prod_gateway: "",
+            v3: {
+                bridge: "0x0000317Bec33Af037b5fAb2028f52d14658F6A56",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    routerFeeRate: "0", //denominator is 10000
+                    routerFixedFee: "0",
+                    maxReferrerFeeRate: "2000",
+                    maxReferrerNativeFee: "1000000000000000000000",
+                },
+                executors: [
+                    "0x111111125421cA6dc452d289314280a0f8842A65", //1inch v6
+                ],
+            },
+            removes: [],
+        },
+    ],
+
+    [
+        "Avalanche",
+        {
+            wToken: "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7",
+            uniPermit2: "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+            tss_main_gateway: "",
+            tss_prod_gateway: "",
+
+            v3: {
+                bridge: "0x0000317Bec33Af037b5fAb2028f52d14658F6A56",
+                fee: {
+                    receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+                    routerFeeRate: "0", //denominator is 10000
+                    routerFixedFee: "0",
+                    maxReferrerFeeRate: "2000",
+                    maxReferrerNativeFee: "1000000000000000000",
+                },
+                executors: [
+                    "0x111111125421cA6dc452d289314280a0f8842A65", //1inch v6
+                ],
+            },
+            removes: [],
+        },
+    ],
+
     //<------------------------------------- testnet----------------------------------------->
 
     [
         "BscTest",
         {
             wToken: "0xae13d989dac2f0debff460ac112a837c89baa7cd",
+            tss_gateway: "0x42D64eD9381bF456697b0C360e8acE139F176a80",
             v2: {
                 mos: "0x3C12F82ea96c855944efe9f3aC4ce18449Aa634B",
                 fee: {
@@ -669,6 +810,7 @@ let config = new Map([
         "Makalu",
         {
             wToken: "0x2eD27dF9B4c903aB53666CcA59AFB431F7D15e91",
+            tss_gateway: "0x42D64eD9381bF456697b0C360e8acE139F176a80",
             v2: {
                 mos: "0x3D8da6f43e35E05162d874BdaF93f61995A34D81",
                 fee: {
@@ -696,6 +838,7 @@ let config = new Map([
         "MaticTest",
         {
             wToken: "0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889",
+            tss_gateway: "0x42D64eD9381bF456697b0C360e8acE139F176a80",
             v2: {
                 mos: "0x71f38FE43031397C102F10fb857a6D432af10642",
                 fee: {
@@ -732,18 +875,19 @@ let config = new Map([
     [
         "TronTest",
         {
-            wToken: "0xFB3B3134F13CCD2C81F4012E53024E8135D58FEE",
+            wToken: "TYsbWxNnyTgsZaTFaue9hqpxkU3Fkco94a",
+            tss_gateway: "TYsbWxNnyTgsZaTFaue9hqpxkU3Fkco94a",
             v2: {
-                mos: "0xFB3B3134F13CCD2C81F4012E53024E8135D58FEE",
+                mos: "TYsbWxNnyTgsZaTFaue9hqpxkU3Fkco94a",
                 fee: {
                     receiver: "0xCBdb1Da4f99276b0c427776BDE93838Bc19386Cc",
                     feeRate: "7000", //denominator is 1000000
                     fixedFee: "1000000000000000000",
                 },
-                executors: ["0xFB3B3134F13CCD2C81F4012E53024E8135D58FEE"],
+                executors: ["TYsbWxNnyTgsZaTFaue9hqpxkU3Fkco94a"],
             },
             v3: {
-                bridge: "",
+                bridge: "TYsbWxNnyTgsZaTFaue9hqpxkU3Fkco94a",
                 fee: {
                     receiver: "0xCBdb1Da4f99276b0c427776BDE93838Bc19386Cc",
                     routerFeeRate: "7000", //denominator is 10000
@@ -751,7 +895,7 @@ let config = new Map([
                     maxReferrerFeeRate: "2000",
                     maxReferrerNativeFee: "1",
                 },
-                executors: ["0xFB3B3134F13CCD2C81F4012E53024E8135D58FEE"],
+                executors: ["TYsbWxNnyTgsZaTFaue9hqpxkU3Fkco94a"],
             },
         },
     ],

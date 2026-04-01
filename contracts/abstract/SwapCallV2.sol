@@ -125,8 +125,7 @@ abstract contract SwapCallV2 {
         callAmount = _getBalance(_token, self);
         uint256 offset = callParam.offset;
         bytes memory callPayload = callParam.data;
-        if (offset > 35) {
-            //32 length + 4 funcSig
+        if (_checkOffset(offset, callPayload.length)) {
             assembly {
                 mstore(add(callPayload, offset), _amount)
             }
@@ -172,7 +171,7 @@ abstract contract SwapCallV2 {
             bool result;
             DexType dexType = swap.dexType;
             if (dexType == DexType.FILL) {
-                result = _makeAggFill(_token, swap.callTo, amount, swap.callData);
+                result = _makeAggFill(_token, swap.approveTo, swap.callTo, amount, swap.callData);
             } else if (dexType == DexType.MIX) {
                 result = _makeMixSwap(_token, amount, swap.callData);
             } else {
@@ -221,18 +220,19 @@ abstract contract SwapCallV2 {
     function _makeMixSwap(address _srcToken, uint256 _amount, bytes memory _swapData) internal returns (bool result) {
         MixSwap[] memory mixSwaps = abi.decode(_swapData, (MixSwap[]));
         uint256 length = mixSwaps.length;
-        address self = address(this);
-
+        uint256 swapBalanceBefore;
         for (uint256 i = 0; i < length; ) {
             MixSwap memory mix = mixSwaps[i];
+            if((i + 1) < length) {
+                swapBalanceBefore = _getBalance(mixSwaps[i + 1].srcToken, address(this));
+            }
             if (i != 0) {
                 _srcToken = mix.srcToken;
-                _amount = _getBalance(_srcToken, self);
+                _amount = _getBalance(_srcToken, address(this)) - swapBalanceBefore;
             }
             bytes memory callData = mix.callData;
             uint256 offset = mix.offset;
-            if (offset > 35) {
-                //32 length + 4 funcSig
+            if (_checkOffset(offset, callData.length)) {
                 assembly {
                     mstore(add(callData, offset), _amount)
                 }
@@ -254,17 +254,17 @@ abstract contract SwapCallV2 {
 
     function _makeAggFill(
         address _token,
-        address _router,
+        address _approveTo,
+        address _callTo,
         uint256 _amount,
         bytes memory _swapData
     ) internal returns (bool result) {
         (uint256[] memory offsets, bytes memory callData) = abi.decode(_swapData, (uint256[], bytes));
         uint256 len = offsets.length;
-
+        uint256 callDataLen = callData.length;
         for (uint i = 0; i < len; ) {
             uint256 offset = offsets[i];
-            if (offset > 35) {
-                //32 length + 4 funcSig
+            if (_checkOffset(offset, callDataLen)) {
                 assembly {
                     mstore(add(callData, offset), _amount)
                 }
@@ -277,9 +277,9 @@ abstract contract SwapCallV2 {
         assembly {
             sig := mload(add(callData, 32))
         }
-        _checkApproval(_router, sig);
-        uint256 value = _approveToken(_token, _router, _amount);
-        (result, ) = _router.call{value: value}(callData);
+        _checkApproval(_callTo, sig);
+        uint256 value = _approveToken(_token, _approveTo, _amount);
+        (result, ) = _callTo.call{value: value}(callData);
     }
 
     function _approveToken(address token, address spender, uint256 amount) internal returns (uint256 value) {
@@ -317,5 +317,12 @@ abstract contract SwapCallV2 {
                 IERC20(_token).safeTransfer(_to, _amount);
             }
         }
+    }
+
+    function _checkOffset(uint256 offset, uint256 length) internal pure returns (bool) {
+        // offset is relative to the bytes object start (first 32 bytes is length slot).
+        // 4bytes funcSig + 32 bytes amount = 36, so offset should be larger than 35.
+        // Writing 32 bytes at `offset` is safe when: offset > 35 and offset <= length.
+        return offset > 35 && offset<= length;
     }
 }

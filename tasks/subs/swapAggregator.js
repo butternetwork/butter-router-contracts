@@ -19,12 +19,14 @@ module.exports = async (taskArgs, hre) => {
         deployer_address = deployer.address;
     }
     let salt = process.env.SWAP_AGG_DEPLOY_SALT;
-    let swapAggregator = await create(hre, deployer, "SwapAggregator", ["address", "address"], [deployer_address, config.wToken], salt);
+    let uniPermit2 = config.uniPermit2;
+    if(!uniPermit2) uniPermit2 = ethers.constants.AddressZero;
+    let swapAggregator = await create(hre, deployer, "SwapAggregator", ["address", "address", "address"], [deployer_address, config.wToken, uniPermit2], salt);
     console.log("SwapAggregator address :", swapAggregator);
     await saveDeployment(network.name, "SwapAggregator", swapAggregator);
     await verify(
-        swapAdapter,
-        [deployer_address],
+        swapAggregator,
+        [deployer_address, config.wToken, uniPermit2],
         "contracts/SwapAggregator.sol:SwapAggregator",
         hre.network.config.chainId,
         true

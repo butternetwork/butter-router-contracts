@@ -14,9 +14,30 @@ let { verify } = require("../../utils/verify.js");
 
 async function getRouterAddress(router, network) {
     if (!router || router === "") {
-        router = await getDeployment(network, "ButterRouterV4")
+        let prefix = getNetworkPrefix(network);
+        router = await getDeployment(network, prefix +"ButterRouterV4")
     }
     return router;
+}
+
+function getNetworkPrefix(network) { 
+    if(network.indexOf("Test") >= 0 || network.indexOf("test") >= 0 || network == 'Makalu' || network == 'Sepolia'){
+        console.log("conrrent environment is testnet test, use testnet config");
+        return "";
+    } else {
+        let SUFFIX = process.env.NETWORK_SUFFIX;
+
+        if(SUFFIX === "main") {
+            console.log("conrrent environment is mainnet test, use mainnet config");
+            console.log("if you want to use prod config, please set env NETWORK_SUFFIX=prod");
+            return "main_";
+        } else {
+            console.log("conrrent environment is mainnet prod, use prod config");
+            console.log("if you want to use test config, please set env NETWORK_SUFFIX=test");
+            return "prod_";
+        }
+        
+    }
 }
 
 module.exports = async (taskArgs, hre) => {
@@ -25,10 +46,18 @@ module.exports = async (taskArgs, hre) => {
     if (!config) {
         throw "config not set";
     }
-
+    let prefix = getNetworkPrefix(network.name);
+    let bridge;
+    if(prefix === "main_") {
+        bridge = config.tss_main_gateway;
+    }  else if(prefix === "prod_") { 
+        bridge = config.tss_prod_gateway;
+    } else {
+        bridge = config.tss_gateway;
+    }
     // Deploy ButterRouterV4 contract
-    await hre.run("routerV4:deploy", { bridge: config.v3.bridge, wtoken: config.wToken });
-    let router_addr = await getDeployment(network.name, "ButterRouterV4");
+    await hre.run("routerV4:deploy", { bridge: bridge, wtoken: config.wToken, prefix: prefix });
+    let router_addr = await getDeployment(network.name, prefix + "ButterRouterV4");
 
     // Deploy SwapAdapter if needed
     let adapt_addr = await getDeployment(network.name, "SwapAdapterV3");
@@ -62,6 +91,7 @@ module.exports = async (taskArgs, hre) => {
 task("routerV4:deploy", "Deploy ButterRouterV4 contract")
     .addParam("bridge", "Bridge contract address")
     .addParam("wtoken", "Wrapped token address")
+    .addParam("prefix", "network prefix")
     .setAction(async (taskArgs, hre) => {
         const { network, ethers } = hre;
         const accounts = await ethers.getSigners();
@@ -91,7 +121,7 @@ task("routerV4:deploy", "Deploy ButterRouterV4 contract")
         );
 
         console.log("ButterRouterV4 address:", routerAddr);
-        await saveDeployment(network.name, "ButterRouterV4", routerAddr);
+        await saveDeployment(network.name, taskArgs.prefix + "ButterRouterV4", routerAddr);
 
         await verify(
             routerAddr,
@@ -110,7 +140,7 @@ task("routerV4:setAuthorization", "Set executor authorization for ButterRouterV4
         const { network, ethers } = hre;
         const accounts = await ethers.getSigners();
         const deployer = accounts[0];
-        console.log("deployer:", deployer.address);
+        console.log("deployer:", deployer? deployer.address : "undefined");
 
         let router_addr = await getRouterAddress(taskArgs.router, network.name);
         let list = await getExecutorList(network.name, taskArgs.executors);
@@ -203,7 +233,7 @@ task("routerV4:setBridge", "Set bridge address for ButterRouterV4")
         const { network, ethers } = hre;
         const accounts = await ethers.getSigners();
         const deployer = accounts[0];
-        console.log("deployer:", deployer.address);
+        console.log("deployer:", deployer? deployer.address : "undefined");
         let router_addr = await getRouterAddress(taskArgs.router, network.name);
 
         if (network.name === "Tron" || network.name === "TronTest") {
@@ -288,7 +318,7 @@ task("routerV4:setOwner", "Transfer ownership of ButterRouterV4")
         const { network, ethers } = hre;
         const accounts = await ethers.getSigners();
         const deployer = accounts[0];
-        console.log("deployer:", deployer.address);
+        console.log("deployer:", deployer? deployer.address : "undefined");
         let router_addr = await getRouterAddress(taskArgs.router, network.name);
         await setOwner("ButterRouterV4", hre.artifacts, network.name, router_addr, taskArgs.owner);
     });
@@ -363,7 +393,7 @@ task("routerV4:update", "Check and update ButterRouterV4 from config file")
         const { network, ethers } = hre;
         const accounts = await ethers.getSigners();
         const deployer = accounts[0];
-        console.log("deployer:", deployer.address);
+        console.log("deployer:", deployer? deployer.address : "undefined");
         let router_addr = await getRouterAddress(taskArgs.router, network.name);
         let config = getConfig(network.name);
         if (!config) {
@@ -387,7 +417,7 @@ task("routerV4:removeAuthFromConfig", "Remove authorization from config file")
         const { network, ethers } = hre;
         const accounts = await ethers.getSigners();
         const deployer = accounts[0];
-        console.log("deployer:", deployer.address);
+        console.log("deployer:", deployer? deployer.address : "undefined");
         let router_addr = await getRouterAddress(taskArgs.router, network.name);
         let config = getConfig(hre.network.name);
         if (!config) {

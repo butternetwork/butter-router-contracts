@@ -1,4 +1,5 @@
 let { saveDeployment, getDeployment } = require("../../utils/helper.js");
+let { verify } = require("../../utils/verify.js");
 
 task("AffiliateFeeManager:deploy", "deploy AffiliateFeeManager").setAction(async (taskArgs, hre) => {
     const { network, ethers } = hre;
@@ -161,4 +162,12 @@ task("AffiliateFeeManager:upgrade", "deploy butterRouterV2").setAction(async (ta
     console.log("pre impl is：", await affiliateFeeManager.getImplementation());
     await (await affiliateFeeManager.upgradeTo(impl.address)).wait();
     console.log("after impl is：", await affiliateFeeManager.getImplementation());
+
+    await verify(
+        impl.address,
+        [],
+        "contracts/affiliate/AffiliateFeeManager.sol:AffiliateFeeManager",
+        network.config.chainId,
+        true
+    );
 });

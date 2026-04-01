@@ -39,7 +39,7 @@ interface IButterRouterV4 {
      */
     struct BridgeParam {
         uint256 toChain;     // Target blockchain chain ID
-        address refundAddr;  // Bridge fee in native tokens
+        address refundAddr;  // refund address on source chain in case of failed bridge 
         bytes receiver;      // Destination address (encoded)
         bytes payload;       // Bridge-specific execution data
     }
