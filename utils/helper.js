@@ -6,10 +6,16 @@ let file_path = "../deployments/";
 let fileName = "deploy.json";
 
 function tronAddressToHex(tronAddress) {
+    if(tronAddress.startsWith("0x")) {
+        return tronAddress;
+    }
     return "0x" + TronWeb.address.toHex(tronAddress).substring(2);
 }
 
 function hexToTronAddress(hexAddress) {
+    if(hexAddress.startsWith("T")) {
+        return hexAddress;
+    }
     return TronWeb.address.fromHex(hexAddress);
 }
 
