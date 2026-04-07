@@ -223,12 +223,12 @@ abstract contract SwapCallV2 {
         uint256 swapBalanceBefore;
         for (uint256 i = 0; i < length; ) {
             MixSwap memory mix = mixSwaps[i];
-            if((i + 1) < length) {
-                swapBalanceBefore = _getBalance(mixSwaps[i + 1].srcToken, address(this));
-            }
             if (i != 0) {
                 _srcToken = mix.srcToken;
                 _amount = _getBalance(_srcToken, address(this)) - swapBalanceBefore;
+            }
+            if((i + 1) < length) {
+                swapBalanceBefore = _getBalance(mixSwaps[i + 1].srcToken, address(this));
             }
             bytes memory callData = mix.callData;
             uint256 offset = mix.offset;

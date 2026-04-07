@@ -318,6 +318,7 @@ contract ButterRouterV4 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRoute
             }
             remain = _amount - routerNative - integratorNative;
         } else {
+            if (fd.routerNativeFee + fd.integratorNativeFee > msg.value) revert Errors.FEE_MISMATCH();
             if (fd.routerNativeFee > 0) {
                 _transfer(ZERO_ADDRESS, fd.routerReceiver, fd.routerNativeFee);
             }
@@ -331,8 +332,6 @@ contract ButterRouterV4 is SwapCallV2, FeeManager, ReentrancyGuard, IButterRoute
                 _transfer(_token, fd.integrator, fd.integratorTokenFee);
             }
             remain = _amount - fd.routerTokenFee - fd.integratorTokenFee;
-
-            if (fd.routerNativeFee + fd.integratorNativeFee > msg.value) revert Errors.FEE_MISMATCH();
         }
         if (remain == 0) revert Errors.ZERO_IN();
     }

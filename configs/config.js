@@ -86,13 +86,9 @@ let config = new Map([
                     "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64", // openocean
                     "0x3321dE36B6C29A6fa102A67bd5C48E5756Baa596", // omni adapter
                     "0xedf2021f41AbCfE2dEA4427E1B61f4d0AA5aA4b8", //izumi
-
-                    "0x273290B6dCe557B2889b8B5aF7ea4d989689E1CC", // chain pool 103
                 ],
             },
-            removes: [
-                "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
-            ],
+            removes: [],
         },
     ],
 
@@ -136,13 +132,9 @@ let config = new Map([
                     "0xE592427A0AEce92De3Edee1F18E0157C05861564", //univ3
                     "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64", // openocean
                     "0x032b241De86a8660f1Ae0691a4760B426EA246d7", //izumi
-
-                    "0x63d13711AFcD6Ddd07154c19F020b490C25bDCD0", // chain pool v2 test
-                    "0x273290B6dCe557B2889b8B5aF7ea4d989689E1CC", // chain pool 101
                 ],
             },
-            removes: [
-            ],
+            removes: [],
         },
     ],
 
@@ -271,7 +263,7 @@ let config = new Map([
         "Tron",
         {
             wToken: "TNUC9Qb1rRpS5CbWLmNMxXBjyFoydXjWFR",
-            tss_main_gateway: "",
+            tss_main_gateway: "TNFvEVGRMCo46j6zKXc2MKh64dxoLry1k2",
             tss_prod_gateway: "",
             v2: {
                 mos: "TYMpgB8Q9vSoGtkyE3hXsvUrpte3KCDGj6",
@@ -303,11 +295,7 @@ let config = new Map([
                     "TCFNp179Lg46D16zKoumd4Poa2WFFdtqYj"  // sun smart router new
                 ],
             },
-            removes: [
-                "TYMpgB8Q9vSoGtkyE3hXsvUrpte3KCDGj6", // bridge
-              "TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ax", // sun v2 route deprecated
-              "TJ4NNy8xZEqsowCBhLvZ45LCqPdGjkET5j", // sun smart router deprecated
-            ],
+            removes: [],
         },
     ],
 
@@ -419,9 +407,7 @@ let config = new Map([
                     "0x111111125421cA6dc452d289314280a0f8842A65", //1inch v6
                 ],
             },
-            removes: [
-                "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
-            ],
+            removes: [],
         },
     ],
     [
@@ -455,9 +441,7 @@ let config = new Map([
                     "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64", // openocean
                 ],
             },
-            removes: [
-                "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
-            ],
+            removes: [],
         },
     ],
     [
@@ -493,9 +477,7 @@ let config = new Map([
                     "0x01fDea353849cA29F778B2663BcaCA1D191bED0e", //izumi
                 ],
             },
-            removes: [
-                "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
-            ],
+            removes: [],
         },
     ],
     [
@@ -675,8 +657,8 @@ let config = new Map([
         {  
             wToken: "0x4200000000000000000000000000000000000006",
             uniPermit2: "0x000000000022D473030F116dDEE9F6B43aC78BA3",
-            tss_main_gateway: "",
-            tss_prod_gateway: "",
+            tss_main_gateway: "0x42D64eD9381bF456697b0C360e8acE139F176a80",
+            tss_prod_gateway: "0x00004080D86e1077ce96E67C1B167fF105025307",
 
             v3: {
                 bridge: "0x0000317Bec33Af037b5fAb2028f52d14658F6A56",
@@ -711,9 +693,7 @@ let config = new Map([
                     maxReferrerFeeRate: "2000",
                     maxReferrerNativeFee: "6000000000000000",
                 },
-                executors: [
-                    "0x111111125421cA6dc452d289314280a0f8842A65", //1inch v6
-                ],
+                executors: [],
             },
             removes: [],
         },

@@ -64,7 +64,7 @@ abstract contract FeeManager is Ownable2Step, IFeeManager {
         if (feeReceiver != address(0)) {
             feeDetail.routerReceiver = feeReceiver;
             feeDetail.routerNativeFee = routerFixedFee;
-            if (_inputToken == address(0)) {
+            if (_checkNative(_inputToken)) {
                 feeDetail.routerNativeFee += (_inputAmount * routerFeeRate) / FEE_DENOMINATOR;
             } else {
                 feeDetail.routerTokenFee = (_inputAmount * routerFeeRate) / FEE_DENOMINATOR;
@@ -76,7 +76,7 @@ abstract contract FeeManager is Ownable2Step, IFeeManager {
             if (fee.feeType == IButterRouterV3.FeeType.FIXED) {
                 feeDetail.integratorNativeFee = fee.rateOrNativeFee;
             } else {
-                if (_inputToken == address(0)) {
+                if (_checkNative(_inputToken)) {
                     feeDetail.integratorNativeFee = (_inputAmount * fee.rateOrNativeFee) / FEE_DENOMINATOR;
                 } else {
                     feeDetail.integratorTokenFee = (_inputAmount * fee.rateOrNativeFee) / FEE_DENOMINATOR;
@@ -110,7 +110,7 @@ abstract contract FeeManager is Ownable2Step, IFeeManager {
             }
         }
 
-        if (_token == address(0) || _token == 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE) {
+        if (_checkNative(_token)) {
             beforeAmount = _amountAfterFee + nativeFeeAmount;
             if (feeRate > 0) {
                 beforeAmount = (beforeAmount * FEE_DENOMINATOR) / (FEE_DENOMINATOR - feeRate) + 1;
@@ -135,5 +135,9 @@ abstract contract FeeManager is Ownable2Step, IFeeManager {
             require(fee.rateOrNativeFee < maxNativeFee, "FeeManager: invalid native fee");
         }
         return fee;
+    }
+
+    function _checkNative(address token) internal pure returns (bool) {
+        return token == address(0) || token == 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
     }
 }
