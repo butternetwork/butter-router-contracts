@@ -12,6 +12,8 @@
 		"main_ReceiverV2": "0xed991c6c1B24811CA4D15ed0E0CFB21aAB3c2ef7",
 		"prod_ButterRouterV4": "0xee040187f934FB9E41621966B1bd3E98D8319b86",
 		"prod_ReceiverV2": "0xfF040559913838D1655D50fE601e58Ad162aD699"
+		"Receiver": "0xFF031cc2563988Bc4afA29E2cD7Bcc2d389900a5",
+		"ButterRouterV31": "0xEE0319cF0BCa5d09333f9F6277743E8De31bD69A"
 	},
 	"Bsc": {
 		"ButterRouterV2": {
@@ -80,7 +82,8 @@
 		"ButterRouterV3": "TPYm4fQJxmoBuhAbNWCBx2ehzhVJ1fxFNP",
 		"Receiver": "TJKb72SKzSmYKC4jNievJwTLx9XDmcip7n",
 		"ButterRouterV3New?": "TGsxishA85MPyKckwdUSZWK9vMTo1suxRp",
-		"ReceiverNew?": "TPBp5zTNyZJbXgsrkYMdfFVXcX44d7qDMU"
+		"ReceiverNew?": "TPBp5zTNyZJbXgsrkYMdfFVXcX44d7qDMU",
+		"ButterRouterV31": "TRXHvKozuwbyRZLyPShscieHfGduwvsBFo"
 	},
 	"Makalu": {
 		"ButterRouterV2": {
@@ -106,7 +109,8 @@
 		"SwapAdapter": "0x002162B2aEe2dD657FB131b28CC34deE6797b66f",
 		"SwapAdapterV3": "0xaa301070448385cfAaC5913A67B16C4392944a8f",
 		"ButterRouterV3": "0xEE030ec6F4307411607E55aCD08e628Ae6655B86",
-		"Receiver": "0xFF031cc2563988Bc4afA29E2cD7Bcc2d389900a5"
+		"Receiver": "0xFF031cc2563988Bc4afA29E2cD7Bcc2d389900a5",
+		"ButterRouterV31": "0x9f8e91245F20Cb3B3A8eA5E5D74A436AF13f2A9E"
 	},
 	"Bevm": {
 		"ButterRouterV2": {

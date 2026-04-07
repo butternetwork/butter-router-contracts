@@ -179,6 +179,66 @@ task("receiver:removeAuthFromConfig", "remove Authorization from config file")
         console.log("Receiver remove authorization from config file.");
     });
 
+
+task("receiver:setGas", "withdraw receiver address")
+  .addOptionalParam("receiver", "receiver address", "", types.string)
+  .addParam("gas", "min gas amount")
+  .setAction(async (taskArgs, hre) => {
+    const { ethers, network } = hre;
+    const accounts = await ethers.getSigners();
+    const deployer = accounts[0];
+    console.log("deployer: ", deployer.address);
+    let receiver_addr = await getReceiverAddress(taskArgs.receiver, network.name);
+    console.log("Receiver: ", receiver_addr);
+
+    let C = await ethers.getContractFactory("Receiver");
+    let c = C.attach(receiver_addr);
+
+    await c.setGasForReFund(taskArgs.gas);
+
+    console.log("gas: ", taskArgs.gas);
+  });
+
+task("receiver:withdraw", "withdraw receiver address")
+  .addOptionalParam("receiver", "receiver address", "", types.string)
+  .addParam("token", "token address")
+  .addParam("amount", "token amount")
+  .setAction(async (taskArgs, hre) => {
+    const { ethers, network } = hre;
+    const accounts = await ethers.getSigners();
+    const deployer = accounts[0];
+    console.log("deployer: ", deployer.address);
+    let receiver_addr = await getReceiverAddress(taskArgs.receiver, network.name);
+    console.log("Receiver: ", receiver_addr);
+
+    let C = await ethers.getContractFactory("Receiver");
+    let c = C.attach(receiver_addr);
+
+    await c.rescueFunds(taskArgs.token, taskArgs.amount);
+
+    console.log("token: ", taskArgs.token);
+    console.log("amount: ", taskArgs.amount);
+  });
+
+task("receiver:transfer", "withdraw receiver address")
+  .addParam("token", "token address")
+  .addParam("amount", "token amount")
+  .addParam("receiver", "receiver address")
+  .setAction(async (taskArgs, hre) => {
+    const { ethers, network } = hre;
+    const accounts = await ethers.getSigners();
+    const deployer = accounts[0];
+    console.log("deployer: ", deployer.address);
+
+    let C = await ethers.getContractFactory("ERC20");
+    let c = C.attach(taskArgs.token);
+
+    await c.transfer(taskArgs.receiver, taskArgs.amount);
+
+    console.log("token: ", taskArgs.token);
+    console.log("amount: ", taskArgs.amount);
+  });
+
 // event SwapFailed(
 //     bytes32 indexed _orderId,
 //     uint256 _fromChain,
