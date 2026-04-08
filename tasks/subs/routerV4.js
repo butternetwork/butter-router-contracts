@@ -123,13 +123,17 @@ task("routerV4:deploy", "Deploy ButterRouterV4 contract")
         console.log("ButterRouterV4 address:", routerAddr);
         await saveDeployment(network.name, taskArgs.prefix + "ButterRouterV4", routerAddr);
 
-        await verify(
-            routerAddr,
-            [bridge, deployer_address, wtoken],
-            "contracts/ButterRouterV4.sol:ButterRouterV4",
-            network.config.chainId,
-            true
-        );
+        try {
+            await verify(
+                routerAddr,
+                [bridge, deployer_address, wtoken],
+                "contracts/ButterRouterV4.sol:ButterRouterV4",
+                network.config.chainId,
+                true
+            );
+        } catch (error) {
+            console.log("Verification failed:", error);
+        }
     });
 
 task("routerV4:setAuthorization", "Set executor authorization for ButterRouterV4")

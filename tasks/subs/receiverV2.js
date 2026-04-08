@@ -107,13 +107,18 @@ task("receiverV2:deploy", "deploy receiver")
         );
         console.log("ReceiverV2 address :", receiverAddr);
         await saveDeployment(network.name, taskArgs.prefix + "ReceiverV2", receiverAddr);
-        await verify(
-            receiverAddr,
-            [deployer_address, wtoken, bridge],
-            "contracts/ReceiverV2.sol:ReceiverV2",
-            network.config.chainId,
-            true
-        );
+        try {
+           await verify(
+                receiverAddr,
+                [deployer_address, wtoken, bridge],
+                "contracts/ReceiverV2.sol:ReceiverV2",
+                network.config.chainId,
+                true
+            );
+        } catch (error) {
+            console.error("Verification failed:", error);
+        }
+
     });
 
 task("receiverV2:setAuthorization", "set Authorization")

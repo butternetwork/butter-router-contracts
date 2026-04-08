@@ -42,9 +42,7 @@ let config = new Map([
                     "0x3321dE36B6C29A6fa102A67bd5C48E5756Baa596", // omni adapter
                 ],
             },
-            removes: [
-                "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
-            ],
+            removes: [],
         },
     ],
 
