@@ -16,3 +16,4 @@ task("deployOmniAdapter", "deploy OmniAdapter", require("./subs/OmniAdapter.js")
 task("solanaReceiver", "deploy solana receiver contract and set", require("./subs/solanaReveiver.js"));
 require("./subs/AffiliateFeeManager.js");
 require("./subs/RelayExecutor.js");
+require("./subs/verify.js");

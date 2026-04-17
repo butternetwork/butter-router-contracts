@@ -1,25 +1,9 @@
 require("@nomicfoundation/hardhat-toolbox");
 require("dotenv/config");
-require("hardhat-deploy");
-require('@nomiclabs/hardhat-ethers');
-require("@matterlabs/hardhat-zksync-deploy");
-require("@matterlabs/hardhat-zksync-solc");
-require("@matterlabs/hardhat-zksync-verify");
+require("@matterlabs/hardhat-zksync");
 require("hardhat-preprocessor");
 require("@xplorfin/hardhat-solc-excludes");
 require("./tasks");
-
-const fs = require('fs');
-const path = require('path');
-
-function getRemappings() {
-  return fs
-    .readFileSync("remappings.txt", "utf8")
-    .split("\n")
-    .filter(Boolean)
-    .map((line) => line.trim().split("="));
-}
-
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
@@ -41,8 +25,9 @@ module.exports = {
     },
     compilers: [
       {
-        version: "0.8.20",
+        version: "0.8.25",
         settings: {
+          evmVersion: "london",
           optimizer: {
             enabled: true,
             runs: 200,
@@ -50,9 +35,9 @@ module.exports = {
         },
       },
       {
-        version: "0.8.25",
-        evmVersion: "london",
+        version: "0.8.20",
         settings: {
+          evmVersion: "london",
           optimizer: {
             enabled: true,
             runs: 200,
@@ -60,9 +45,6 @@ module.exports = {
         },
       }
     ],
-  },
-  namedAccounts: {
-    deployer: 0,
   },
   // defaultNetwork: 'Eth',
   networks: {
@@ -219,10 +201,10 @@ module.exports = {
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     Tron: {
-      url: `https://api.trongrid.io/jsonrpc`,
+      url: process.env.TRON_RPC_URL || "https://api.trongrid.io/jsonrpc",
       chainId: 728126428,
       accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+        process.env.TRON_PRIVATE_KEY !== undefined ? [process.env.TRON_PRIVATE_KEY] : [],
     },
 
     Unichain: {
@@ -270,8 +252,8 @@ module.exports = {
       accounts: process.env.TESTNET_PRIVATE_KEY !== undefined ? [process.env.TESTNET_PRIVATE_KEY] : [],
     },
     TronTest: {
-      url: `https://mainnet-rpc.thundertoken.net`,
-      chainId: 108,
+      url: "https://nile.trongrid.io/jsonrpc",
+      chainId: 3448148188,
       accounts: process.env.TRON_TESTNET_PRIVATE_KEY !== undefined ? [process.env.TRON_TESTNET_PRIVATE_KEY] : [],
     },
   },

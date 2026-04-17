@@ -1,5 +1,5 @@
 const TronWeb = require("tronweb");
-let { Wallet } = require("zksync-web3");
+let { Wallet } = require("zksync-ethers");
 let { Deployer } = require("@matterlabs/hardhat-zksync-deploy");
 
 DEPLOY_FACTORY = "0x6258e4d2950757A749a4d4683A7342261ce12471";
