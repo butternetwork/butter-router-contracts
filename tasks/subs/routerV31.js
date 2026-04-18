@@ -1,51 +1,46 @@
-let { create, getTronContract, getTronDeployer } = require("../../utils/create.js");
-let { getDeployment, saveDeployment, tronAddressToHex } = require("../../utils/helper.js");
-let { getConfig } = require("../../configs/config");
-let {
-    setAuthorization,
-    setBridge,
-    setOwner,
-    acceptOwnership,
-    getExecutorList,
-    checkAuthorization,
-    checkBridgeAndWToken,
-    removeAuthFromConfig,
-    checkFee,
+const { getConfig } = require("../../configs/config.js");
+const {
+    getBridge, getDeploy, saveDeploy,
+    getContract, getDeployerAddr, isTronNetwork, tronToHex, tronFromHex,
+    createDeployer,
+} = require("../utils/helper.js");
+const {
+    setAuthorization, setBridge, setOwner, removeAuth, checkFee,
 } = require("../common/common.js");
-let { verify } = require("../../utils/verify.js");
 
-async function getRouterAddress(router, network) {
-    if (!router || router === "") {
-        router = await getDeployment(network, "ButterRouterV31");
-        if (!router) router = await getDeployment(network, "ButterRouterV3");
-    }
-    return router;
+const CONTRACT = "ButterRouterV31";
+
+async function getRouterAddress(router, hre) {
+    if (router && router !== "") return router;
+    // Try ButterRouterV31 first, fall back to ButterRouterV3
+    let addr = await getDeploy(hre.network.name, "ButterRouterV31").catch(() => null);
+    if (!addr) addr = await getDeploy(hre.network.name, "ButterRouterV3");
+    return addr;
 }
 
+// ============================================================
+// Main orchestration task
+// ============================================================
 module.exports = async (taskArgs, hre) => {
     const { network } = hre;
     let config = getConfig(network.name);
-    if (!config) {
-        throw "config not set";
-    }
+    if (!config) throw "config not set";
 
-    // Deploy ButterRouterV31 contract
-    await hre.run("routerV31:deploy", { bridge: config.v3.bridge, wtoken: config.wToken });
-    let router_addr = await getDeployment(network.name, "ButterRouterV31");
+    let bridge = getBridge(network.name, config);
 
-    // Deploy SwapAdapter if needed
-    let adapt_addr = await getDeployment(network.name, "SwapAdapterV3");
+    await hre.run("routerV31:deploy", { bridge, wtoken: config.wToken });
+
+    let router_addr = await getDeploy(network.name, CONTRACT);
+    let adapt_addr = await getDeploy(network.name, "SwapAdapterV3", "prod").catch(() => null);
     if (!adapt_addr) {
         console.log("SwapAdapterV3 not found, deploying...");
         await hre.run("deploySwapAdapter");
-        adapt_addr = await getDeployment(network.name, "SwapAdapterV3");
+        adapt_addr = await getDeploy(network.name, "SwapAdapterV3", "prod");
     }
 
-    // Add SwapAdapter to executors list
     config.v3.executors.push(adapt_addr);
     let executors_s = config.v3.executors.join(",");
 
-    // Set up router configuration
     await hre.run("routerV31:setAuthorization", { router: router_addr, executors: executors_s });
     await hre.run("routerV31:setFee", {
         router: router_addr,
@@ -59,445 +54,315 @@ module.exports = async (taskArgs, hre) => {
         native: config.v3.fee.maxReferrerNativeFee,
     });
 
-    console.log("ButterRouterV31 deployment and setup completed successfully!");
+    console.log("ButterRouterV31 deployment and setup completed!");
 };
 
+// ============================================================
+// Deploy
+// ============================================================
 task("routerV31:deploy", "Deploy ButterRouterV31 contract")
     .addParam("bridge", "Bridge contract address")
     .addParam("wtoken", "Wrapped token address")
     .setAction(async (taskArgs, hre) => {
-        const { network, ethers } = hre;
-        const accounts = await ethers.getSigners();
-        const deployer = accounts[0];
-        let deployer_address;
-        let bridge;
-        let wtoken;
+        const { network } = hre;
+        let deployer = createDeployer(hre, { autoVerify: true });
+        let deployerAddr = await getDeployerAddr(hre);
 
-        if (network.name === "Tron" || network.name === "TronTest") {
-            bridge = tronAddressToHex(taskArgs.bridge);
-            wtoken = tronAddressToHex(taskArgs.wtoken);
-            deployer_address = await getTronDeployer(true, network.name);
+        let result;
+        if (isTronNetwork(network.name)) {
+            let bridge = tronToHex(taskArgs.bridge);
+            let wtoken = tronToHex(taskArgs.wtoken);
+            result = await deployer.deploy(CONTRACT, [bridge, deployerAddr, wtoken]);
         } else {
-            deployer_address = deployer.address;
-            bridge = taskArgs.bridge;
-            wtoken = taskArgs.wtoken;
+            let salt = process.env.ROUTER_V31_DEPLOY_SALT || "";
+            result = await deployer.deploy(CONTRACT, [taskArgs.bridge, deployerAddr, taskArgs.wtoken], salt);
         }
-
-        let salt = process.env.ROUTER_V31_DEPLOY_SALT;
-        let routerAddr = await create(
-            hre,
-            deployer,
-            "ButterRouterV31",
-            ["address", "address", "address"],
-            [bridge, deployer_address, wtoken],
-            salt
-        );
-
-        console.log("ButterRouterV31 address:", routerAddr);
-        await saveDeployment(network.name, "ButterRouterV31", routerAddr);
-
-        await verify(
-            routerAddr,
-            [bridge, deployer_address, wtoken],
-            "contracts/ButterRouterV31.sol:ButterRouterV31",
-            network.config.chainId,
-            true
-        );
+        console.log(`${CONTRACT} address: ${result.address}`);
+        await saveDeploy(network.name, CONTRACT, result.address);
     });
 
-task("routerV31:setAuthorization", "Set executor authorization for ButterRouterV31")
+// ============================================================
+// Configuration tasks (delegate to common functions)
+// ============================================================
+task("routerV31:setAuthorization", "Set executor authorization")
     .addOptionalParam("router", "Router address", "", types.string)
     .addParam("executors", "Comma-separated executor addresses")
     .addOptionalParam("flag", "Authorization flag", true, types.boolean)
     .setAction(async (taskArgs, hre) => {
-        const { network, ethers } = hre;
-        const accounts = await ethers.getSigners();
-        const deployer = accounts[0];
-        console.log("deployer:", deployer.address);
-
-        let router_addr = await getRouterAddress(taskArgs.router, network.name);
-        let list = await getExecutorList(network.name, taskArgs.executors);
-        await setAuthorization("ButterRouterV31", hre.artifacts, network.name, router_addr, list, taskArgs.flag);
+        let addr = await getRouterAddress(taskArgs.router, hre);
+        let list = taskArgs.executors.split(",").map(e => e.trim());
+        await setAuthorization(hre, CONTRACT, addr, list, taskArgs.flag);
     });
 
-task("routerV31:setFeeManager", "Set fee manager for ButterRouterV31")
+task("routerV31:setFeeManager", "Set fee manager")
     .addOptionalParam("router", "Router address", "", types.string)
     .addParam("manager", "Fee manager address")
     .setAction(async (taskArgs, hre) => {
-        const { network, ethers } = hre;
-        const accounts = await ethers.getSigners();
-        const deployer = accounts[0];
-        let router_addr = await getRouterAddress(taskArgs.router, network.name);
+        let addr = await getRouterAddress(taskArgs.router, hre);
+        let router = await getContract(CONTRACT, hre, addr);
 
-        if (network.name === "Tron" || network.name === "TronTest") {
-            console.log("deployer:", await getTronDeployer(false, network.name));
-            let c = await getTronContract("ButterRouterV31", hre.artifacts, network.name, router_addr);
-            await c.setFeeManager(tronAddressToHex(taskArgs.manager)).send();
-        } else {
-            console.log("setFeeManager deployer:", deployer.address);
-            let Router = await ethers.getContractFactory("ButterRouterV31");
-            let router = Router.attach(router_addr);
-            let result = await (await router.setFeeManager(taskArgs.manager)).wait();
-            if (result.status == 1) {
-                console.log(`ButterRouterV31 ${router.address} setFeeManager ${taskArgs.manager} succeed`);
-            } else {
-                console.log("setFeeManager failed");
+        if (isTronNetwork(hre.network.name)) {
+            let manager = tronToHex(taskArgs.manager);
+            let current = tronToHex(await router.feeManager().call());
+            if (current.toLowerCase() === manager.toLowerCase()) {
+                console.log(`${CONTRACT} ${addr} feeManager already set`);
+                return;
             }
+            await router.setFeeManager(manager).sendAndWait();
+        } else {
+            let current = await router.feeManager();
+            if (current.toLowerCase() === taskArgs.manager.toLowerCase()) {
+                console.log(`${CONTRACT} ${addr} feeManager already set`);
+                return;
+            }
+            await (await router.setFeeManager(taskArgs.manager)).wait();
         }
+        console.log(`${CONTRACT} ${addr} setFeeManager ${taskArgs.manager}`);
     });
 
-task("routerV31:setReferrerMaxFee", "Set maximum referrer fee for ButterRouterV31")
+task("routerV31:setReferrerMaxFee", "Set maximum referrer fee")
     .addOptionalParam("router", "Router address", "", types.string)
     .addParam("rate", "Maximum fee rate")
     .addParam("native", "Maximum native fee")
     .setAction(async (taskArgs, hre) => {
-        const { network, ethers } = hre;
-        const accounts = await ethers.getSigners();
-        const deployer = accounts[0];
-        let router_addr = await getRouterAddress(taskArgs.router, network.name);
+        let addr = await getRouterAddress(taskArgs.router, hre);
+        let router = await getContract(CONTRACT, hre, addr);
 
-        if (network.name === "Tron" || network.name === "TronTest") {
-            console.log("deployer:", await getTronDeployer(false, network.name));
-            let c = await getTronContract("ButterRouterV31", hre.artifacts, network.name, router_addr);
-            await c.setReferrerMaxFee(taskArgs.rate, taskArgs.native).send();
+        if (isTronNetwork(hre.network.name)) {
+            let currentRate = await router.maxFeeRate().call();
+            let currentNative = await router.maxNativeFee().call();
+            if (currentRate.toString() === taskArgs.rate && currentNative.toString() === taskArgs.native) {
+                console.log(`${CONTRACT} ${addr} referrerMaxFee already up-to-date`);
+                return;
+            }
+            await router.setReferrerMaxFee(taskArgs.rate, taskArgs.native).sendAndWait();
         } else {
-            console.log("setReferrerMaxFee deployer:", deployer.address);
-            let Router = await ethers.getContractFactory("ButterRouterV31");
-            let router = Router.attach(router_addr);
+            let currentRate = await router.maxFeeRate();
+            let currentNative = await router.maxNativeFee();
+            if (currentRate.toString() === taskArgs.rate && currentNative.toString() === taskArgs.native) {
+                console.log(`${CONTRACT} ${addr} referrerMaxFee already up-to-date`);
+                return;
+            }
             await (await router.setReferrerMaxFee(taskArgs.rate, taskArgs.native)).wait();
-            console.log(`ButterRouterV31 ${router_addr} setReferrerMaxFee rate(${taskArgs.rate}), native(${taskArgs.native}) succeed`);
         }
+        console.log(`${CONTRACT} ${addr} setReferrerMaxFee rate(${taskArgs.rate}) native(${taskArgs.native})`);
     });
 
-task("routerV31:setFee", "Set router fees for ButterRouterV31")
+task("routerV31:setFee", "Set router fees")
     .addOptionalParam("router", "Router address", "", types.string)
     .addParam("feereceiver", "Fee receiver address")
     .addParam("feerate", "Fee rate")
     .addParam("fixedfee", "Fixed fee amount")
     .setAction(async (taskArgs, hre) => {
-        const { network, ethers } = hre;
-        const accounts = await ethers.getSigners();
-        const deployer = accounts[0];
-        let router_addr = await getRouterAddress(taskArgs.router, network.name);
+        let addr = await getRouterAddress(taskArgs.router, hre);
+        let router = await getContract(CONTRACT, hre, addr);
 
-        if (network.name === "Tron" || network.name === "TronTest") {
-            console.log("deployer:", await getTronDeployer(false, network.name));
-            let c = await getTronContract("ButterRouterV31", hre.artifacts, network.name, router_addr);
-            await c.setFee(tronAddressToHex(taskArgs.feereceiver), taskArgs.feerate, taskArgs.fixedfee).send();
-        } else {
-            console.log("setFee deployer:", deployer.address);
-            let Router = await ethers.getContractFactory("ButterRouterV31");
-            let router = Router.attach(router_addr);
-            let result = await (await router.setFee(taskArgs.feereceiver, taskArgs.feerate, taskArgs.fixedfee)).wait();
-            if (result.status == 1) {
-                console.log(
-                    `ButterRouterV31 ${router_addr} setFee rate(${taskArgs.feerate}), fixed(${taskArgs.fixedfee}), receiver(${taskArgs.feereceiver}) succeed`
-                );
-            } else {
-                console.log("setFee failed");
+        if (isTronNetwork(hre.network.name)) {
+            let receiver = tronToHex(taskArgs.feereceiver);
+            let currentReceiver = tronToHex(await router.feeReceiver().call());
+            let currentRate = await router.routerFeeRate().call();
+            let currentFixed = await router.routerFixedFee().call();
+            if (
+                currentReceiver.toLowerCase() === receiver.toLowerCase() &&
+                currentRate.toString() === taskArgs.feerate &&
+                currentFixed.toString() === taskArgs.fixedfee
+            ) {
+                console.log(`${CONTRACT} ${addr} fee already up-to-date`);
+                return;
             }
+            await router.setFee(receiver, taskArgs.feerate, taskArgs.fixedfee).sendAndWait();
+        } else {
+            let currentReceiver = await router.feeReceiver();
+            let currentRate = await router.routerFeeRate();
+            let currentFixed = await router.routerFixedFee();
+            if (
+                currentReceiver.toLowerCase() === taskArgs.feereceiver.toLowerCase() &&
+                currentRate.toString() === taskArgs.feerate &&
+                currentFixed.toString() === taskArgs.fixedfee
+            ) {
+                console.log(`${CONTRACT} ${addr} fee already up-to-date`);
+                return;
+            }
+            await (await router.setFee(taskArgs.feereceiver, taskArgs.feerate, taskArgs.fixedfee)).wait();
         }
+        console.log(`${CONTRACT} ${addr} setFee rate(${taskArgs.feerate}) fixed(${taskArgs.fixedfee}) receiver(${taskArgs.feereceiver})`);
     });
 
-task("routerV31:setBridge", "Set bridge address for ButterRouterV31")
+task("routerV31:setBridge", "Set bridge address")
     .addOptionalParam("router", "Router address", "", types.string)
     .addParam("bridge", "Bridge contract address")
     .setAction(async (taskArgs, hre) => {
-        const { network, ethers } = hre;
-        const accounts = await ethers.getSigners();
-        const deployer = accounts[0];
-        console.log("deployer:", deployer.address);
-        let router_addr = await getRouterAddress(taskArgs.router, network.name);
-
-        if (network.name === "Tron" || network.name === "TronTest") {
-            console.log("deployer:", await getTronDeployer(false, network.name));
-            let c = await getTronContract("ButterRouterV31", hre.artifacts, network.name, router_addr);
-            await c.setBridgeAddress(tronAddressToHex(taskArgs.bridge)).send();
-        } else {
-            console.log("setBridge deployer:", deployer.address);
-            let Router = await ethers.getContractFactory("ButterRouterV31");
-            let router = Router.attach(router_addr);
-            let result = await (await router.setBridgeAddress(taskArgs.bridge)).wait();
-            if (result.status == 1) {
-                console.log(`ButterRouterV31 ${router_addr} setBridgeAddress ${taskArgs.bridge} succeed`);
-            } else {
-                console.log("setBridgeAddress failed");
-            }
-        }
+        let addr = await getRouterAddress(taskArgs.router, hre);
+        await setBridge(hre, CONTRACT, addr, taskArgs.bridge);
     });
 
-task("routerV31:approveToken", "Approve token spending for ButterRouterV31")
+task("routerV31:setOwner", "Transfer ownership")
+    .addOptionalParam("router", "Router address", "", types.string)
+    .addParam("owner", "New owner address")
+    .setAction(async (taskArgs, hre) => {
+        let addr = await getRouterAddress(taskArgs.router, hre);
+        await setOwner(hre, CONTRACT, addr, taskArgs.owner);
+    });
+
+// ============================================================
+// Operation tasks
+// ============================================================
+task("routerV31:approveToken", "Approve token spending")
     .addOptionalParam("router", "Router address", "", types.string)
     .addParam("token", "Token address")
     .addParam("spender", "Spender address")
     .addOptionalParam("amount", "Approval amount", "", types.string)
     .setAction(async (taskArgs, hre) => {
-        const { network, ethers } = hre;
-        const accounts = await ethers.getSigners();
-        const deployer = accounts[0];
-        let router_addr = await getRouterAddress(taskArgs.router, network.name);
+        let addr = await getRouterAddress(taskArgs.router, hre);
+        let router = await getContract(CONTRACT, hre, addr);
 
-        // Use max uint256 if amount is not provided
-        let amount = taskArgs.amount || ethers.constants.MaxUint256;
-
-        if (network.name === "Tron" || network.name === "TronTest") {
-            console.log("deployer:", await getTronDeployer(false, network.name));
-            let c = await getTronContract("ButterRouterV31", hre.artifacts, network.name, router_addr);
-            await c.approveToken(tronAddressToHex(taskArgs.token), tronAddressToHex(taskArgs.spender), amount).send();
+        if (isTronNetwork(hre.network.name)) {
+            let amount = taskArgs.amount || "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+            await router.approveToken(tronToHex(taskArgs.token), tronToHex(taskArgs.spender), amount).sendAndWait();
         } else {
-            console.log("approveToken deployer:", deployer.address);
-            let Router = await ethers.getContractFactory("ButterRouterV31");
-            let router = Router.attach(router_addr);
-            let result = await (await router.approveToken(taskArgs.token, taskArgs.spender, amount)).wait();
-            if (result.status == 1) {
-                console.log(`ButterRouterV31 ${router_addr} approveToken ${taskArgs.token} to ${taskArgs.spender} amount ${amount} succeed`);
-            } else {
-                console.log("approveToken failed");
-            }
+            let amount = taskArgs.amount || hre.ethers.MaxUint256;
+            await (await router.approveToken(taskArgs.token, taskArgs.spender, amount)).wait();
         }
+        console.log(`${CONTRACT} ${addr} approveToken ${taskArgs.token} to ${taskArgs.spender}`);
     });
 
-task("routerV31:editFuncBlackList", "Edit function blacklist for ButterRouterV31")
+task("routerV31:editFuncBlackList", "Edit function blacklist")
     .addOptionalParam("router", "Router address", "", types.string)
     .addParam("func", "Function selector (4 bytes)")
     .addParam("flag", "Blacklist flag (true/false)")
     .setAction(async (taskArgs, hre) => {
-        const { network, ethers } = hre;
-        const accounts = await ethers.getSigners();
-        const deployer = accounts[0];
-        let router_addr = await getRouterAddress(taskArgs.router, network.name);
+        let addr = await getRouterAddress(taskArgs.router, hre);
+        let router = await getContract(CONTRACT, hre, addr);
 
-        if (network.name === "Tron" || network.name === "TronTest") {
-            console.log("deployer:", await getTronDeployer(false, network.name));
-            let c = await getTronContract("ButterRouterV31", hre.artifacts, network.name, router_addr);
-            await c.editFuncBlackList(taskArgs.func, taskArgs.flag).send();
+        if (isTronNetwork(hre.network.name)) {
+            await router.editFuncBlackList(taskArgs.func, taskArgs.flag).sendAndWait();
         } else {
-            console.log("editFuncBlackList deployer:", deployer.address);
-            let Router = await ethers.getContractFactory("ButterRouterV31");
-            let router = Router.attach(router_addr);
-            let result = await (await router.editFuncBlackList(taskArgs.func, taskArgs.flag)).wait();
-            if (result.status == 1) {
-                console.log(`ButterRouterV31 ${router_addr} editFuncBlackList ${taskArgs.func} flag ${taskArgs.flag} succeed`);
-            } else {
-                console.log("editFuncBlackList failed");
-            }
+            await (await router.editFuncBlackList(taskArgs.func, taskArgs.flag)).wait();
         }
+        console.log(`${CONTRACT} ${addr} editFuncBlackList ${taskArgs.func} flag ${taskArgs.flag}`);
     });
 
-task("routerV31:setOwner", "Transfer ownership of ButterRouterV31")
-    .addOptionalParam("router", "Router address", "", types.string)
-    .addParam("owner", "New owner address")
-    .setAction(async (taskArgs, hre) => {
-        const { network, ethers } = hre;
-        const accounts = await ethers.getSigners();
-        const deployer = accounts[0];
-        console.log("deployer:", deployer.address);
-        let router_addr = await getRouterAddress(taskArgs.router, network.name);
-        await setOwner("ButterRouterV31", hre.artifacts, network.name, router_addr, taskArgs.owner);
-    });
-
-task("routerV31:approve", "Approve ButterRouterV31 to Bridge")
-  .addOptionalParam("router", "Router address", "", types.string)
-  .addParam("token", "Token address")
-  .addParam("amount", "Token amount")
-  .setAction(async (taskArgs, hre) => {
-    const { network, ethers } = hre;
-    const accounts = await ethers.getSigners();
-    const deployer = accounts[0];
-    let router_addr = await getRouterAddress(taskArgs.router, network.name);
-    let config = getConfig(network.name);
-    if (!config) {
-      throw "config not set";
-    }
-
-    if (network.name === "Tron" || network.name === "TronTest") {
-      console.log("deployer:", await getTronDeployer(false, network.name));
-      let c = await getTronContract("ButterRouterV31", hre.artifacts, network.name, router_addr);
-      await c.rescueFunds(tronAddressToHex(taskArgs.token), taskArgs.amount).send();
-    } else {
-      console.log("rescueFunds deployer:", deployer.address);
-      let Router = await ethers.getContractFactory("ButterRouterV31");
-      let router = Router.attach(router_addr);
-      let result = await (await router.rescueFunds(taskArgs.token, taskArgs.amount)).wait();
-      if (result.status === 1) {
-        console.log(`ButterRouterV31 ${router.address} rescueFunds ${taskArgs.token} ${taskArgs.amount} succeed`);
-      } else {
-        console.log("rescueFunds failed");
-      }
-    }
-    console.log("RouterV31 rescueFunds completed.");
-  });
-
-task("routerV31:rescueFunds", "Rescue funds from ButterRouterV31")
+task("routerV31:rescueFunds", "Rescue funds")
     .addOptionalParam("router", "Router address", "", types.string)
     .addParam("token", "Token address")
     .addParam("amount", "Token amount")
     .setAction(async (taskArgs, hre) => {
-        const { network, ethers } = hre;
-        const accounts = await ethers.getSigners();
-        const deployer = accounts[0];
-        let router_addr = await getRouterAddress(taskArgs.router, network.name);
-        let config = getConfig(network.name);
-        if (!config) {
-            throw "config not set";
-        }
+        let addr = await getRouterAddress(taskArgs.router, hre);
+        let router = await getContract(CONTRACT, hre, addr);
 
-        if (network.name === "Tron" || network.name === "TronTest") {
-            console.log("deployer:", await getTronDeployer(false, network.name));
-            let c = await getTronContract("ButterRouterV31", hre.artifacts, network.name, router_addr);
-            await c.rescueFunds(tronAddressToHex(taskArgs.token), taskArgs.amount).send();
+        if (isTronNetwork(hre.network.name)) {
+            await router.rescueFunds(tronToHex(taskArgs.token), taskArgs.amount).sendAndWait();
         } else {
-            console.log("rescueFunds deployer:", deployer.address);
-            let Router = await ethers.getContractFactory("ButterRouterV31");
-            let router = Router.attach(router_addr);
-            let result = await (await router.rescueFunds(taskArgs.token, taskArgs.amount)).wait();
-            if (result.status === 1) {
-                console.log(`ButterRouterV31 ${router.address} rescueFunds ${taskArgs.token} ${taskArgs.amount} succeed`);
-            } else {
-                console.log("rescueFunds failed");
-            }
+            await (await router.rescueFunds(taskArgs.token, taskArgs.amount)).wait();
         }
-        console.log("RouterV31 rescueFunds completed.");
+        console.log(`${CONTRACT} ${addr} rescueFunds ${taskArgs.token} ${taskArgs.amount}`);
     });
 
-task("routerV31:update", "Check and update ButterRouterV31 from config file")
+// ============================================================
+// Update (delegates to common functions)
+// ============================================================
+task("routerV31:update", "Check and update from config file")
     .addOptionalParam("router", "Router address", "", types.string)
     .setAction(async (taskArgs, hre) => {
-        const { network, ethers } = hre;
-        const accounts = await ethers.getSigners();
-        const deployer = accounts[0];
-        console.log("deployer:", deployer.address);
-        let router_addr = await getRouterAddress(taskArgs.router, network.name);
-        let config = getConfig(network.name);
-        if (!config) {
-            throw "config not set";
-        }
+        let addr = await getRouterAddress(taskArgs.router, hre);
+        let config = getConfig(hre.network.name);
+        if (!config) throw "config not set";
 
-        // Check current configuration against config file
-        await checkAuthorization("ButterRouterV31", hre.artifacts, network.name, router_addr, config.v3.executors);
-        await checkBridgeAndWToken("ButterRouterV31", hre.artifacts, network.name, router_addr, config);
-        await checkFee("ButterRouterV31", hre.artifacts, network.name, router_addr, config);
+        let adapt_addr;
+        try { adapt_addr = await getDeploy(hre.network.name, "SwapAdapterV3", "prod"); } catch (e) {}
+        let executors = [...config.v3.executors];
+        if (adapt_addr) executors.push(adapt_addr);
 
-        // Remove deprecated authorizations
-        await hre.run("routerV31:removeAuthFromConfig", { router: router_addr });
+        await setAuthorization(hre, CONTRACT, addr, executors);
 
+        let bridge = getBridge(hre.network.name, config);
+        await setBridge(hre, CONTRACT, addr, bridge);
+
+        await checkFee(hre, CONTRACT, addr, config.v3.fee);
+
+        await removeAuth(hre, CONTRACT, addr, config.removes);
         console.log("RouterV31 update completed.");
     });
 
-task("routerV31:removeAuthFromConfig", "Remove authorization from config file")
+task("routerV31:removeAuthFromConfig", "Remove authorization from config")
     .addOptionalParam("router", "Router address", "", types.string)
     .setAction(async (taskArgs, hre) => {
-        const { network, ethers } = hre;
-        const accounts = await ethers.getSigners();
-        const deployer = accounts[0];
-        console.log("deployer:", deployer.address);
-        let router_addr = await getRouterAddress(taskArgs.router, network.name);
+        let addr = await getRouterAddress(taskArgs.router, hre);
         let config = getConfig(hre.network.name);
-        if (!config) {
-            throw "config not set";
-        }
-
-        if (!config.removes || config.removes.length === 0) {
-            console.log("no removes list");
-            return;
-        }
-
-        await removeAuthFromConfig("ButterRouterV31", hre.artifacts, network.name, router_addr, config.removes);
-        console.log("RouterV31 remove authorization from config file completed.");
+        if (!config) throw "config not set";
+        await removeAuth(hre, CONTRACT, addr, config.removes);
     });
 
-task("routerV31:bridge", "Bridge tokens using ButterRouterV31")
+// ============================================================
+// Bridge & Info
+// ============================================================
+task("routerV31:bridge", "Bridge tokens")
     .addOptionalParam("router", "Router address", "", types.string)
     .addParam("token", "Token address")
     .addParam("amount", "Token amount")
     .addParam("chain", "Target chain ID")
     .setAction(async (taskArgs, hre) => {
-        const { network, ethers } = hre;
-        const accounts = await ethers.getSigners();
-        const deployer = accounts[0];
-        let router_addr = await getRouterAddress(taskArgs.router, network.name);
-        let config = getConfig(network.name);
-        if (!config) {
-            throw "config not set";
-        }
-
-        if (network.name === "Tron" || network.name === "TronTest") {
-            // TODO: Implement Tron bridge logic
+        const { ethers } = hre;
+        if (isTronNetwork(hre.network.name)) {
             console.log("Tron bridge not implemented yet");
-        } else {
-            let Router = await ethers.getContractFactory("ButterRouterV31");
-            let router = Router.attach(router_addr);
-
-            let token = await ethers.getContractAt("MockToken", taskArgs.token);
-            let decimals = await token.decimals();
-            let value = ethers.utils.parseUnits(taskArgs.amount, decimals);
-
-            // Encode bridge parameters
-            let bridge = ethers.utils.AbiCoder.prototype.encode(
-                ["uint256", "uint256", "bytes", "bytes"],
-                [taskArgs.chain, 0, deployer.address, []]
-            );
-
-            let bridgeData = ethers.utils.solidityPack(["uint256", "bytes"], [0x20, bridge]);
-
-            // Check and approve token if needed
-            let approved = await token.allowance(deployer.address, router.address);
-            console.log("Current approval:", approved.toString());
-            if (approved.lt(value)) {
-                console.log(`${taskArgs.token} approve ${router.address} value [${value}] ...`);
-                await (await token.approve(router.address, value)).wait();
-            }
-
-            // Execute bridge transaction
-            let result = await (
-                await router.swapAndBridge(
-                    ethers.constants.HashZero,
-                    deployer.address,
-                    taskArgs.token,
-                    value,
-                    [],
-                    bridgeData,
-                    [],
-                    []
-                )
-            ).wait();
-
-            if (result.status === 1) {
-                console.log(`ButterRouterV31 ${router.address} bridge ${taskArgs.token} ${taskArgs.amount} to chain ${taskArgs.chain} succeed`);
-                console.log("Transaction hash:", result.transactionHash);
-            } else {
-                console.log("Bridge transaction failed");
-            }
+            return;
         }
-        console.log("RouterV31 bridge completed.");
+
+        let addr = await getRouterAddress(taskArgs.router, hre);
+        let [signer] = await ethers.getSigners();
+        let router = await getContract(CONTRACT, hre, addr);
+        let token = await ethers.getContractAt("MockToken", taskArgs.token);
+        let decimals = await token.decimals();
+        let value = ethers.parseUnits(taskArgs.amount, decimals);
+
+        let bridge = ethers.AbiCoder.defaultAbiCoder().encode(
+            ["uint256", "uint256", "bytes", "bytes"],
+            [taskArgs.chain, 0, signer.address, "0x"]
+        );
+        let bridgeData = ethers.solidityPacked(["uint256", "bytes"], [0x20, bridge]);
+
+        let approved = await token.allowance(signer.address, addr);
+        if (approved < value) {
+            console.log(`Approving ${taskArgs.token}...`);
+            await (await token.approve(addr, value)).wait();
+        }
+
+        let result = await (await router.swapAndBridge(
+            ethers.ZeroHash, signer.address, taskArgs.token, value, [], bridgeData, [], "0x"
+        )).wait();
+
+        if (result.status === 1) {
+            console.log(`Bridge succeeded. tx: ${result.hash}`);
+        } else {
+            console.log("Bridge failed");
+        }
     });
 
-task("routerV31:info", "Display ButterRouterV31 contract information")
+task("routerV31:info", "Display contract information")
     .addOptionalParam("router", "Router address", "", types.string)
     .setAction(async (taskArgs, hre) => {
-        const { network, ethers } = hre;
-        let router_addr = await getRouterAddress(taskArgs.router, network.name);
+        let addr = await getRouterAddress(taskArgs.router, hre);
+        let router = await getContract(CONTRACT, hre, addr);
 
-        if (network.name === "Tron" || network.name === "TronTest") {
-            let c = await getTronContract("ButterRouterV31", hre.artifacts, network.name, router_addr);
-            console.log("=== ButterRouterV31 Contract Information ===");
-            console.log("Address:", router_addr);
-            console.log("Bridge Address:", await c.bridgeAddress().call());
-            console.log("Fee Manager:", await c.feeManager().call());
-            console.log("Owner:", await c.owner().call());
+        console.log("=== ButterRouterV31 Contract Information ===");
+        console.log("Address:", addr);
+        if (isTronNetwork(hre.network.name)) {
+            console.log("Bridge:", tronFromHex(await router.bridgeAddress().call()));
+            console.log("Fee Manager:", tronFromHex(await router.feeManager().call()));
+            console.log("Owner:", tronFromHex(await router.owner().call()));
+            console.log("Fee Receiver:", tronFromHex(await router.feeReceiver().call()));
+            console.log("Fee Rate:", (await router.routerFeeRate().call()).toString());
+            console.log("Fixed Fee:", (await router.routerFixedFee().call()).toString());
+            console.log("Max Fee Rate:", (await router.maxFeeRate().call()).toString());
+            console.log("Max Native Fee:", (await router.maxNativeFee().call()).toString());
         } else {
-            let Router = await ethers.getContractFactory("ButterRouterV31");
-            let router = Router.attach(router_addr);
-
-            console.log("=== ButterRouterV31 Contract Information ===");
-            console.log("Address:", router.address);
-            console.log("Bridge Address:", await router.bridgeAddress());
+            console.log("Bridge:", await router.bridgeAddress());
             console.log("Fee Manager:", await router.feeManager());
             console.log("Owner:", await router.owner());
             console.log("Fee Receiver:", await router.feeReceiver());
-            console.log("Router Fee Rate:", await router.routerFeeRate());
-            console.log("Router Fixed Fee:", await router.routerFixedFee());
-            console.log("Max Fee Rate:", await router.maxFeeRate());
-            console.log("Max Native Fee:", await router.maxNativeFee());
+            console.log("Fee Rate:", (await router.routerFeeRate()).toString());
+            console.log("Fixed Fee:", (await router.routerFixedFee()).toString());
+            console.log("Max Fee Rate:", (await router.maxFeeRate()).toString());
+            console.log("Max Native Fee:", (await router.maxNativeFee()).toString());
         }
     });

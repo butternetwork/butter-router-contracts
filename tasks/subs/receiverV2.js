@@ -4,6 +4,9 @@ const {
     getContract, getDeployerAddr, isTronNetwork, tronToHex, tronFromHex,
     createDeployer,
 } = require("../utils/helper.js");
+const {
+    setAuthorization, setBridge, setOwner, removeAuth,
+} = require("../common/common.js");
 const { httpGet } = require("../utils/httpUtil.js");
 
 const CONTRACT = "ReceiverV2";
@@ -66,63 +69,17 @@ task("receiverV2:setAuthorization", "Set executor authorization")
     .addParam("executors", "Comma-separated executor addresses")
     .addOptionalParam("flag", "Authorization flag", true, types.boolean)
     .setAction(async (taskArgs, hre) => {
-        let receiver_addr = await getReceiverAddress(taskArgs.receiver, hre);
-        let c = await getContract(CONTRACT, hre, receiver_addr);
-
-        if (isTronNetwork(hre.network.name)) {
-            let list = taskArgs.executors.split(",").map(e => tronToHex(e.trim()));
-            let toUpdate = [];
-            for (let addr of list) {
-                let approved = await c.approved(addr).call();
-                if (Boolean(approved) !== taskArgs.flag) toUpdate.push(addr);
-            }
-            if (toUpdate.length === 0) {
-                console.log(`${CONTRACT} ${receiver_addr} authorization already up-to-date`);
-                return;
-            }
-            await c.setAuthorization(toUpdate, taskArgs.flag).sendAndWait();
-            console.log(`${CONTRACT} ${receiver_addr} setAuthorization [${toUpdate.length}/${list.length} changed]`);
-        } else {
-            let list = taskArgs.executors.split(",").map(e => e.trim());
-            let toUpdate = [];
-            for (let addr of list) {
-                let approved = await c.approved(addr);
-                if (Boolean(approved) !== taskArgs.flag) toUpdate.push(addr);
-            }
-            if (toUpdate.length === 0) {
-                console.log(`${CONTRACT} ${receiver_addr} authorization already up-to-date`);
-                return;
-            }
-            await (await c.setAuthorization(toUpdate, taskArgs.flag)).wait();
-            console.log(`${CONTRACT} ${receiver_addr} setAuthorization [${toUpdate.length}/${list.length} changed]`);
-        }
+        let addr = await getReceiverAddress(taskArgs.receiver, hre);
+        let list = taskArgs.executors.split(",").map(e => e.trim());
+        await setAuthorization(hre, CONTRACT, addr, list, taskArgs.flag);
     });
 
 task("receiverV2:setBridge", "Set bridge address")
     .addOptionalParam("receiver", "Receiver address", "", types.string)
     .addParam("bridge", "Bridge address")
     .setAction(async (taskArgs, hre) => {
-        let receiver_addr = await getReceiverAddress(taskArgs.receiver, hre);
-        let c = await getContract(CONTRACT, hre, receiver_addr);
-
-        if (isTronNetwork(hre.network.name)) {
-            let bridge = tronToHex(taskArgs.bridge);
-            let current = tronToHex(await c.bridgeAddress().call());
-            if (current.toLowerCase() === bridge.toLowerCase()) {
-                console.log(`${CONTRACT} ${receiver_addr} bridge already set`);
-                return;
-            }
-            await c.setBridgeAddress(bridge).sendAndWait();
-            console.log(`${CONTRACT} ${receiver_addr} setBridgeAddress ${taskArgs.bridge}`);
-        } else {
-            let current = await c.bridgeAddress();
-            if (current.toLowerCase() === taskArgs.bridge.toLowerCase()) {
-                console.log(`${CONTRACT} ${receiver_addr} bridge already set`);
-                return;
-            }
-            await (await c.setBridgeAddress(taskArgs.bridge)).wait();
-            console.log(`${CONTRACT} ${receiver_addr} setBridgeAddress ${taskArgs.bridge}`);
-        }
+        let addr = await getReceiverAddress(taskArgs.receiver, hre);
+        await setBridge(hre, CONTRACT, addr, taskArgs.bridge);
     });
 
 task("receiverV2:updateKeepers", "Update keeper authorization (comma-separated)")
@@ -148,26 +105,8 @@ task("receiverV2:setOwner", "Transfer ownership")
     .addOptionalParam("receiver", "Receiver address", "", types.string)
     .addParam("owner", "New owner address")
     .setAction(async (taskArgs, hre) => {
-        let receiver_addr = await getReceiverAddress(taskArgs.receiver, hre);
-        let c = await getContract(CONTRACT, hre, receiver_addr);
-
-        if (isTronNetwork(hre.network.name)) {
-            let owner = tronToHex(taskArgs.owner);
-            let current = tronToHex(await c.owner().call());
-            if (current.toLowerCase() === owner.toLowerCase()) {
-                console.log(`${CONTRACT} ${receiver_addr} owner already ${taskArgs.owner}`);
-                return;
-            }
-            await c.transferOwnership(owner).sendAndWait();
-        } else {
-            let current = await c.owner();
-            if (current.toLowerCase() === taskArgs.owner.toLowerCase()) {
-                console.log(`${CONTRACT} ${receiver_addr} owner already ${taskArgs.owner}`);
-                return;
-            }
-            await (await c.transferOwnership(taskArgs.owner)).wait();
-        }
-        console.log(`${CONTRACT} ${receiver_addr} transferOwnership ${taskArgs.owner}`);
+        let addr = await getReceiverAddress(taskArgs.receiver, hre);
+        await setOwner(hre, CONTRACT, addr, taskArgs.owner);
     });
 
 // ============================================================
@@ -176,7 +115,7 @@ task("receiverV2:setOwner", "Transfer ownership")
 task("receiverV2:update", "Check and update from config file")
     .addOptionalParam("receiver", "Receiver address", "", types.string)
     .setAction(async (taskArgs, hre) => {
-        let receiver_addr = await getReceiverAddress(taskArgs.receiver, hre);
+        let addr = await getReceiverAddress(taskArgs.receiver, hre);
         let config = getConfig(hre.network.name);
         if (!config) throw "config not set";
 
@@ -185,42 +124,18 @@ task("receiverV2:update", "Check and update from config file")
         let executors = [...config.v3.executors];
         if (adapt_addr) executors.push(adapt_addr);
 
-        await hre.run("receiverV2:setAuthorization", { receiver: receiver_addr, executors: executors.join(",") });
-        await hre.run("receiverV2:removeAuthFromConfig", { receiver: receiver_addr });
+        await setAuthorization(hre, CONTRACT, addr, executors);
+        await removeAuth(hre, CONTRACT, addr, config.removes);
         console.log("ReceiverV2 update completed.");
     });
 
 task("receiverV2:removeAuthFromConfig", "Remove authorization from config")
     .addOptionalParam("receiver", "Receiver address", "", types.string)
     .setAction(async (taskArgs, hre) => {
-        let receiver_addr = await getReceiverAddress(taskArgs.receiver, hre);
+        let addr = await getReceiverAddress(taskArgs.receiver, hre);
         let config = getConfig(hre.network.name);
         if (!config) throw "config not set";
-        if (!config.removes || config.removes.length === 0) {
-            console.log("no removes list");
-            return;
-        }
-
-        let c = await getContract(CONTRACT, hre, receiver_addr);
-        let toRemove = [];
-
-        if (isTronNetwork(hre.network.name)) {
-            for (let exec of config.removes) {
-                let addr = tronToHex(exec);
-                if (await c.approved(addr).call()) toRemove.push(addr);
-            }
-            if (toRemove.length > 0) {
-                await c.setAuthorization(toRemove, false).sendAndWait();
-            }
-        } else {
-            for (let exec of config.removes) {
-                if (await c.approved(exec)) toRemove.push(exec);
-            }
-            if (toRemove.length > 0) {
-                await (await c.setAuthorization(toRemove, false)).wait();
-            }
-        }
-        console.log(`ReceiverV2 removed ${toRemove.length} authorizations.`);
+        await removeAuth(hre, CONTRACT, addr, config.removes);
     });
 
 // ============================================================

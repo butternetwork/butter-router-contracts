@@ -9,240 +9,232 @@ This is the Butter Network Router smart contracts repository - a cross-chain omn
 ## Key Architecture Components
 
 ### Core Router Contracts
-- **ButterRouterV2.sol**: Legacy router contract for cross-chain swaps
-- **ButterRouterV3.sol**: Enhanced router with improved fee management and multi-bridge support
-- **ButterRouterV31.sol**: Gas-optimized version of V3 with zero-fee cross-chain strategy (NO fees on ANY bridge operations)
+- **ButterRouterV4.sol**: Current production router (0.8.25, evmVersion: london)
+- **ButterRouterV31.sol**: Gas-optimized version with zero-fee cross-chain strategy
+- **ButterRouterV3.sol**: Legacy router with fee management and multi-bridge support
+- **ButterRouterV2.sol**: Legacy router (in contracts/legacy/)
 - **SwapAdapter.sol**: Aggregates multiple DEX protocols for optimal routing
 
 ### Abstract Base Contracts
-- **abstract/Router.sol**: Base router functionality with fee management
 - **abstract/SwapCallV2.sol**: Enhanced swap execution logic with security improvements
 - **abstract/FeeManager.sol**: Fee collection and distribution system
+- **abstract/Aggregator.sol**: Swap aggregation base
 
 ### Supporting Infrastructure
+- **ReceiverV2.sol**: Current production receiver for cross-chain transactions
+- **Receiver.sol**: Legacy receiver
+- **SolanaReceiver.sol**: Solana-specific receiver
 - **OmniAdapter.sol**: Multi-chain adapter for cross-chain operations
-- **Receiver.sol**: Handles incoming cross-chain transactions
 - **IntegratorManager.sol**: Manages third-party integrations
-- **lib/DexExecutor.sol**: DEX interaction utilities
-- **lib/Helper.sol**: Common utility functions
+
+## Tech Stack
+
+- **Solidity**: 0.8.25 (new contracts), 0.8.20 (legacy contracts)
+- **Hardhat**: 2.22+ with toolbox v5
+- **ethers**: v6
+- **@mapprotocol/common-contracts**: ^0.4.0 (deploy, verify, Tron support)
+- **OpenZeppelin**: 4.9.x
+- **Tron**: via TronWeb + TronClient from common-contracts
+
+## Project Structure
+
+```
+contracts/           # Solidity source
+  legacy/            # V2 and old contracts (excluded from compile)
+  abstract/          # Base contracts
+  lib/               # Utility libraries
+  mock/              # Test mocks
+  interface/         # Interfaces
+tasks/
+  index.js           # Task registration
+  utils/
+    helper.js        # Shared utilities (getContract, getDeploy, createDeployer, etc.)
+    httpUtil.js      # HTTP client (axios)
+  common/
+    common.js        # Shared contract operations (setAuthorization, setBridge, setOwner, etc.)
+  subs/
+    routerV4.js      # ButterRouterV4 tasks
+    receiverV2.js    # ReceiverV2 tasks
+    routerV31.js     # ButterRouterV31 tasks
+    routerV3.js      # ButterRouterV3 tasks
+    receiver.js      # Receiver V1 tasks
+    solanaReveiver.js # SolanaReceiver tasks
+    verify.js        # Contract verification (EVM + Tron)
+    flatten.js       # Contract flattening
+    ...              # Other deploy tasks
+configs/
+  config.js          # Network-specific settings (bridges, executors, fees, wToken)
+deployments/
+  deploy.json        # 3-layer structure: { prod: {}, main: {}, test: {} }
+```
 
 ## Development Commands
 
 ### Building and Testing
 ```bash
-# Install dependencies
-npm install
-
-# Compile contracts
-npx hardhat compile
-
-# Compile for zkSync networks
-npx hardhat compile --network zkSync
-
-# Run tests
-npx hardhat test
-
-# Format code
-npm run format
-
-# Flatten contracts (remove duplicates and create single files)
-npm run flatten:all
-npm run flatten:routers
-npm run flatten:adapters
-npm run flatten:receivers
+npm install --legacy-peer-deps   # Install dependencies
+npx hardhat compile               # Compile contracts
+npx hardhat compile --force       # Force recompile
+npx hardhat test                  # Run tests
+npm run format                    # Format code
 ```
 
-### Deployment and Configuration
+### Deployment
 
-#### Router V31 Deployment (Gas-Optimized V3)
+All deployment requires `NETWORK_ENV` environment variable:
 ```bash
-# Deploy complete Router V31 setup (gas-optimized version)
-npx hardhat routerV31 --network <network>
-
-# Deploy Router V31 contract only
-npx hardhat routerV31:deploy --bridge <bridge_address> --wtoken <wtoken_address> --network <network>
-
-# Configure executors (DEX routers)
-npx hardhat routerV31:setAuthorization --router <router_address> --executors <executor1,executor2> --flag <true/false> --network <network>
-
-# Set fee parameters (ONLY applies to swapAndCall, NEVER to swapAndBridge)
-npx hardhat routerV31:setFee --router <router_address> --feereceiver <receiver_address> --feerate <rate> --fixedfee <fee> --network <network>
-
-# Set referrer max fees
-npx hardhat routerV31:setReferrerMaxFee --router <router_address> --rate <max_rate> --native <max_native_fee> --network <network>
-
-# Set bridge address
-npx hardhat routerV31:setBridge --router <router_address> --bridge <bridge_address> --network <network>
-
-# Set fee manager
-npx hardhat routerV31:setFeeManager --router <router_address> --manager <fee_manager_address> --network <network>
+NETWORK_ENV=main    # mainnet test environment
+NETWORK_ENV=prod    # production environment
+# Testnet networks auto-detect, no NETWORK_ENV needed
 ```
 
-#### Router V3 Deployment (Legacy)
+#### Router V4 (Current)
 ```bash
-# Deploy complete Router V3 setup
-npx hardhat routerV3 --network <network>
-
-# Deploy Router V3 contract only
-npx hardhat routerV3:deploy --bridge <bridge_address> --wtoken <wtoken_address> --network <network>
-
-# Configure executors (DEX routers)
-npx hardhat routerV3:setAuthorization --router <router_address> --executors <executor1,executor2> --flag <true/false> --network <network>
-
-# Set fee parameters
-npx hardhat routerV3:setFee --router <router_address> --feereceiver <receiver_address> --feerate <rate> --fixedfee <fee> --network <network>
+NETWORK_ENV=main npx hardhat routerV4 --network <network>          # Full deploy + configure
+NETWORK_ENV=main npx hardhat routerV4:deploy --bridge <addr> --wtoken <addr> --network <network>
+npx hardhat routerV4:setAuthorization --executors <addr1,addr2> --network <network>
+npx hardhat routerV4:setFee --feereceiver <addr> --feerate <rate> --fixedfee <fee> --network <network>
+npx hardhat routerV4:setReferrerMaxFee --rate <rate> --native <fee> --network <network>
+npx hardhat routerV4:setBridge --bridge <addr> --network <network>
+npx hardhat routerV4:setFeeManager --manager <addr> --network <network>
+npx hardhat routerV4:setOwner --owner <addr> --network <network>
+npx hardhat routerV4:update --network <network>                     # Sync all settings from config
+npx hardhat routerV4:info --network <network>                       # Display contract state
 ```
 
-#### Router V2 Deployment (Legacy)
+#### ReceiverV2 (Current)
 ```bash
-# Deploy Router V2 setup
-npx hardhat routerV2 --network <network>
-
-# Individual components
-npx hardhat routerV2:deploy --mos <mos_address> --wtoken <wtoken_address> --network <network>
-npx hardhat routerV2:deploySwapAdapter --network <network>
+NETWORK_ENV=main npx hardhat receiverV2 --network <network>         # Full deploy + configure
+NETWORK_ENV=main npx hardhat receiverV2:deploy --bridge <addr> --wtoken <addr> --network <network>
+npx hardhat receiverV2:setAuthorization --executors <addr1,addr2> --network <network>
+npx hardhat receiverV2:setBridge --bridge <addr> --network <network>
+npx hardhat receiverV2:updateKeepers --keepers <addr1,addr2> --network <network>
+npx hardhat receiverV2:setOwner --owner <addr> --network <network>
+npx hardhat receiverV2:update --network <network>
+npx hardhat receiverV2:execSwap --hash <txHash> --network <network>
+npx hardhat receiverV2:swapRescueFunds --hash <txHash> --network <network>
 ```
 
-#### Other Deployments
+#### Contract Verification
 ```bash
-# Deploy swap adapter
-npx hardhat deploySwapAdapter --network <network>
+# EVM (auto-routes to etherscan/blockscout)
+npx hardhat verifyContract --contract ButterRouterV4 --address <addr> --args '[...]' --network <network>
 
-# Deploy fee receiver
-npx hardhat deployFeeReceiver --payees <address1,address2> --shares <share1,share2> --network <network>
-
-# Deploy omni adapter
-npx hardhat deployOmniAdapter --network <network>
+# Tron (auto-routes to TronScan API)
+npx hardhat verifyContract --contract ButterRouterV4 --address <tron_addr> --args '[...]' --network Tron
 ```
 
 ### Contract Flattening
-
-The project includes comprehensive contract flattening functionality to generate single-file versions for verification and audit purposes.
-
-#### Available Flatten Commands
 ```bash
-# Flatten all contracts
+npx hardhat flatten:contract --contract ButterRouterV4
+npx hardhat flatten:all-routers
+npx hardhat flatten:adapters
+npx hardhat flatten:receivers
 npx hardhat flatten:all
-
-# Flatten specific contract categories
-npx hardhat flatten:all-routers    # All router contracts (V2, V3, V31)
-npx hardhat flatten:adapters       # Swap adapters and omni adapters  
-npx hardhat flatten:receivers      # Receiver contracts
-
-# Flatten specific contracts
-npx hardhat flatten:contract --contract ButterRouterV31
-npx hardhat flatten:contract --contract ButterRouterV3
-npx hardhat flatten:contract --contract SwapAdapterV3
-
-# Custom output directory
-npx hardhat flatten:contract --contract ButterRouterV31 --output verification
 ```
-
-#### NPM Scripts for Flattening
-```bash
-npm run flatten:all        # Flatten all contracts
-npm run flatten:routers    # Flatten router contracts only
-npm run flatten:adapters   # Flatten adapter contracts only  
-npm run flatten:receivers  # Flatten receiver contracts only
-npm run flatten:v31        # Flatten ButterRouterV31 only
-npm run flatten:v3         # Flatten ButterRouterV3 only
-npm run flatten:v2         # Flatten ButterRouterV2 only
-```
-
-#### Flatten Features
-- **Automatic Cleanup**: Removes duplicate SPDX license identifiers and pragma statements
-- **File Organization**: Groups all dependencies in logical order
-- **Size Optimization**: Eliminates redundant imports and file headers
-- **Verification Ready**: Output format suitable for Etherscan and other verification services
-
-#### Router V31 Specific Operations
-```bash
-# Approve tokens for spending
-npx hardhat routerV31:approveToken --router <router_address> --token <token_address> --spender <spender_address> --amount <amount> --network <network>
-
-# Edit function blacklist
-npx hardhat routerV31:editFuncBlackList --router <router_address> --func <function_selector> --flag <true/false> --network <network>
-
-# Execute bridge transactions (ZERO fees - fully gas optimized)
-npx hardhat routerV31:bridge --router <router_address> --token <token_address> --amount <amount> --chain <target_chain_id> --network <network>
-
-# Get contract information
-npx hardhat routerV31:info --router <router_address> --network <network>
-
-# Update configuration from config file
-npx hardhat routerV31:update --router <router_address> --network <network>
-```
-
-#### V31 vs V3 Key Differences
-- **Gas Optimization**: V31 significantly optimized for lower gas consumption on cross-chain operations
-- **Bridge Fee Strategy**: V31 NEVER collects ANY fees on `swapAndBridge` operations (zero-fee cross-chain)
-- **Fee Collection**: V31 ONLY collects fees on `swapAndCall` operations (same-chain only)
-- **Implementation**: V31 completely bypasses fee logic for bridge operations, not just sets fees to zero
-- **Same Interface**: V31 maintains full compatibility with V3 deployment and management commands
 
 ## Configuration System
 
-### Network Configuration
-All network-specific settings are stored in `configs/config.js`:
-- **wToken**: Wrapped native token address for each chain
-- **bridge/mos**: Cross-chain bridge contract addresses
-- **executors**: Approved DEX router contracts (1inch, UniSwap, SushiSwap, etc.)
-- **fee**: Fee rates and receiver addresses per network
+### deploy.json Structure
+Three-layer structure separating environments:
+```json
+{
+  "prod": { "Eth": { "ButterRouterV4": "0x...", "ReceiverV2": "0x...", "SwapAdapterV3": "0x..." } },
+  "main": { "Eth": { "ButterRouterV4": "0x...", "ReceiverV2": "0x..." } },
+  "test": { "Makalu": { "SwapAdapterV3": "0x..." } }
+}
+```
+- **prod**: Production contracts (V2/V3/V31/V4 + shared infra like SwapAdapterV3)
+- **main**: Mainnet test contracts (V4/ReceiverV2 only)
+- **test**: Testnet contracts
 
-### Multi-Chain Support
-Configured networks include:
-- **Mainnets**: Ethereum, BSC, Polygon, Arbitrum, Optimism, Base, Blast, Scroll, Linea, Mantle, Map Protocol, Klaytn, Conflux, Tron, zkSync, Merlin, Ainn
-- **Testnets**: Sepolia, BSC Testnet, Makalu (Map testnet), Arbitrum Sepolia
+### Network Configuration (configs/config.js)
+- **wToken**: Wrapped native token address
+- **tss_gateway / tss_main_gateway / tss_prod_gateway**: Bridge addresses per env
+- **v3.executors**: Approved DEX router contracts
+- **v3.fee**: Fee rates and receiver addresses
 
-## Project Structure Notes
+### Tron Configuration
+Tron networks use separate private keys and RPC:
+- `TRON_PRIVATE_KEY` / `TRON_TESTNET_PRIVATE_KEY` in .env
+- `TRON_RPC_URL` (defaults to api.trongrid.io)
+- TronClient from `@mapprotocol/common-contracts` handles address conversion and tx signing
 
-### Version Evolution
-- **V2**: Original router with MOS bridge integration
-- **V3**: Enhanced with improved fee management and multi-bridge support  
-- **V31**: Gas-optimized version with zero-fee cross-chain strategy - completely removes fee collection from bridge operations
+## Task Architecture
 
-### Fee System
-- Router fees are collected as percentage + fixed amounts
-- Referrer/integrator fees supported in V3+
-- Fee denominators: V2 uses 1,000,000, V3/V31 use 10,000
-- **V31 Zero-Fee Cross-Chain**: 
-  - `swapAndBridge` NEVER collects any fees (router or integrator)
-  - Fee logic completely bypassed for bridge operations
-  - Significant gas savings from skipping fee calculations
-- **V31 Same-Chain Fees**: Only `swapAndCall` operations collect fees
+### Shared Utilities (tasks/utils/helper.js)
+- `getContract(name, hre, addr)` — returns contract instance (EVM ethers v6 or Tron with .sendAndWait())
+- `getDeploy(network, key, env?)` — read from deploy.json
+- `saveDeploy(network, key, addr, env?)` — write to deploy.json
+- `getDeployerAddr(hre)` — deployer address (hex for both EVM/Tron)
+- `createDeployer(hre, opts)` — unified deploy (from @mapprotocol/common-contracts)
+- `getBridge(network, config)` — resolve bridge address from config + NETWORK_ENV
+- `isTronNetwork`, `tronToHex`, `tronFromHex` — Tron address utilities
 
-### Cross-Chain Flow
-1. User calls `swapAndBridge()` on source chain
-2. Tokens are swapped via configured DEX executors
-3. Bridged tokens are sent via MAP Protocol bridge
-4. Destination chain calls `remoteSwapAndCall()` 
-5. Final swap and/or callback execution occurs
+### Shared Operations (tasks/common/common.js)
+- `setAuthorization(hre, contractName, addr, executors, flag)` — compare-before-send
+- `setBridge(hre, contractName, addr, bridge)` — compare-before-send
+- `setOwner(hre, contractName, addr, owner)` — compare-before-send
+- `removeAuth(hre, contractName, addr, removes)` — remove deprecated executors
+- `checkFee(hre, contractName, addr, feeConfig)` — check and update fee settings
 
-### Testing Framework
-- Uses Hardhat with Chai for testing
-- Fork testing against mainnet for realistic scenarios
-- Mock contracts available in `contracts/mock/`
+### EVM vs Tron Pattern
+All tasks handle both EVM and Tron with separate branches:
+```js
+if (isTronNetwork(hre.network.name)) {
+    await contract.method(tronToHex(addr)).sendAndWait();  // write
+    let val = await contract.method().call();               // read
+} else {
+    await (await contract.method(addr)).wait();             // write
+    let val = await contract.method();                      // read
+}
+```
+
+## Compiler Configuration
+
+Two Solidity compilers configured (0.8.25 first for `^0.8.0` priority):
+- **0.8.25**: evmVersion london, optimizer 200 runs — new contracts (V4, ReceiverV2, V31)
+- **0.8.20**: evmVersion london, optimizer 200 runs — legacy contracts (V3, SwapAdapter)
+
+Important: `evmVersion` must be inside `settings` object, not at compiler level.
 
 ## Environment Setup
 
 Required `.env` variables:
 ```
-PRIVATE_KEY=
-TRON_PRIVATE_KEY=
-ALCHEMY_KEY=
-ROUTER_DEPLOY_SALT=
+PRIVATE_KEY=              # EVM mainnet
+TESTNET_PRIVATE_KEY=      # EVM testnet
+TRON_PRIVATE_KEY=         # Tron mainnet
+TRON_TESTNET_PRIVATE_KEY= # Tron testnet
+TRON_RPC_URL=             # Tron RPC (optional, defaults to trongrid)
+NETWORK_ENV=              # Required for mainnet: main or prod
+
+# Deploy salts (EVM only, Tron does not use salt)
+ROUTER_V4_DEPLOY_SALT=
+RECEIVER_V2_DEPLOY_SALT=
 ROUTER_V3_DEPLOY_SALT=
 ROUTER_V31_DEPLOY_SALT=
 SWAP_ADAPTER_DEPLOY_SALT=
-FEE_RECEIVER_SAlT=
-```
 
-API keys needed for contract verification:
-```
+# Verification API keys
 API_KEY_ETH=
 API_KEY_BSC=
-API_KEY_MATIC=
-API_KEY_BLAST=
-API_KEY_BASE=
-[additional chain API keys as needed]
+# ... (see .env.example for full list)
+
+# Butter Router API (for execSwap recovery)
+BUTTER_ROUTER_API=
 ```
+
+## Fee System
+- Fee denominators: V2 uses 1,000,000, V3/V31/V4 use 10,000
+- V31 Zero-Fee Cross-Chain: `swapAndBridge` NEVER collects fees
+- V4: Configurable fees on both swapAndCall and swapAndBridge
+- All set operations compare current on-chain values before sending transactions
+
+## Cross-Chain Flow
+1. User calls `swapAndBridge()` on source chain
+2. Tokens are swapped via configured DEX executors
+3. Bridged tokens are sent via MAP Protocol bridge (gateway)
+4. Destination chain ReceiverV2 calls `remoteSwapAndCall()`
+5. Final swap and/or callback execution occurs
+6. If swap fails, `execSwap` or `swapRescueFunds` can recover funds

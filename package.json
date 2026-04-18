@@ -7,15 +7,17 @@
     "artifacts/contracts/**/*.sol/*.json",
     "!artifacts/contracts/**/*.sol/*.dbg.json",
     "!artifacts/contracts/mock/*.sol/*.json",
-    "deployments/*/*.json",
+    "deployments/*.json",
     "contracts",
     "!contracts/mock/*.sol"
   ],
   "scripts": {
     "format:sol": "prettier --print-width 120 --tab-width 4 --write ./contracts",
-    "format": "prettier --print-width 120 --write ./scripts ./tasks ./test ./utils ./configs",
+    "format": "prettier --print-width 120 --write ./scripts ./tasks ./test ./configs",
     "flatten:all": "npx hardhat flatten:all",
-    "flatten:v31": "npx hardhat flatten:contract --contract ButterRouterV31"
+    "flatten:routers": "npx hardhat flatten:all-routers",
+    "flatten:adapters": "npx hardhat flatten:adapters",
+    "flatten:receivers": "npx hardhat flatten:receivers"
   },
   "repository": {
     "type": "git",

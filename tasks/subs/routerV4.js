@@ -4,6 +4,9 @@ const {
     getContract, getDeployerAddr, isTronNetwork, tronToHex, tronFromHex,
     createDeployer,
 } = require("../utils/helper.js");
+const {
+    setAuthorization, setBridge, setOwner, removeAuth, checkFee,
+} = require("../common/common.js");
 
 const CONTRACT = "ButterRouterV4";
 
@@ -76,70 +79,42 @@ task("routerV4:deploy", "Deploy ButterRouterV4 contract")
     });
 
 // ============================================================
-// Configuration tasks
+// Configuration tasks (delegate to common functions)
 // ============================================================
 task("routerV4:setAuthorization", "Set executor authorization")
     .addOptionalParam("router", "Router address", "", types.string)
     .addParam("executors", "Comma-separated executor addresses")
     .addOptionalParam("flag", "Authorization flag", true, types.boolean)
     .setAction(async (taskArgs, hre) => {
-        let router_addr = await getRouterAddress(taskArgs.router, hre);
-        let router = await getContract(CONTRACT, hre, router_addr);
-
-        if (isTronNetwork(hre.network.name)) {
-            let list = taskArgs.executors.split(",").map(e => tronToHex(e.trim()));
-            let toUpdate = [];
-            for (let addr of list) {
-                let approved = await router.approved(addr).call();
-                if (Boolean(approved) !== taskArgs.flag) toUpdate.push(addr);
-            }
-            if (toUpdate.length === 0) {
-                console.log(`${CONTRACT} ${router_addr} authorization already up-to-date`);
-                return;
-            }
-            await router.setAuthorization(toUpdate, taskArgs.flag).sendAndWait();
-            console.log(`${CONTRACT} ${router_addr} setAuthorization [${toUpdate.length}/${list.length} changed]`);
-        } else {
-            let list = taskArgs.executors.split(",").map(e => e.trim());
-            let toUpdate = [];
-            for (let addr of list) {
-                let approved = await router.approved(addr);
-                if (Boolean(approved) !== taskArgs.flag) toUpdate.push(addr);
-            }
-            if (toUpdate.length === 0) {
-                console.log(`${CONTRACT} ${router_addr} authorization already up-to-date`);
-                return;
-            }
-            await (await router.setAuthorization(toUpdate, taskArgs.flag)).wait();
-            console.log(`${CONTRACT} ${router_addr} setAuthorization [${toUpdate.length}/${list.length} changed]`);
-        }
+        let addr = await getRouterAddress(taskArgs.router, hre);
+        let list = taskArgs.executors.split(",").map(e => e.trim());
+        await setAuthorization(hre, CONTRACT, addr, list, taskArgs.flag);
     });
 
 task("routerV4:setFeeManager", "Set fee manager")
     .addOptionalParam("router", "Router address", "", types.string)
     .addParam("manager", "Fee manager address")
     .setAction(async (taskArgs, hre) => {
-        let router_addr = await getRouterAddress(taskArgs.router, hre);
-        let router = await getContract(CONTRACT, hre, router_addr);
+        let addr = await getRouterAddress(taskArgs.router, hre);
+        let router = await getContract(CONTRACT, hre, addr);
 
         if (isTronNetwork(hre.network.name)) {
             let manager = tronToHex(taskArgs.manager);
             let current = tronToHex(await router.feeManager().call());
             if (current.toLowerCase() === manager.toLowerCase()) {
-                console.log(`${CONTRACT} ${router_addr} feeManager already set`);
+                console.log(`${CONTRACT} ${addr} feeManager already set`);
                 return;
             }
             await router.setFeeManager(manager).sendAndWait();
-            console.log(`${CONTRACT} ${router_addr} setFeeManager ${taskArgs.manager}`);
         } else {
             let current = await router.feeManager();
             if (current.toLowerCase() === taskArgs.manager.toLowerCase()) {
-                console.log(`${CONTRACT} ${router_addr} feeManager already set`);
+                console.log(`${CONTRACT} ${addr} feeManager already set`);
                 return;
             }
             await (await router.setFeeManager(taskArgs.manager)).wait();
-            console.log(`${CONTRACT} ${router_addr} setFeeManager ${taskArgs.manager}`);
         }
+        console.log(`${CONTRACT} ${addr} setFeeManager ${taskArgs.manager}`);
     });
 
 task("routerV4:setReferrerMaxFee", "Set maximum referrer fee")
@@ -147,14 +122,14 @@ task("routerV4:setReferrerMaxFee", "Set maximum referrer fee")
     .addParam("rate", "Maximum fee rate")
     .addParam("native", "Maximum native fee")
     .setAction(async (taskArgs, hre) => {
-        let router_addr = await getRouterAddress(taskArgs.router, hre);
-        let router = await getContract(CONTRACT, hre, router_addr);
+        let addr = await getRouterAddress(taskArgs.router, hre);
+        let router = await getContract(CONTRACT, hre, addr);
 
         if (isTronNetwork(hre.network.name)) {
             let currentRate = await router.maxFeeRate().call();
             let currentNative = await router.maxNativeFee().call();
             if (currentRate.toString() === taskArgs.rate && currentNative.toString() === taskArgs.native) {
-                console.log(`${CONTRACT} ${router_addr} referrerMaxFee already up-to-date`);
+                console.log(`${CONTRACT} ${addr} referrerMaxFee already up-to-date`);
                 return;
             }
             await router.setReferrerMaxFee(taskArgs.rate, taskArgs.native).sendAndWait();
@@ -162,12 +137,12 @@ task("routerV4:setReferrerMaxFee", "Set maximum referrer fee")
             let currentRate = await router.maxFeeRate();
             let currentNative = await router.maxNativeFee();
             if (currentRate.toString() === taskArgs.rate && currentNative.toString() === taskArgs.native) {
-                console.log(`${CONTRACT} ${router_addr} referrerMaxFee already up-to-date`);
+                console.log(`${CONTRACT} ${addr} referrerMaxFee already up-to-date`);
                 return;
             }
             await (await router.setReferrerMaxFee(taskArgs.rate, taskArgs.native)).wait();
         }
-        console.log(`${CONTRACT} ${router_addr} setReferrerMaxFee rate(${taskArgs.rate}) native(${taskArgs.native})`);
+        console.log(`${CONTRACT} ${addr} setReferrerMaxFee rate(${taskArgs.rate}) native(${taskArgs.native})`);
     });
 
 task("routerV4:setFee", "Set router fees")
@@ -176,8 +151,8 @@ task("routerV4:setFee", "Set router fees")
     .addParam("feerate", "Fee rate")
     .addParam("fixedfee", "Fixed fee amount")
     .setAction(async (taskArgs, hre) => {
-        let router_addr = await getRouterAddress(taskArgs.router, hre);
-        let router = await getContract(CONTRACT, hre, router_addr);
+        let addr = await getRouterAddress(taskArgs.router, hre);
+        let router = await getContract(CONTRACT, hre, addr);
 
         if (isTronNetwork(hre.network.name)) {
             let receiver = tronToHex(taskArgs.feereceiver);
@@ -189,7 +164,7 @@ task("routerV4:setFee", "Set router fees")
                 currentRate.toString() === taskArgs.feerate &&
                 currentFixed.toString() === taskArgs.fixedfee
             ) {
-                console.log(`${CONTRACT} ${router_addr} fee already up-to-date`);
+                console.log(`${CONTRACT} ${addr} fee already up-to-date`);
                 return;
             }
             await router.setFee(receiver, taskArgs.feerate, taskArgs.fixedfee).sendAndWait();
@@ -202,69 +177,32 @@ task("routerV4:setFee", "Set router fees")
                 currentRate.toString() === taskArgs.feerate &&
                 currentFixed.toString() === taskArgs.fixedfee
             ) {
-                console.log(`${CONTRACT} ${router_addr} fee already up-to-date`);
+                console.log(`${CONTRACT} ${addr} fee already up-to-date`);
                 return;
             }
             await (await router.setFee(taskArgs.feereceiver, taskArgs.feerate, taskArgs.fixedfee)).wait();
         }
-        console.log(`${CONTRACT} ${router_addr} setFee rate(${taskArgs.feerate}) fixed(${taskArgs.fixedfee}) receiver(${taskArgs.feereceiver})`);
+        console.log(`${CONTRACT} ${addr} setFee rate(${taskArgs.feerate}) fixed(${taskArgs.fixedfee}) receiver(${taskArgs.feereceiver})`);
     });
 
 task("routerV4:setBridge", "Set bridge address")
     .addOptionalParam("router", "Router address", "", types.string)
     .addParam("bridge", "Bridge contract address")
     .setAction(async (taskArgs, hre) => {
-        let router_addr = await getRouterAddress(taskArgs.router, hre);
-        let router = await getContract(CONTRACT, hre, router_addr);
-
-        if (isTronNetwork(hre.network.name)) {
-            let bridge = tronToHex(taskArgs.bridge);
-            let current = tronToHex(await router.bridgeAddress().call());
-            if (current.toLowerCase() === bridge.toLowerCase()) {
-                console.log(`${CONTRACT} ${router_addr} bridge already set`);
-                return;
-            }
-            await router.setBridgeAddress(bridge).sendAndWait();
-            console.log(`${CONTRACT} ${router_addr} setBridgeAddress ${taskArgs.bridge}`);
-        } else {
-            let current = await router.bridgeAddress();
-            if (current.toLowerCase() === taskArgs.bridge.toLowerCase()) {
-                console.log(`${CONTRACT} ${router_addr} bridge already set`);
-                return;
-            }
-            await (await router.setBridgeAddress(taskArgs.bridge)).wait();
-            console.log(`${CONTRACT} ${router_addr} setBridgeAddress ${taskArgs.bridge}`);
-        }
+        let addr = await getRouterAddress(taskArgs.router, hre);
+        await setBridge(hre, CONTRACT, addr, taskArgs.bridge);
     });
 
 task("routerV4:setOwner", "Transfer ownership")
     .addOptionalParam("router", "Router address", "", types.string)
     .addParam("owner", "New owner address")
     .setAction(async (taskArgs, hre) => {
-        let router_addr = await getRouterAddress(taskArgs.router, hre);
-        let router = await getContract(CONTRACT, hre, router_addr);
-
-        if (isTronNetwork(hre.network.name)) {
-            let owner = tronToHex(taskArgs.owner);
-            let current = tronToHex(await router.owner().call());
-            if (current.toLowerCase() === owner.toLowerCase()) {
-                console.log(`${CONTRACT} ${router_addr} owner already ${taskArgs.owner}`);
-                return;
-            }
-            await router.transferOwnership(owner).sendAndWait();
-        } else {
-            let current = await router.owner();
-            if (current.toLowerCase() === taskArgs.owner.toLowerCase()) {
-                console.log(`${CONTRACT} ${router_addr} owner already ${taskArgs.owner}`);
-                return;
-            }
-            await (await router.transferOwnership(taskArgs.owner)).wait();
-        }
-        console.log(`${CONTRACT} ${router_addr} transferOwnership ${taskArgs.owner}`);
+        let addr = await getRouterAddress(taskArgs.router, hre);
+        await setOwner(hre, CONTRACT, addr, taskArgs.owner);
     });
 
 // ============================================================
-// Operation tasks (no compare needed)
+// Operation tasks
 // ============================================================
 task("routerV4:approveToken", "Approve token spending")
     .addOptionalParam("router", "Router address", "", types.string)
@@ -272,8 +210,8 @@ task("routerV4:approveToken", "Approve token spending")
     .addParam("spender", "Spender address")
     .addOptionalParam("amount", "Approval amount", "", types.string)
     .setAction(async (taskArgs, hre) => {
-        let router_addr = await getRouterAddress(taskArgs.router, hre);
-        let router = await getContract(CONTRACT, hre, router_addr);
+        let addr = await getRouterAddress(taskArgs.router, hre);
+        let router = await getContract(CONTRACT, hre, addr);
 
         if (isTronNetwork(hre.network.name)) {
             let amount = taskArgs.amount || "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
@@ -282,7 +220,7 @@ task("routerV4:approveToken", "Approve token spending")
             let amount = taskArgs.amount || hre.ethers.MaxUint256;
             await (await router.approveToken(taskArgs.token, taskArgs.spender, amount)).wait();
         }
-        console.log(`${CONTRACT} ${router_addr} approveToken ${taskArgs.token} to ${taskArgs.spender}`);
+        console.log(`${CONTRACT} ${addr} approveToken ${taskArgs.token} to ${taskArgs.spender}`);
     });
 
 task("routerV4:editFuncBlackList", "Edit function blacklist")
@@ -290,15 +228,15 @@ task("routerV4:editFuncBlackList", "Edit function blacklist")
     .addParam("func", "Function selector (4 bytes)")
     .addParam("flag", "Blacklist flag (true/false)")
     .setAction(async (taskArgs, hre) => {
-        let router_addr = await getRouterAddress(taskArgs.router, hre);
-        let router = await getContract(CONTRACT, hre, router_addr);
+        let addr = await getRouterAddress(taskArgs.router, hre);
+        let router = await getContract(CONTRACT, hre, addr);
 
         if (isTronNetwork(hre.network.name)) {
             await router.editFuncBlackList(taskArgs.func, taskArgs.flag).sendAndWait();
         } else {
             await (await router.editFuncBlackList(taskArgs.func, taskArgs.flag)).wait();
         }
-        console.log(`${CONTRACT} ${router_addr} editFuncBlackList ${taskArgs.func} flag ${taskArgs.flag}`);
+        console.log(`${CONTRACT} ${addr} editFuncBlackList ${taskArgs.func} flag ${taskArgs.flag}`);
     });
 
 task("routerV4:rescueFunds", "Rescue funds")
@@ -306,24 +244,24 @@ task("routerV4:rescueFunds", "Rescue funds")
     .addParam("token", "Token address")
     .addParam("amount", "Token amount")
     .setAction(async (taskArgs, hre) => {
-        let router_addr = await getRouterAddress(taskArgs.router, hre);
-        let router = await getContract(CONTRACT, hre, router_addr);
+        let addr = await getRouterAddress(taskArgs.router, hre);
+        let router = await getContract(CONTRACT, hre, addr);
 
         if (isTronNetwork(hre.network.name)) {
             await router.rescueFunds(tronToHex(taskArgs.token), taskArgs.amount).sendAndWait();
         } else {
             await (await router.rescueFunds(taskArgs.token, taskArgs.amount)).wait();
         }
-        console.log(`${CONTRACT} ${router_addr} rescueFunds ${taskArgs.token} ${taskArgs.amount}`);
+        console.log(`${CONTRACT} ${addr} rescueFunds ${taskArgs.token} ${taskArgs.amount}`);
     });
 
 // ============================================================
-// Update (delegates to individual tasks which compare before send)
+// Update (delegates to common functions)
 // ============================================================
 task("routerV4:update", "Check and update from config file")
     .addOptionalParam("router", "Router address", "", types.string)
     .setAction(async (taskArgs, hre) => {
-        let router_addr = await getRouterAddress(taskArgs.router, hre);
+        let addr = await getRouterAddress(taskArgs.router, hre);
         let config = getConfig(hre.network.name);
         if (!config) throw "config not set";
 
@@ -332,58 +270,24 @@ task("routerV4:update", "Check and update from config file")
         let executors = [...config.v3.executors];
         if (adapt_addr) executors.push(adapt_addr);
 
-        await hre.run("routerV4:setAuthorization", { router: router_addr, executors: executors.join(",") });
+        await setAuthorization(hre, CONTRACT, addr, executors);
 
         let bridge = getBridge(hre.network.name, config);
-        await hre.run("routerV4:setBridge", { router: router_addr, bridge });
+        await setBridge(hre, CONTRACT, addr, bridge);
 
-        await hre.run("routerV4:setFee", {
-            router: router_addr,
-            feereceiver: config.v3.fee.receiver,
-            feerate: config.v3.fee.routerFeeRate,
-            fixedfee: config.v3.fee.routerFixedFee,
-        });
-        await hre.run("routerV4:setReferrerMaxFee", {
-            router: router_addr,
-            rate: config.v3.fee.maxReferrerFeeRate,
-            native: config.v3.fee.maxReferrerNativeFee,
-        });
+        await checkFee(hre, CONTRACT, addr, config.v3.fee);
 
-        await hre.run("routerV4:removeAuthFromConfig", { router: router_addr });
+        await removeAuth(hre, CONTRACT, addr, config.removes);
         console.log("RouterV4 update completed.");
     });
 
 task("routerV4:removeAuthFromConfig", "Remove authorization from config")
     .addOptionalParam("router", "Router address", "", types.string)
     .setAction(async (taskArgs, hre) => {
-        let router_addr = await getRouterAddress(taskArgs.router, hre);
+        let addr = await getRouterAddress(taskArgs.router, hre);
         let config = getConfig(hre.network.name);
         if (!config) throw "config not set";
-        if (!config.removes || config.removes.length === 0) {
-            console.log("no removes list");
-            return;
-        }
-
-        let router = await getContract(CONTRACT, hre, router_addr);
-        let toRemove = [];
-
-        if (isTronNetwork(hre.network.name)) {
-            for (let exec of config.removes) {
-                let addr = tronToHex(exec);
-                if (await router.approved(addr).call()) toRemove.push(addr);
-            }
-            if (toRemove.length > 0) {
-                await router.setAuthorization(toRemove, false).sendAndWait();
-            }
-        } else {
-            for (let exec of config.removes) {
-                if (await router.approved(exec)) toRemove.push(exec);
-            }
-            if (toRemove.length > 0) {
-                await (await router.setAuthorization(toRemove, false)).wait();
-            }
-        }
-        console.log(`RouterV4 removed ${toRemove.length} authorizations.`);
+        await removeAuth(hre, CONTRACT, addr, config.removes);
     });
 
 // ============================================================
@@ -401,9 +305,9 @@ task("routerV4:bridge", "Bridge tokens")
             return;
         }
 
-        let router_addr = await getRouterAddress(taskArgs.router, hre);
+        let addr = await getRouterAddress(taskArgs.router, hre);
         let [signer] = await ethers.getSigners();
-        let router = await getContract(CONTRACT, hre, router_addr);
+        let router = await getContract(CONTRACT, hre, addr);
         let token = await ethers.getContractAt("MockToken", taskArgs.token);
         let decimals = await token.decimals();
         let value = ethers.parseUnits(taskArgs.amount, decimals);
@@ -414,10 +318,10 @@ task("routerV4:bridge", "Bridge tokens")
         );
         let bridgeData = ethers.solidityPacked(["uint256", "bytes"], [0x20, bridge]);
 
-        let approved = await token.allowance(signer.address, router_addr);
+        let approved = await token.allowance(signer.address, addr);
         if (approved < value) {
             console.log(`Approving ${taskArgs.token}...`);
-            await (await token.approve(router_addr, value)).wait();
+            await (await token.approve(addr, value)).wait();
         }
 
         let result = await (await router.swapAndBridge(
@@ -434,11 +338,11 @@ task("routerV4:bridge", "Bridge tokens")
 task("routerV4:info", "Display contract information")
     .addOptionalParam("router", "Router address", "", types.string)
     .setAction(async (taskArgs, hre) => {
-        let router_addr = await getRouterAddress(taskArgs.router, hre);
-        let router = await getContract(CONTRACT, hre, router_addr);
+        let addr = await getRouterAddress(taskArgs.router, hre);
+        let router = await getContract(CONTRACT, hre, addr);
 
         console.log("=== ButterRouterV4 Contract Information ===");
-        console.log("Address:", router_addr);
+        console.log("Address:", addr);
         if (isTronNetwork(hre.network.name)) {
             console.log("Bridge:", tronFromHex(await router.bridgeAddress().call()));
             console.log("Fee Manager:", tronFromHex(await router.feeManager().call()));

@@ -1,184 +1,152 @@
-# Brief Description
+# Butter Router Contracts
 
-This project is the entry contract for [butterSwap](https://butterswap.io).
+Cross-chain omni-swap protocol contracts built on [MAP Protocol](https://mapprotocol.io). Enables token swaps and cross-chain bridging through multiple DEX protocols.
 
-ButterRouter V2 consists of two main contracts.
+## Contracts
 
-- ButterRouterV2.sol is new version contract.
-- SwapAdapter.sol is the swap aggregation adapter contract of the new version contract ,called by ButterRouterV2 to complete swap.
+| Contract | Version | Description |
+|----------|---------|-------------|
+| ButterRouterV4 | 0.8.25 | Current production router |
+| ReceiverV2 | 0.8.25 | Current production cross-chain receiver |
+| ButterRouterV31 | 0.8.25 | Gas-optimized router (zero-fee cross-chain) |
+| ButterRouterV3 | 0.8.20 | Legacy router |
+| SwapAdapter | 0.8.20 | DEX swap aggregation adapter |
 
-## Main interfaces explanation(v2)
+## Main Interfaces (V4)
 
-1. `swapAndCall` swap tokens and execute a callback method
-
+### swapAndCall
+Swap tokens and execute a callback on the same chain.
 ```solidity
-    // 1. swap: _swapData.length > 0 and _bridgeData.length == 0
-    // 2. swap and call: _swapData.length > 0 and _callbackData.length > 0
-    function swapAndCall(
-        bytes32 _transferId,
-        address _srcToken,
-        uint256 _amount,
-        FeeType _feeType,
-        bytes calldata _swapData,
-        bytes calldata _callbackData,
-        bytes calldata _permitData
-    ) external payable;
+function swapAndCall(
+    bytes32 _transferId,
+    address _initiator,
+    address _srcToken,
+    uint256 _amount,
+    bytes calldata _swapData,
+    bytes calldata _callbackData,
+    bytes calldata _permitData,
+    bytes calldata _feeData
+) external payable;
 ```
 
-2. `swapAndBridge` swap tokens and bridge outToken to other chain.
-
+### swapAndBridge
+Swap tokens and bridge to another chain.
 ```solidity
-    // 1. bridge:  _swapData.length == 0 and _bridgeData.length > 0
-    // 2. swap and bridge: _swapData.length > 0 and _bridgeData.length > 0
-    function swapAndBridge(
-        address _srcToken,
-        uint256 _amount,
-        bytes calldata _swapData,
-        bytes calldata _bridgeData,
-        bytes calldata _permitData
-    ) external payable;
-```
-
-3. `remoteSwapAndCall` called by butter mos after bridge, to swap tokens and execute a callback on target chain.
-
-```solidity
-    // At remote chain call after bridge
-    // mos transfer token to router first
-    //  1. swap: _swapData.length > 0 and _callbackData.length == 0
-    //  2. call: _swapData.length == 0 and _callbackData.length > 0
-    //  3. swap and call: _swapData.length > 0 and _callbackData.length > 0
-    function remoteSwapAndCall(
-        bytes32 _orderId,
-        address _srcToken,
-        uint256 _amount,
-        uint256 _fromChain,
-        bytes calldata _from,
-        bytes calldata _swapAndCall
-    ) external payable;
+function swapAndBridge(
+    bytes32 _transferId,
+    address _initiator,
+    address _srcToken,
+    uint256 _amount,
+    bytes calldata _swapData,
+    bytes calldata _bridgeData,
+    bytes calldata _permitData,
+    bytes calldata _feeData
+) external payable;
 ```
 
 ## Installation
 
-```shell
+```bash
 npm install --save-dev @butternetwork/router
-# or
-yarn add --dev @butternetwork/router
 ```
 
-## Contract Deployment and SetUp Workflow
+## Development Setup
 
-### Pre-requirement
+### Prerequisites
+- Node.js >= 18
+- npm
 
-Since all of the contracts are developed in Hardhat development environment, developers need to install Hardhat before working through our contracts. The hardhat installation tutorial can be found here[hardhat](https://hardhat.org/hardhat-runner/docs/getting-started#installation)
-
-### install
-
-```shell
-npm install
+### Install
+```bash
+npm install --legacy-peer-deps
 ```
 
-### create an .env file and fill following in the contents
-
+### Environment
+Copy `.env.example` to `.env` and fill in:
 ```
-PRIVATE_KEY =
-TRON_PRIVATE_KEY =
-ALCHEMY_KEY =
-ROUTER_DEPLOY_SALT =
-SWAP_ADAPTER_DEPLOY_SALT =
-FEE_RECEIVER_SAlT =
+PRIVATE_KEY=              # EVM mainnet deployer
+TRON_PRIVATE_KEY=         # Tron mainnet deployer
+NETWORK_ENV=              # Required for mainnet: "main" or "prod"
 ```
 
-### Compiling contracts
+See `.env.example` for the full list of variables.
 
-Simply useing hardhat built-in compile task to compile contracts.
-
-```
-$ npx hardhat compile
-Compiling...
-Compiled 1 contract successfully
+### Compile
+```bash
+npx hardhat compile
 ```
 
-The compiled artifacts will be saved in the `artifacts/` directory by default
-
-### Testing
-
-```
-Compiled 6 Solidity files successfully
-  ButterRouterV2
-    ✔ setFee only owner (1442ms)
-    ✔ setMosAddress only owner (147ms)
-    ✔ setAuthorization only owner (129ms)
-    ✔ setDexExecutor only owner (122ms)
-    ✔ rescueFunds correct (130ms)
-    ✔ rescueFunds only owner (129ms)
-    ✔ setFee feeReceiver zero address (126ms)
-    ✔ setFee feeRate less than 1000000 (124ms)
-    ✔ setFee correct  (137ms)
-    ✔ setMosAddress _mosAddress must be contract (100ms)
-    ✔ setDexExecutor dexExecutor must be contract (111ms)
-    ✔ setMosAddress correct (120ms)
-    ✔ setDexExecutor correct (132ms)
-    ✔ setAuthorization only owner (110ms)
-    ✔ setAuthorization correct (135ms)
-    ✔ swapAndCall (2920ms)
-    ✔ swapAndCall (2826ms)
-    ✔ swapAndBridge (2870ms)
-    ✔ swapAndCall (2931ms)
-    ✔ remoteSwapAndCall (2808ms)
-    ✔ remoteSwapAndCall _makeUniV3Swap -> native (2764ms)
-    ✔ remoteSwapAndCall _makeUniV3Swap -> tokens (2735ms)
-    ✔ remoteSwapAndCall _makeUniV2Swap -> swapExactTokensForETH (2740ms)
-    ✔ remoteSwapAndCall _makeUniV2Swap -> swapExactTokensForTokens (2911ms)
-    ✔ remoteSwapAndCall _makeUniV2Swap -> swapExactETHForTokens (2813ms)
-    ✔ remoteSwapAndCall _makeCurveSwap (2932ms)
-    ✔ remoteSwapAndCall buy nft seaport (2799ms)
-
-
-  27 passing (37s)
+### Test
+```bash
+npx hardhat test
 ```
 
-### Deploy and setup
+## Deployment
 
-The deploy script is located in tasks folder . We can run the following command to deploy.
+All mainnet deployments require `NETWORK_ENV` to be set:
+```bash
+# Deploy Router V4 + configure (full flow)
+NETWORK_ENV=main npx hardhat routerV4 --network Eth
 
-NOTE
+# Deploy ReceiverV2 + configure
+NETWORK_ENV=main npx hardhat receiverV2 --network Eth
 
-if deploy chain is zksync or zksyncTestnet,please compile this contract use
-
-```
-npx hardhat compile --network  `<zkSync or zkSyncTest>`
-```
-
-#### v2
-
-1.deploy and set up before run this task, set task/config.js
-
-```
-npx hardhat routerV2 --network <network>
+# Tron deployment (no CREATE2 salt)
+NETWORK_ENV=main npx hardhat routerV4 --network Tron
 ```
 
-subtasks
-
-1.routerV2:deploy
-
-```
-npx hardhat routerV2:deploy --mos <mos address> --wtoken <wtoken address> --network <network>
-```
-
-2.routerV2:deploySwapAdapter
-
-```
-npx hardhat routerV2:deploySwapAdapter --network <network>
+### Configuration Tasks
+```bash
+# All set tasks compare on-chain values before sending transactions
+npx hardhat routerV4:setAuthorization --executors <addr1,addr2> --network <network>
+npx hardhat routerV4:setFee --feereceiver <addr> --feerate <rate> --fixedfee <fee> --network <network>
+npx hardhat routerV4:setBridge --bridge <addr> --network <network>
+npx hardhat routerV4:update --network <network>    # Sync all settings from config
+npx hardhat routerV4:info --network <network>      # Display contract state
 ```
 
-3.routerV2:setAuthorization
+### Verification
+```bash
+# EVM chains (Etherscan, etc.)
+npx hardhat verifyContract --contract ButterRouterV4 --address <addr> --args '[...]' --network Eth
 
-```
-npx hardhat routerV2:setAuthorization --router <router address> --executors <excutor1,excutor2,..> --flag <flag> --network <network>
+# Tron (TronScan API)
+npx hardhat verifyContract --contract ButterRouterV4 --address <tron_addr> --args '[...]' --network Tron
 ```
 
-4.routerV2:setFee
+### Contract Flattening
+```bash
+npx hardhat flatten:contract --contract ButterRouterV4
+npx hardhat flatten:all
+```
 
-```
-npx hardhat routerV2:setFee --router <router address> --feereceiver <receiver address> --feerate <rate> --fixedfee <fixedfee> --network <network>
-```
+## Architecture
+
+### Deploy Record (deployments/deploy.json)
+Three-layer structure separating environments:
+- **prod** — Production contracts (all versions + shared infra)
+- **main** — Mainnet test contracts (V4/ReceiverV2)
+- **test** — Testnet contracts
+
+### Cross-Chain Flow
+1. User calls `swapAndBridge()` on source chain
+2. Tokens swapped via configured DEX executors
+3. Bridged via MAP Protocol gateway
+4. ReceiverV2 on destination calls `remoteSwapAndCall()`
+5. Final swap/callback execution
+6. Failed swaps recoverable via `execSwap` or `swapRescueFunds`
+
+### Fee System
+- Fee denominator: 10,000 (V3/V31/V4)
+- V31: Zero fees on `swapAndBridge` (gas-optimized)
+- V4: Configurable fees on all operations
+
+## Supported Networks
+
+**Mainnets**: Ethereum, BSC, Polygon, Arbitrum, Optimism, Base, Blast, Scroll, Linea, Mantle, Map Protocol, Klaytn, Conflux, Tron, zkSync, Merlin, Avalanche, Unichain, Xlayer
+
+**Testnets**: Sepolia, BSC Testnet, Makalu, Arbitrum Sepolia, Tron Nile
+
+## License
+
+MIT
