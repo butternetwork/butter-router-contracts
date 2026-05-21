@@ -217,16 +217,14 @@ contract ReceiverV2 is Ownable2Step, SwapCallV2, ReentrancyGuard, IButterReceive
         require(_receiver != address(0));
         SwapTemp memory swapTemp = _assignment(_fromChain, _srcToken, _amount, _from);
         swapTemp.receiver = _receiver;
-        bytes32 hash = keccak256(
-            abi.encodePacked(
-                swapTemp.fromChain,
-                swapTemp.srcToken,
-                _dscToken,
-                swapTemp.srcAmount,
-                swapTemp.receiver,
-                swapTemp.from,
-                _callbackData
-            )
+        bytes32 hash = _getStoreHash(
+            swapTemp.fromChain,
+            swapTemp.srcToken,
+            _dscToken,
+            swapTemp.srcAmount,
+            swapTemp.receiver,
+            swapTemp.from,
+            _callbackData
         );
         if (storedFailedSwap[_orderId] != hash) revert INVALID_EXEC_PARAM();
         _transfer(swapTemp.srcToken, swapTemp.receiver, swapTemp.srcAmount);
@@ -261,8 +259,7 @@ contract ReceiverV2 is Ownable2Step, SwapCallV2, ReentrancyGuard, IButterReceive
             swapTemp.inputBalance,
             _swapData
         );
-        bytes32 hash = keccak256(
-            abi.encodePacked(
+        bytes32 hash = _getStoreHash(
                 swapTemp.fromChain,
                 swapTemp.srcToken,
                 swapTemp.swapToken,
@@ -270,8 +267,8 @@ contract ReceiverV2 is Ownable2Step, SwapCallV2, ReentrancyGuard, IButterReceive
                 swapTemp.receiver,
                 swapTemp.from,
                 _callbackData
-            )
         );
+        
         if (storedFailedSwap[_orderId] != hash) revert INVALID_EXEC_PARAM();
         if (_callbackData.length > 0) {
             uint256 minExecGas = gasForReFund;
@@ -369,9 +366,7 @@ contract ReceiverV2 is Ownable2Step, SwapCallV2, ReentrancyGuard, IButterReceive
         bytes memory _from,
         bytes memory _callbackData
     ) private {
-        bytes32 hash = keccak256(
-            abi.encodePacked(_fromChain, _srcToken, _dstToken, _amount, _receiver, _from, _callbackData)
-        );
+        bytes32 hash = _getStoreHash(_fromChain, _srcToken, _dstToken, _amount, _receiver, _from, _callbackData);
         storedFailedSwap[_orderId] = hash;
         emit SwapFailed(
             _orderId,
@@ -383,6 +378,20 @@ contract ReceiverV2 is Ownable2Step, SwapCallV2, ReentrancyGuard, IButterReceive
             _minReceived,
             _from,
             _callbackData
+        );
+    }
+
+    function _getStoreHash(
+        uint256 _fromChain,
+        address _srcToken,
+        address _dstToken,
+        uint256 _amount,
+        address _receiver,
+        bytes memory _from,
+        bytes memory _callbackData
+    ) private pure returns (bytes32) {
+        return keccak256(
+            abi.encode(_fromChain, _srcToken, _dstToken, _amount, _receiver, _from, keccak256(_callbackData))
         );
     }
 
