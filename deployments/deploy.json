@@ -65,7 +65,7 @@
 			"Receiver": "TJKb72SKzSmYKC4jNievJwTLx9XDmcip7n",
 			"ButterRouterV31": "TRXHvKozuwbyRZLyPShscieHfGduwvsBFo",
 			"ButterRouterV4": "TJCardiXqac1B5EQrRUVmZkaxUyp5puPiM",
-			"ReceiverV2": "TQVfrjmzguQURxH5Cf46iBDVhPk9Yo1kK3"
+			"ReceiverV2": "TV2P66YkGdRosQSBWjsLxCEr4XP4FFxFaW"
 		},
 		"Conflux": {
 			"ButterRouterV2": "0xbB21e441fb738F54e6eC244e435475096E179d66",
@@ -185,6 +185,7 @@
 			"ButterRouterV31": "0xEE0319cF0BCa5d09333f9F6277743E8De31bD69A"
 		},
 		"Xlayer": {
+			"Receiver": "0xFF031cc2563988Bc4afA29E2cD7Bcc2d389900a5",
 			"ButterRouterV31": "0xEE0319cF0BCa5d09333f9F6277743E8De31bD69A",
 			"SwapAggregator": "0x4C0Ce9aD38BC3132ad1C8AE7E00D48f9524EbC03",
 			"SwapAdapterV3": "0xaa301070448385cfAaC5913A67B16C4392944a8f",
