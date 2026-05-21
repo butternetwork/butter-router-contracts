@@ -32,6 +32,7 @@ module.exports = async (taskArgs, hre) => {
     let receiver_addr = await getReceiverAddress("", hre);
     let adapt_addr = await getDeploy(network.name, "SwapAdapterV3", "prod");
     config.v3.executors.push(adapt_addr);
+    config.v3.executors.push(config.wToken);
     let executors_s = config.v3.executors.join(",");
     await hre.run("receiverV2:setAuthorization", { receiver: receiver_addr, executors: executors_s });
 };
@@ -109,6 +110,15 @@ task("receiverV2:setOwner", "Transfer ownership")
         await setOwner(hre, CONTRACT, addr, taskArgs.owner);
     });
 
+task("receiverV2:acceptOwnership", "Accept ownership")
+    .addOptionalParam("receiver", "Receiver address", "", types.string)
+    .setAction(async (taskArgs, hre) => {
+        let addr = await getReceiverAddress(taskArgs.receiver, hre);
+        let c = await getContract(CONTRACT, hre, addr);
+        await (await c.acceptOwnership()).wait();
+        console.log(`${CONTRACT} ${addr} ownership accepted by`, await c.owner());
+    });
+    
 // ============================================================
 // Update (delegates to individual tasks which compare before send)
 // ============================================================

@@ -143,7 +143,7 @@ abstract contract SwapCallV2 {
 
     function _checkApproval(address _callTo, bytes4 sig) private view {
         address wTokenAddr = wToken;
-        if (_callTo != wTokenAddr && (!approved[_callTo])) revert Errors.NO_APPROVE();
+        if (!approved[_callTo]) revert Errors.NO_APPROVE();
 
         if (funcBlackList[sig]) revert Errors.CALL_FUNC_BLACK_LIST();
 
@@ -288,6 +288,7 @@ abstract contract SwapCallV2 {
         } else {
             uint256 allowance = IERC20(token).allowance(address(this), spender);
             if (allowance < amount) {
+                if(!approved[spender]) revert Errors.NO_APPROVE();
                 IERC20(token).forceApprove(spender, amount);
             }
         }

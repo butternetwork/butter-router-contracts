@@ -36,6 +36,7 @@ module.exports = async (taskArgs, hre) => {
     }
 
     config.v3.executors.push(adapt_addr);
+    config.v3.executors.push(config.wToken);
     let executors_s = config.v3.executors.join(",");
 
     await hre.run("routerV4:setAuthorization", { router: router_addr, executors: executors_s });
