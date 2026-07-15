@@ -298,7 +298,8 @@ abstract contract SwapCallV2 {
 
     function _removeTokenApproval(address token, address spender) internal {
         if (!_isNative(token)) {
-            IERC20(token).forceApprove(spender, 0);
+            uint256 allowance = IERC20(token).allowance(address(this), spender);
+            if (allowance > 0) IERC20(token).forceApprove(spender, 0);
         }
     }
 
