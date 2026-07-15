@@ -138,7 +138,10 @@ abstract contract SwapCallV2 {
         uint256 value = callParam.extraNativeAmount + _approveToken(_token, callParam.approveTo, _amount);
         (bool result, ) = target.call{value: value}(callPayload);
         if (!result) revert Errors.CALL_BACK_FAIL();
+        _removeTokenApproval(_token, callParam.approveTo);
         callAmount = callAmount - _getBalance(_token, self);
+        if (!_isNative(_token) && callAmount > _amount) revert Errors.CALL_AMOUNT_INVALID();
+
     }
 
     function _checkApproval(address _callTo, bytes4 sig) private view {
@@ -245,6 +248,7 @@ abstract contract SwapCallV2 {
             _checkApproval(target, sig);
             uint256 value = _approveToken(_srcToken, mix.approveTo, _amount);
             (result, ) = target.call{value: value}(callData);
+            _removeTokenApproval(_srcToken, mix.approveTo);
             if (!result) break;
             unchecked {
                 ++i;
@@ -280,17 +284,21 @@ abstract contract SwapCallV2 {
         _checkApproval(_callTo, sig);
         uint256 value = _approveToken(_token, _approveTo, _amount);
         (result, ) = _callTo.call{value: value}(callData);
+        _removeTokenApproval(_token, _approveTo);
     }
 
     function _approveToken(address token, address spender, uint256 amount) internal returns (uint256 value) {
         if (_isNative(token)) {
             value = amount;
         } else {
-            uint256 allowance = IERC20(token).allowance(address(this), spender);
-            if (allowance < amount) {
-                if(!approved[spender]) revert Errors.NO_APPROVE();
-                IERC20(token).forceApprove(spender, amount);
-            }
+            if(!approved[spender]) revert Errors.NO_APPROVE();
+            IERC20(token).forceApprove(spender, amount);
+        }
+    }
+
+    function _removeTokenApproval(address token, address spender) internal {
+        if (!_isNative(token)) {
+            IERC20(token).forceApprove(spender, 0);
         }
     }
 
