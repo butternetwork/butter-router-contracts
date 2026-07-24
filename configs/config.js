@@ -478,6 +478,31 @@ let config = new Map([
       removes: [],
     },
   ],
+
+   [
+    "Robinhood",
+    {
+      wToken: "0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73",
+      uniPermit2: "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+      tss_main_gateway: "",
+      tss_prod_gateway: "",
+      v3: {
+        bridge: "0x0000317Bec33Af037b5fAb2028f52d14658F6A56",
+        fee: {
+          receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+          routerFeeRate: "0", //denominator is 10000
+          routerFixedFee: "0",
+          maxReferrerFeeRate: "2000",
+          maxReferrerNativeFee: "6000000000000000",
+        },
+        executors: [
+          "0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73"
+        ],
+      },
+      removes: [],
+    },
+  ],
+
   [
     "Linea",
     {

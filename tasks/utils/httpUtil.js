@@ -1,9 +1,9 @@
 let axios = require("axios");
 
-exports.httpPost = async function (url, requestData) {
+exports.httpPost = async function (url, requestData, headers = {}) {
     let response = await axios.post(url.toString(), requestData, {
         timeout: 20000,
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", ...headers },
     });
     return response.data;
 };

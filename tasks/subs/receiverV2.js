@@ -1,13 +1,13 @@
 const { getConfig } = require("../../configs/config");
 const {
     getBridge, getDeploy, saveDeploy,
-    getContract, getDeployerAddr, isTronNetwork, tronToHex, tronFromHex,
+    getContract, getDeployerAddr, isTronNetwork, tronToHex,
     createDeployer,
 } = require("../utils/helper.js");
 const {
     setAuthorization, setBridge, setOwner, removeAuth,
 } = require("../common/common.js");
-const { httpGet } = require("../utils/httpUtil.js");
+const { httpPost } = require("../utils/httpUtil.js");
 
 const CONTRACT = "ReceiverV2";
 
@@ -188,77 +188,58 @@ async function checkNotExecuted(hre, contract, orderId) {
 task("receiverV2:execSwap", "Execute failed swap")
     .addOptionalParam("receiver", "Receiver address", "", types.string)
     .addParam("hash", "Transaction hash")
-    .addOptionalParam("slippage", "Slippage tolerance (default 30)", "30", types.string)
-    .addOptionalParam("force", "Force execSwap even if minOut is lower", false, types.boolean)
+    .addParam("entrance", "Entrance of swap like ButterPlus, ButterTest, Okx etc.")
+    .addOptionalParam("slippage", "Slippage tolerance in percentage (default 300 = 3%)", "300", types.string)
     .setAction(async (taskArgs, hre) => {
-        const { ethers, network } = hre;
-        let [wallet] = await ethers.getSigners();
+        const { network } = hre;
         let receiver_addr = await getReceiverAddress(taskArgs.receiver, hre);
         let c = await getContract(CONTRACT, hre, receiver_addr);
 
-        let { orderId, decode } = await getSwapFailedEvent(hre, taskArgs.hash, receiver_addr);
-        await checkNotExecuted(hre, c, orderId);
-
-        let tokenIn = decode[1];
-        let dstToken = decode[2];
-        let amount_decimals = decode[3];
-        let minReceived = decode[5];
-        let from = decode[6];
-        let callBackData = decode[7];
-
-        let inTokenDecimals = await getDecimals(hre, tokenIn, wallet);
-        let amount = ethers.formatUnits(amount_decimals, inTokenDecimals);
-        console.log("orderId:", orderId);
-        console.log("tokenIn:", tokenIn, "dstToken:", dstToken, "amount:", amount);
-
-        // Fetch swap route from Butter Router API
+        // Fetch execSwap tx params from the Butter internal backend. The backend decodes the
+        // failed tx, fetches the route and generates the swap calldata server-side, returning
+        // ready-to-send execSwap tx params (same shape as the swapRescueFunds tx params).
         let url = process.env.BUTTER_ROUTER_API;
         if (!url) throw "BUTTER_ROUTER_API not set in .env";
-        let slippage = taskArgs.slippage;
-        let chain_id = network.config.chainId;
-        let get_param = `fromChainId=${chain_id}&toChainId=${chain_id}&amount=${amount}&tokenInAddress=${tokenIn}&tokenOutAddress=${dstToken}&type=exactIn&slippage=${slippage}&from=${receiver_addr}&receiver=${decode[4]}&callData=${callBackData}&entrance=Butter%2B&swapCaller=${receiver_addr}`;
-        let response = await httpGet(url, get_param);
-        if (!response) throw "Get swap route failed";
+        let key = process.env.ROUTER_API_KEY;
+        if (!key) throw "ROUTER_API_KEY not set in .env";
 
-        let j = JSON.parse(response);
-        if (j.errno !== 0) {
+        let toChainId = network.config.chainId;
+        let query = `toChainId=${toChainId}&txHash=${taskArgs.hash}&entrance=${encodeURIComponent(taskArgs.entrance)}&slippage=${taskArgs.slippage}`;
+        let j = await httpPost(`${url}?${query}`, {}, { Authorization: `Bearer ${key}` });
+        if (!j || j.errno !== 0) {
             console.log("API error:", j);
             return;
         }
 
-        let txParam = j.data[0].txParam;
-        let route = j.data[0].route;
-
-        // Check minOut against event minReceived
-        let outTokenDecimals = await getDecimals(hre, dstToken, wallet);
-        let minOutStr = route.minAmountOut.amount;
-        let dotIdx = minOutStr.indexOf(".");
-        let minOut;
-        if (dotIdx > 0) {
-            let len = Math.min(minOutStr.length - dotIdx - 1, outTokenDecimals);
-            minOut = ethers.parseUnits(minOutStr.substring(0, len + dotIdx + 1), outTokenDecimals);
-        } else {
-            minOut = ethers.parseUnits(minOutStr, outTokenDecimals);
-        }
-        console.log("route minOut:", minOut, "event minReceived:", minReceived);
-        if (minReceived > minOut && !taskArgs.force) {
-            throw `minOut too low (${minOut} < ${minReceived}), use --force to override`;
-        }
-
-        if (txParam.errno !== 0 || txParam.data.length === 0) {
-            console.log("No valid swap data from API");
+        let routes = j.data && j.data.routeWithTxParams;
+        if (!routes || routes.length === 0) {
+            console.log("No viable swap route from API. minReceivedInLog:", j.data && j.data.minReceivedInLog);
+            console.log("Use `receiverV2:swapRescueFunds` to refund the user instead.");
             return;
         }
-        let swapData = txParam.data[0].args?.[4]?.value;
-        if (!swapData) {
-            console.log("No swap data in API response");
-            return;
-        }
+
+        // routeWithTxParams[i] has the same shape as rescueFundsTxParam:
+        // { to, data, value, chainId, method, args } where args follows the contract signature
+        // execSwap(orderId, fromChain, srcToken, amount, from, swapData, callbackData).
+        let tx = routes[0];
+        let args = tx.args;
+        let orderId = args[0].value;
+        let fromChain = args[1].value;
+        let srcToken = args[2].value;
+        let amount = args[3].value;
+        let from = args[4].value;
+        let swapData = args[5].value;
+        let callbackData = args[6].value;
+
+        await checkNotExecuted(hre, c, orderId);
+
+        console.log("orderId:", orderId);
+        console.log("srcToken:", srcToken, "amount:", amount, "fromChain:", fromChain);
 
         if (isTronNetwork(network.name)) {
-            await c.execSwap(orderId, decode[0], tokenIn, amount_decimals, from, swapData, callBackData).sendAndWait();
+            await c.execSwap(orderId, fromChain, srcToken, amount, from, swapData, callbackData).sendAndWait();
         } else {
-            await (await c.execSwap(orderId, decode[0], tokenIn, amount_decimals, from, swapData, callBackData, { gasLimit: 5000000 })).wait();
+            await (await c.execSwap(orderId, fromChain, srcToken, amount, from, swapData, callbackData, { gasLimit: 5000000 })).wait();
         }
         console.log("execSwap succeeded");
     });
@@ -285,20 +266,3 @@ task("receiverV2:swapRescueFunds", "Rescue funds from failed swap (send token di
         }
         console.log("swapRescueFunds succeeded");
     });
-
-// ============================================================
-// Helpers
-// ============================================================
-async function getDecimals(hre, token, wallet) {
-    const { ethers } = hre;
-    if (token.toLowerCase() === ethers.ZeroAddress) {
-        return isTronNetwork(hre.network.name) ? 6 : 18;
-    }
-    if (isTronNetwork(hre.network.name)) {
-        let t = await getContract("MockToken", hre, tronFromHex(token));
-        return t.decimals().call();
-    }
-    let ERC20 = ["function decimals() external view returns (uint8)"];
-    let t = await ethers.getContractAt(ERC20, token, wallet);
-    return t.decimals();
-}
