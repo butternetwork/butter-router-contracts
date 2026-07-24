@@ -156,6 +156,12 @@ module.exports = {
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
+    Robinhood: {
+      url: `https://rpc.mainnet.chain.robinhood.com`,
+      chainId: 4663,
+      accounts:
+        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
     Arbitrum: {
       url: `https://arb1.arbitrum.io/rpc`,
       chainId: 42161,
@@ -277,7 +283,8 @@ module.exports = {
       Unichain:  process.env.API_KEY_ETH,
       Mon:  process.env.API_KEY_ETH,
       Avalanche: process.env.API_KEY_ETH,
-      Xlayer: ' '
+      Xlayer: ' ',
+      Robinhood: ' '
     },
     customChains: [
       {
@@ -292,8 +299,8 @@ module.exports = {
         network: "Eth",
         chainId: 1,
         urls: {
-          apiURL: "https://www.oklink.com/api/v5/explorer/contract/verify-source-code-plugin/Eth",
-          browserURL: "https://www.oklink.com",
+          apiURL: "https://api.etherscan.io/v2/api?chainid=1",
+          browserURL: "https://etherscan.io/",
         },
       },
 
@@ -422,6 +429,15 @@ module.exports = {
         urls: {
           apiURL: "https://explorer-api.chainservice.io/api",
           browserURL: "https://explorer.mapprotocol.io"
+        },
+      },
+
+      {
+        network: "Robinhood",
+        chainId: 4663,
+        urls: {
+          apiURL: "https://robinhoodchain.blockscout.com/api/",
+          browserURL: "https://robinhoodchain.blockscout.com/"
         },
       },
 

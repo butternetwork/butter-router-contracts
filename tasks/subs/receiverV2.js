@@ -211,31 +211,29 @@ task("receiverV2:execSwap", "Execute failed swap")
         console.log("orderId:", orderId);
         console.log("tokenIn:", tokenIn, "dstToken:", dstToken, "amount:", amount);
 
-        // Fetch swap route from Butter Router API
-        let url = process.env.BUTTER_ROUTER_API;
-        if (!url) throw "BUTTER_ROUTER_API not set in .env";
+        //1. Fetch route from Butter Router API
+        let routeUrl = "https://bs-router-v3.chainservice.io/route?";
         let slippage = taskArgs.slippage;
         let chain_id = network.config.chainId;
         let get_param = `fromChainId=${chain_id}&toChainId=${chain_id}&amount=${amount}&tokenInAddress=${tokenIn}&tokenOutAddress=${dstToken}&type=exactIn&slippage=${slippage}&from=${receiver_addr}&receiver=${decode[4]}&callData=${callBackData}&entrance=Butter%2B&swapCaller=${receiver_addr}`;
-        let response = await httpGet(url, get_param);
+        let response = await httpGet(routeUrl, get_param);
         if (!response) throw "Get swap route failed";
-
         let j = JSON.parse(response);
         if (j.errno !== 0) {
             console.log("API error:", j);
             return;
         }
-
-        let txParam = j.data[0].txParam;
-        let route = j.data[0].route;
-
-        // Check minOut against event minReceived
+        if (!j.data || j.data.length === 0 || !j.data[0]) {
+            console.log("No valid route from API");
+            return;
+        }
+        //2. Check minOut against event minReceived
         let outTokenDecimals = await getDecimals(hre, dstToken, wallet);
-        let minOutStr = route.minAmountOut.amount;
+        let minOutStr = j.data[0].minAmountOut.amount.toString();
         let dotIdx = minOutStr.indexOf(".");
         let minOut;
         if (dotIdx > 0) {
-            let len = Math.min(minOutStr.length - dotIdx - 1, outTokenDecimals);
+            let len = Math.min(minOutStr.length - dotIdx - 1, Number(outTokenDecimals));
             minOut = ethers.parseUnits(minOutStr.substring(0, len + dotIdx + 1), outTokenDecimals);
         } else {
             minOut = ethers.parseUnits(minOutStr, outTokenDecimals);
@@ -244,17 +242,26 @@ task("receiverV2:execSwap", "Execute failed swap")
         if (minReceived > minOut && !taskArgs.force) {
             throw `minOut too low (${minOut} < ${minReceived}), use --force to override`;
         }
+        let routeHash = j.data[0].hash;
 
-        if (txParam.errno !== 0 || txParam.data.length === 0) {
+        //3. Fetch swap data from Butter Router API
+        let swapUrl = `https://bs-router-v3.chainservice.io/swap?`;
+        let swap_param =`hash=${routeHash}&slippage=${slippage}&from=${receiver_addr}&receiver=${decode[4]}&callData=${callBackData}`;
+        response = await httpGet(swapUrl, swap_param);
+        j = JSON.parse(response);
+        if (j.errno !== 0) {
+            console.log("API error:", j);
+            return;
+        }
+        if (!j.data || j.data.length === 0 || !j.data[0]) {
             console.log("No valid swap data from API");
             return;
         }
-        let swapData = txParam.data[0].args?.[4]?.value;
+        let swapData = j.data[0].args?.[4]?.value;
         if (!swapData) {
             console.log("No swap data in API response");
             return;
         }
-
         if (isTronNetwork(network.name)) {
             await c.execSwap(orderId, decode[0], tokenIn, amount_decimals, from, swapData, callBackData).sendAndWait();
         } else {
