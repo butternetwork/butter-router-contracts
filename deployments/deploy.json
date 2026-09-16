@@ -199,6 +199,12 @@
 			"SwapAdapterV3": "0xaa301070448385cfAaC5913A67B16C4392944a8f",
 			"ButterRouterV31": "0xEE0319cF0BCa5d09333f9F6277743E8De31bD69A",
 			"ReceiverV2": "0xC6136f019a7ca92044482373c73367e13bA4c672"
+		},
+		"Arc": {
+			"SwapAdapterV3": "0xaa301070448385cfAaC5913A67B16C4392944a8f",
+			"SwapAggregator": "0x4C0Ce9aD38BC3132ad1C8AE7E00D48f9524EbC03",
+			"ButterRouterV31": "0xEE0319cF0BCa5d09333f9F6277743E8De31bD69A",
+			"ARCReceiverV2": "0x1c657A87071ff402acD673f3559457e1003D9718"
 		}
 	},
 	"main": {
@@ -254,6 +260,12 @@
 			"SwapAdapterV3": "TVQMxHupjSAqeoPyg1oPDh6B6GghrjN8rr",
 			"ReceiverV2": "TVQMxHupjSAqeoPyg1oPDh6B6GghrjN8rr",
 			"ButterRouterV4": "TUbQvKVF9pPCyZavoeFmiVLhH5hev356V1"
+		},
+		"Arc": {
+			"SwapAdapterV3": "0xaa301070448385cfAaC5913A67B16C4392944a8f",
+			"SwapAggregator": "0x4C0Ce9aD38BC3132ad1C8AE7E00D48f9524EbC03",
+			"ButterRouterV31": "0xEE0319cF0BCa5d09333f9F6277743E8De31bD69A",
+			"ReceiverV2": "0xC6136f019a7ca92044482373c73367e13bA4c672"
 		}
 	}
 }
