@@ -504,6 +504,28 @@ let config = new Map([
   ],
 
   [
+    "Arc",
+    {
+      wToken: "0x444289f87293CEc2A70fC785D126FD14e01bF591",
+      uniPermit2: "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+      tss_main_gateway: "",
+      tss_prod_gateway: "",
+      v3: {
+        bridge: "0x0000317Bec33Af037b5fAb2028f52d14658F6A56",
+        fee: {
+          receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+          routerFeeRate: "0", //denominator is 10000
+          routerFixedFee: "0",
+          maxReferrerFeeRate: "2000",
+          maxReferrerNativeFee: "6000000000000000",
+        },
+        executors: [],
+      },
+      removes: [],
+    },
+  ],
+
+  [
     "Linea",
     {
       wToken: "0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f",
@@ -900,6 +922,28 @@ let config = new Map([
         },
         executors: ["TYsbWxNnyTgsZaTFaue9hqpxkU3Fkco94a"],
       },
+    },
+  ],
+
+  [
+    "Arc_test",
+    {
+      wToken: "0x2946536e683BB85859109fb0f7813b3586Bdd947",
+      uniPermit2: "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+      tss_main_gateway: "",
+      tss_prod_gateway: "",
+      v3: {
+        bridge: "0x0000317Bec33Af037b5fAb2028f52d14658F6A56",
+        fee: {
+          receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
+          routerFeeRate: "0", //denominator is 10000
+          routerFixedFee: "0",
+          maxReferrerFeeRate: "2000",
+          maxReferrerNativeFee: "6000000000000000",
+        },
+        executors: [],
+      },
+      removes: [],
     },
   ],
 ]);

@@ -13,6 +13,19 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
     bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     uint256 public constant DENOMINATOR = 10000;
+    // The hard ceiling `setMaxAffiliateFeeRate` will ever allow - not the
+    // actual operational default (see `DEFAULT_MAX_AFFILIATE_FEE_RATE`
+    // below). Set well above the real operating value specifically so
+    // RelayExecutor's own independent total-fee-rate backstop (a pure
+    // catastrophic ceiling, 30%, not meant to be hit on normal business) is
+    // never the tighter of the two: a hard cap here below that would make
+    // this the binding constraint instead, for no reason.
+    uint256 public constant MAX_AFFILIATE_FEE_RATE_CAP = 3000; // 30%
+    // The actual starting operational value for a fresh deployment -
+    // independent of `MAX_AFFILIATE_FEE_RATE_CAP`, which only bounds how
+    // high `setMaxAffiliateFeeRate` can ever raise it, not what it starts
+    // at.
+    uint256 public constant DEFAULT_MAX_AFFILIATE_FEE_RATE = 1000; // 10%
 
     using SafeERC20 for IERC20;
 
@@ -20,6 +33,12 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
     address public relayExecutor;
     uint16 public currentRegisterId;
     uint16 public maxAffiliateFeeRate;
+    // Dead - `register()` never actually reads this (only `whitelist`
+    // itself, for the register-fee discount in `getUserRegisterFee`), so
+    // `triggerRegisterWhitelist()` toggling it has no effect on who can
+    // register. Left in place rather than removed: this is a storage slot
+    // on the already-live production proxy, and removing it would shift
+    // every field declared after it.
     bool public isRegisterNeedWhitelist;
 
     struct AffiliateInfo {
@@ -60,6 +79,7 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
     error NOT_CONTRACT();
     error ONLY_RELAY_EXECUTOR();
     error INVALID_MAX_VALUE();
+    error MAX_AFFILIATE_FEE_RATE_TOO_HIGH();
     error AFFILIATE_NOT_EXIST();
     error FEE_BIG_THAN_IN_AMOUNT();
     error WALLET_REGISTERED();
@@ -94,7 +114,14 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
 
     function initialize(address _admin) external initializer {
         if (_admin == address(0)) revert ZERO_ADDRESS();
-        maxAffiliateFeeRate = 3000;
+        // The already-live production proxy initialized with its own
+        // literal 3000 (30%) long before either of these constants existed
+        // - that value is immutable history, unrelated to (and not touched
+        // by) `DEFAULT_MAX_AFFILIATE_FEE_RATE` happening to read 1000 here.
+        // A fresh deployment starts at the real operational default, not
+        // the (much higher) hard ceiling `MAX_AFFILIATE_FEE_RATE_CAP` only
+        // exists to bound `setMaxAffiliateFeeRate` by.
+        maxAffiliateFeeRate = uint16(DEFAULT_MAX_AFFILIATE_FEE_RATE);
         _grantRole(MANAGER_ROLE, _admin);
         _grantRole(UPGRADER_ROLE, _admin);
         _grantRole(DEFAULT_ADMIN_ROLE, _admin);
@@ -107,7 +134,15 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
         emit SetExecutorAndSwap(_relayExecutor, _swap);
     }
 
+    // Capped at `MAX_AFFILIATE_FEE_RATE_CAP` (30%) - matches RelayExecutor's
+    // own independent total-fee-rate backstop, so this can never be
+    // configured above what that side would skip the fee entirely over
+    // anyway. The actual operating value is expected to stay at
+    // `DEFAULT_MAX_AFFILIATE_FEE_RATE` (10%) in normal business - this cap
+    // is a ceiling on how high governance could ever raise it, not the
+    // recommended value itself.
     function setMaxAffiliateFeeRate(uint16 _maxAffiliateFeeRate) external onlyRole(MANAGER_ROLE) {
+        if (_maxAffiliateFeeRate > MAX_AFFILIATE_FEE_RATE_CAP) revert MAX_AFFILIATE_FEE_RATE_TOO_HIGH();
         maxAffiliateFeeRate = _maxAffiliateFeeRate;
         emit SetMaxAffiliateFeeRate(_maxAffiliateFeeRate);
     }
@@ -216,6 +251,9 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
                 fee = TokenFee({token: token, feeAmount: amount, outAmount: amount});
                 totalOutAmount += amount;
             } else {
+                // `minOut` hardcoded to 1 (no slippage floor) is fine
+                // here - `swap` prices off an oracle feed, not an AMM pool,
+                // so there's no sandwich-attack surface to protect against.
                 IERC20(token).forceApprove(address(swap), amount);
                 uint256 outAmount = swap.swap(token, _outToken, amount, 1, address(this));
                 fee = TokenFee({token: token, feeAmount: amount, outAmount: outAmount});
@@ -293,6 +331,10 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
         return affiliateTokenFees[_id][_token];
     }
 
+    // Mirrors `collectAffiliatesFee`'s own overage handling exactly
+    // (revert, not silently clamp) - a quote that clamped while the real
+    // execution later reverts would quote a nonzero fee for an order that
+    // actually ends up paying none.
     function getAffiliatesFee(
         uint256 amount,
         bytes calldata feeData
@@ -306,9 +348,9 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
             (, uint256 fee) = _getAffiliateFee(amount, id, rate);
             if (fee != 0) {
                 totalFee += fee;
+                if (totalFee > amount) revert FEE_BIG_THAN_IN_AMOUNT();
             }
         }
-        if (totalFee > amount) totalFee = amount;
     }
 
     // affiliates n * (2 byte affiliateId + 2 byte fee rate)
@@ -318,12 +360,7 @@ contract AffiliateFeeManager is Initializable, UUPSUpgradeable, AccessControlEnu
         uint256 amount,
         bytes calldata feeData
     ) external override returns (uint256 totalFee) {
-        if (
-            msg.sender != relayExecutor &&
-            msg.sender != 0xCA9a3C761dC02B5784f77409bf641Bf6482AAA94 && 
-            msg.sender != 0x42D64eD9381bF456697b0C360e8acE139F176a80 &&
-            msg.sender != 0x00004080D86e1077ce96E67C1B167fF105025307
-        ) revert ONLY_RELAY_EXECUTOR();
+        if (msg.sender != relayExecutor) revert ONLY_RELAY_EXECUTOR();
 
         uint256 offset;
         uint256 len = feeData.length / 4;
