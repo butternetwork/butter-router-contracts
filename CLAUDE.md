@@ -46,10 +46,11 @@ contracts/           # Solidity source
   mock/              # Test mocks
   interface/         # Interfaces
 tasks/
-  index.js           # Task registration
+  index.js           # Task registration; adds --env to every project task
   utils/
     helper.js        # Shared utilities (getContract, getDeploy, createDeployer, etc.)
     httpUtil.js      # HTTP client (axios)
+    bridgeData.js    # Builds V31 swapAndBridge args for plain cross-chain transfers
   common/
     common.js        # Shared contract operations (setAuthorization, setBridge, setOwner, etc.)
   subs/
@@ -81,17 +82,21 @@ npm run format                    # Format code
 
 ### Deployment
 
-All deployment requires `NETWORK_ENV` environment variable:
+Mainnet tasks require an env, via the `--env` param (preferred) or the `NETWORK_ENV` environment variable:
 ```bash
-NETWORK_ENV=main    # mainnet test environment
-NETWORK_ENV=prod    # production environment
-# Testnet networks auto-detect, no NETWORK_ENV needed
+npx hardhat <task> --env prod --network <network>   # production environment
+npx hardhat <task> --env main --network <network>   # mainnet test environment
+NETWORK_ENV=prod npx hardhat <task> --network <network>   # same, via env var
+# --env overrides NETWORK_ENV (including the value in .env)
+# Only "main" / "prod" are accepted; anything else errors out
+# Testnet networks auto-detect as "test"; --env is ignored there
+# Every project task prints ">>> env: <env>, network: <network>" before running
 ```
 
 #### Router V4 (Current)
 ```bash
-NETWORK_ENV=main npx hardhat routerV4 --network <network>          # Full deploy + configure
-NETWORK_ENV=main npx hardhat routerV4:deploy --bridge <addr> --wtoken <addr> --network <network>
+npx hardhat routerV4 --env main --network <network>                 # Full deploy + configure
+npx hardhat routerV4:deploy --env main --bridge <addr> --wtoken <addr> --network <network>
 npx hardhat routerV4:setAuthorization --executors <addr1,addr2> --network <network>
 npx hardhat routerV4:setFee --feereceiver <addr> --feerate <rate> --fixedfee <fee> --network <network>
 npx hardhat routerV4:setReferrerMaxFee --rate <rate> --native <fee> --network <network>
@@ -102,18 +107,42 @@ npx hardhat routerV4:update --network <network>                     # Sync all s
 npx hardhat routerV4:info --network <network>                       # Display contract state
 ```
 
-#### ReceiverV2 (Current)
+#### Router V31 (v3 butter bridge / MOS v3.1)
 ```bash
-NETWORK_ENV=main npx hardhat receiverV2 --network <network>         # Full deploy + configure
-NETWORK_ENV=main npx hardhat receiverV2:deploy --bridge <addr> --wtoken <addr> --network <network>
-npx hardhat receiverV2:setAuthorization --executors <addr1,addr2> --network <network>
-npx hardhat receiverV2:setBridge --bridge <addr> --network <network>
-npx hardhat receiverV2:updateKeepers --keepers <addr1,addr2> --network <network>
-npx hardhat receiverV2:setOwner --owner <addr> --network <network>
-npx hardhat receiverV2:update --network <network>
-npx hardhat receiverV2:execSwap --hash <txHash> --network <network>
-npx hardhat receiverV2:swapRescueFunds --hash <txHash> --network <network>
+npx hardhat routerV31 --env main --network <network>                # Full deploy + configure (bridge from v3.bridge / v3.main_bridge)
+npx hardhat routerV31:approveToken --token <token> --spender <bridge> --network <network>  # REQUIRED per bridged token
+npx hardhat routerV31:info --env main --network <network>
+
+# Plain cross-chain transfer, no swap on target chain. --token native wraps the native coin first.
+npx hardhat routerV31:bridge --env prod --token <addr|native> --amount <human> --chain <toChainId> \
+  [--receiver <addr>] [--referrer <addr>] [--header <6-byte hex>] --dryrun --network <network>
 ```
+- V31 never approves the bridge itself: after deploy the owner must `approveToken` every token it will bridge (e.g. USDT), or `swapAndBridge` reverts.
+- `routerV31:bridge` builds calldata via `tasks/utils/bridgeData.js`, matching prod tx `0x9b7b43f8…` on Map byte for byte. `--dryrun` prints calldata and simulates via eth_call without sending.
+- The 6-byte payload header (default `0x010009001e00`) is copied from that prod tx; its meaning is undocumented here.
+- Bridges enforce a minimum amount (`amount_too_small()`), e.g. ~15000 MAPO for Map -> Eth.
+
+#### ReceiverV2 (Current)
+Two receiver flavours, selected by the `--tss` flag (available on every `receiverV2*` task):
+
+| deploy.json key | Bridge | Flag |
+|---|---|---|
+| `ReceiverV2` | v3 butter bridge / MOS v3.1 (paired with V31) | default |
+| `ReceiverV2Tss` | TSS gateway (paired with V4) | `--tss` |
+
+```bash
+npx hardhat receiverV2 --env main --network <network>               # Full deploy + configure (MOS receiver)
+npx hardhat receiverV2 --tss --env main --network <network>         # Full deploy + configure (TSS receiver)
+npx hardhat receiverV2:deploy --bridge <addr> --wtoken <addr> [--tss] --network <network>
+npx hardhat receiverV2:setAuthorization --executors <addr1,addr2> [--tss] --network <network>
+npx hardhat receiverV2:setBridge --bridge <addr> [--tss] --network <network>
+npx hardhat receiverV2:updateKeepers --keepers <addr1,addr2> [--tss] --network <network>   # needed for execSwap / swapRescueFunds
+npx hardhat receiverV2:setOwner --owner <addr> [--tss] --network <network>
+npx hardhat receiverV2:update [--tss] --network <network>
+npx hardhat receiverV2:execSwap --hash <txHash> --entrance <name> [--tss] --network <network>
+npx hardhat receiverV2:swapRescueFunds --hash <txHash> [--tss] --network <network>
+```
+- The full `receiverV2` task ALWAYS deploys a new contract and overwrites the deploy.json key. If a deploy is interrupted after the contract is created, record the address manually and run `receiverV2:setAuthorization` instead of re-running the full task.
 
 #### Contract Verification
 ```bash
@@ -139,18 +168,21 @@ npx hardhat flatten:all
 Three-layer structure separating environments:
 ```json
 {
-  "prod": { "Eth": { "ButterRouterV4": "0x...", "ReceiverV2": "0x...", "SwapAdapterV3": "0x..." } },
-  "main": { "Eth": { "ButterRouterV4": "0x...", "ReceiverV2": "0x..." } },
+  "prod": { "Bsc": { "ButterRouterV31": "0x...", "ButterRouterV4": "0x...", "ReceiverV2": "0x...", "SwapAdapterV3": "0x..." } },
+  "main": { "Bsc": { "ButterRouterV31": "0x...", "ButterRouterV4": "0x...", "ReceiverV2": "0x...", "ReceiverV2Tss": "0x..." } },
   "test": { "Makalu": { "SwapAdapterV3": "0x..." } }
 }
 ```
 - **prod**: Production contracts (V2/V3/V31/V4 + shared infra like SwapAdapterV3)
-- **main**: Mainnet test contracts (V4/ReceiverV2 only)
+- **main**: Mainnet test contracts. V31 + `ReceiverV2` on MOS v3.1 (Bsc/Map/Arbitrum/Tron), V4 + `ReceiverV2Tss` on TSS
 - **test**: Testnet contracts
+- `ReceiverV2` always means the v3/MOS receiver; `ReceiverV2Tss` is the TSS one (main env only)
 
 ### Network Configuration (configs/config.js)
 - **wToken**: Wrapped native token address
-- **tss_gateway / tss_main_gateway / tss_prod_gateway**: Bridge addresses per env
+- **tss_gateway / tss_main_gateway / tss_prod_gateway**: TSS gateway per env (used by V4 and `--tss` receivers)
+- **v3.bridge**: v3 butter bridge for prod (used by V3/V31/Receiver/ReceiverV2/SolanaReceiver)
+- **v3.main_bridge**: MOS v3.1 for the main env (same bridge system as v3.bridge, separate deployment). Only set on Bsc/Map/Arbitrum/Tron; other chains error out for V31/ReceiverV2 under `--env main`
 - **v3.executors**: Approved DEX router contracts
 - **v3.fee**: Fee rates and receiver addresses
 
@@ -168,7 +200,14 @@ Tron networks use separate private keys and RPC:
 - `saveDeploy(network, key, addr, env?)` — write to deploy.json
 - `getDeployerAddr(hre)` — deployer address (hex for both EVM/Tron)
 - `createDeployer(hre, opts)` — unified deploy (from @mapprotocol/common-contracts)
-- `getBridge(network, config)` — resolve bridge address from config + NETWORK_ENV
+- `getEnv(network)` — "test" for testnets, otherwise NETWORK_ENV validated against `main` / `prod`
+- `getBridge(network, config, contract)` — bridge for a contract + env:
+
+  | Contract | prod | main | test |
+  |---|---|---|---|
+  | V3 / V31 / Receiver / ReceiverV2 / SolanaReceiver | `v3.bridge` | `v3.main_bridge` | `v3.bridge` or `tss_gateway` |
+  | V4 (and others) | `tss_prod_gateway` | `tss_main_gateway` | `tss_gateway` |
+- `getTssGateway(network, config)` — TSS gateway for the env (used by `receiverV2 --tss`)
 - `isTronNetwork`, `tronToHex`, `tronFromHex` — Tron address utilities
 
 ### Shared Operations (tasks/common/common.js)

@@ -24,7 +24,7 @@ module.exports = async (taskArgs, hre) => {
     let config = getConfig(network.name);
     if (!config) throw "config not set";
 
-    let bridge = getBridge(network.name, config);
+    let bridge = getBridge(network.name, config, CONTRACT);
 
     console.log("deploy Receiver with bridge:", bridge);
     await hre.run("receiver:deploy", { bridge, wtoken: config.wToken });
@@ -274,6 +274,26 @@ task("receiver:swapRescueFunds", "Rescue funds from failed swap (send token dire
             await (await c.swapRescueFunds(orderId, decode[0], decode[1], decode[3], decode[2], decode[4], decode[6], decode[7])).wait();
         }
         console.log("swapRescueFunds succeeded");
+    });
+
+task("receiver:rescueFunds", "Rescue stuck funds (owner withdraws token/native by amount)")
+    .addOptionalParam("receiver", "Receiver address", "", types.string)
+    .addParam("token", "Token address (zero address for native)")
+    .addParam("amount", "Amount in smallest unit")
+    .setAction(async (taskArgs, hre) => {
+
+        let addr = await getReceiverAddress(taskArgs.receiver, hre);
+        let c = await getContract(CONTRACT, hre, addr);
+
+        let caller = await getDeployerAddr(hre);
+        console.log("caller:", caller);
+
+        if (isTronNetwork(hre.network.name)) {
+            await c.rescueFunds(tronToHex(taskArgs.token), taskArgs.amount).sendAndWait();
+        } else {
+            await (await c.rescueFunds(taskArgs.token, taskArgs.amount)).wait();
+        }
+        console.log(`${CONTRACT} ${addr} rescueFunds ${taskArgs.token} ${taskArgs.amount}`);
     });
 
 // ============================================================

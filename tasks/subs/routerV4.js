@@ -23,7 +23,7 @@ module.exports = async (taskArgs, hre) => {
     let config = getConfig(network.name);
     if (!config) throw "config not set";
 
-    let bridge = getBridge(network.name, config);
+    let bridge = getBridge(network.name, config, CONTRACT);
 
     await hre.run("routerV4:deploy", { bridge, wtoken: config.wToken });
 
@@ -273,7 +273,7 @@ task("routerV4:update", "Check and update from config file")
 
         await setAuthorization(hre, CONTRACT, addr, executors);
 
-        let bridge = getBridge(hre.network.name, config);
+        let bridge = getBridge(hre.network.name, config, CONTRACT);
         await setBridge(hre, CONTRACT, addr, bridge);
 
         await checkFee(hre, CONTRACT, addr, config.v3.fee);

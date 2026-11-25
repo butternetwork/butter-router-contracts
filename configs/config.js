@@ -39,10 +39,11 @@ let config = new Map([
           "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D", //univ2
           "0xE592427A0AEce92De3Edee1F18E0157C05861564", //univ3
           "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64", // open ocean
-          "0x3321dE36B6C29A6fa102A67bd5C48E5756Baa596", // omni adapter
         ],
       },
-      removes: [],
+      removes: [
+        "0x3321dE36B6C29A6fa102A67bd5C48E5756Baa596", // omni adapter
+      ],
     },
   ],
 
@@ -68,6 +69,7 @@ let config = new Map([
       },
       v3: {
         bridge: "0x0000317Bec33Af037b5fAb2028f52d14658F6A56",
+        main_bridge: "0xA3215a126ab5937D51e25D34D2Bd6EE1B2f9dD42", // MOS v3.1 (main env)
         fee: {
           receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
           routerFeeRate: "0", //denominator is 10000
@@ -82,11 +84,12 @@ let config = new Map([
           "0xB971eF87ede563556b2ED4b1C0b0019111Dd85d2", //uni SwapRouter02
           "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506", //sushi
           "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64", // openocean
-          "0x3321dE36B6C29A6fa102A67bd5C48E5756Baa596", // omni adapter
           "0xedf2021f41AbCfE2dEA4427E1B61f4d0AA5aA4b8", //izumi
         ],
       },
-      removes: [],
+      removes: [
+        "0x3321dE36B6C29A6fa102A67bd5C48E5756Baa596", // omni adapter
+      ],
     },
   ],
 
@@ -232,6 +235,7 @@ let config = new Map([
       },
       v3: {
         bridge: "0x0000317Bec33Af037b5fAb2028f52d14658F6A56",
+        main_bridge: "0xA3215a126ab5937D51e25D34D2Bd6EE1B2f9dD42", // MOS v3.1 (main env)
         fee: {
           receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
           routerFeeRate: "0", //denominator is 10000
@@ -243,7 +247,7 @@ let config = new Map([
           "0x0bce9e0ebd4fd4d6562495af45c4aaa0c1f7f3d7", //hiveswap v2
           "0x3EF68D3f7664b2805D4E88381b64868a56f88bC4", //hiveswap pro
           "0x6628a22D9E16E42225a46ceaDd93dACFefAcfE1b", //hiveswap v3
-          "0x3321dE36B6C29A6fa102A67bd5C48E5756Baa596", // omni adapter
+
           "0x3EF68D3f7664b2805D4E88381b64868a56f88bC4", // izumi
 
           "0x273290B6dCe557B2889b8B5aF7ea4d989689E1CC", // chainpool
@@ -253,6 +257,7 @@ let config = new Map([
       },
       removes: [
         "0xfeB2b97e4Efce787c08086dC16Ab69E063911380", // bridge
+        "0x3321dE36B6C29A6fa102A67bd5C48E5756Baa596", // omni adapter
       ],
     },
   ],
@@ -262,27 +267,30 @@ let config = new Map([
     {
       wToken: "TNUC9Qb1rRpS5CbWLmNMxXBjyFoydXjWFR",
       tss_main_gateway: "TNFvEVGRMCo46j6zKXc2MKh64dxoLry1k2",
-      tss_prod_gateway: "TFzUB3JgjWjaLJ85XpxTsZbX5wZ4czKVHv",
+      tss_prod_gateway: "TXsDYB9ovFEFg4cja6gn1t1tpmrnSbYhHA",
       v2: {
         mos: "TYMpgB8Q9vSoGtkyE3hXsvUrpte3KCDGj6",
         fee: {
           receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
           feeRate: "0", //denominator is 1000000
-          fixedFee: "0",
+          fixedFee: "20000000",
         },
         executors: [
           "TFVisXFaijZfeyeSjCEVkHfex7HGdTxzF9", // sun smart router
           "TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ax", // sun v2 route
           "TQAvWQpT9H916GckwWDJNhYZvQMkuRL7PN", // sun v3 route
           "TJ4NNy8xZEqsowCBhLvZ45LCqPdGjkET5j", // sun smart router
+          "TGnC7LMji8hBpyvZt1TTEJhVpAZ5HFyJ3r", // sun swap router
+          "TYWc7X6YHpp2YrFXwLRsofdiL78JRvDd6u", // rango
         ],
       },
       v3: {
         bridge: "TXsDYB9ovFEFg4cja6gn1t1tpmrnSbYhHA",
+        main_bridge: "TJXHmyK68wEfg1tx5Wq3D4bgxQbtUV5hiK", // MOS v3.1 (main env)
         fee: {
           receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
           routerFeeRate: "0", //denominator is 10000
-          routerFixedFee: "0",
+          routerFixedFee: "20000000",
           maxReferrerFeeRate: "2000",
           maxReferrerNativeFee: "120000000000000000000",
         },
@@ -291,6 +299,8 @@ let config = new Map([
           "TXF1xDbVGdxFGbovmmmXvBGu8ZiE3Lq4mR", // sun v2 router new
           "TQAvWQpT9H916GckwWDJNhYZvQMkuRL7PN", // sun v3 route
           "TCFNp179Lg46D16zKoumd4Poa2WFFdtqYj", // sun smart router new
+          "TGnC7LMji8hBpyvZt1TTEJhVpAZ5HFyJ3r", // sun swap router
+          "TYWc7X6YHpp2YrFXwLRsofdiL78JRvDd6u", // rango
         ],
       },
       removes: [],
@@ -460,6 +470,7 @@ let config = new Map([
       },
       v3: {
         bridge: "0x0000317Bec33Af037b5fAb2028f52d14658F6A56",
+        main_bridge: "0xA3215a126ab5937D51e25D34D2Bd6EE1B2f9dD42", // MOS v3.1 (main env)
         fee: {
           receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
           routerFeeRate: "0", //denominator is 10000
@@ -479,7 +490,7 @@ let config = new Map([
     },
   ],
 
-   [
+  [
     "Robinhood",
     {
       wToken: "0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73",
@@ -495,9 +506,7 @@ let config = new Map([
           maxReferrerFeeRate: "2000",
           maxReferrerNativeFee: "6000000000000000",
         },
-        executors: [
-          "0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73"
-        ],
+        executors: ["0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73"],
       },
       removes: [],
     },
@@ -712,11 +721,11 @@ let config = new Map([
         fee: {
           receiver: "0x51C700e5bE790C91F14D42F85ca90aed9f2D142e",
           routerFeeRate: "0", //denominator is 10000
-          routerFixedFee: "0",
+          routerFixedFee: "13000000000000000",
           maxReferrerFeeRate: "2000",
-          maxReferrerNativeFee: "6000000000000000",
+          maxReferrerNativeFee: "60000000000000000",
         },
-        executors: [],
+        executors: ["0x69460570c93f9DE5E2edbC3052bf10125f0Ca22d"], // rango
       },
       removes: [],
     },

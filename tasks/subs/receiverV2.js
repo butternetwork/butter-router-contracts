@@ -1,6 +1,6 @@
 const { getConfig } = require("../../configs/config");
 const {
-    getBridge, getDeploy, saveDeploy,
+    getBridge, getTssGateway, getDeploy, saveDeploy,
     getContract, getDeployerAddr, isTronNetwork, tronToHex,
     createDeployer,
 } = require("../utils/helper.js");
@@ -10,10 +10,16 @@ const {
 const { httpPost } = require("../utils/httpUtil.js");
 
 const CONTRACT = "ReceiverV2";
+// deploy.json keys: ReceiverV2 -> v3 butter bridge (MOS v3.1), ReceiverV2Tss -> TSS gateway
+const TSS_KEY = "ReceiverV2Tss";
 
-async function getReceiverAddress(receiver, hre) {
+function deployKey(tss) {
+    return tss ? TSS_KEY : CONTRACT;
+}
+
+async function getReceiverAddress(receiver, hre, tss) {
     if (receiver && receiver !== "") return receiver;
-    return getDeploy(hre.network.name, CONTRACT);
+    return getDeploy(hre.network.name, deployKey(tss));
 }
 
 // ============================================================
@@ -24,12 +30,14 @@ module.exports = async (taskArgs, hre) => {
     let config = getConfig(network.name);
     if (!config) throw "config not set";
 
-    let bridge = getBridge(network.name, config);
+    let tss = !!taskArgs.tss;
+    let bridge = tss ? getTssGateway(network.name, config) : getBridge(network.name, config, CONTRACT);
+    if (!bridge) throw `bridge not configured for ${deployKey(tss)} on ${network.name}`;
 
-    console.log("deploy ReceiverV2 with bridge:", bridge);
-    await hre.run("receiverV2:deploy", { bridge, wtoken: config.wToken });
+    console.log(`deploy ${deployKey(tss)} with bridge:`, bridge);
+    await hre.run("receiverV2:deploy", { bridge, wtoken: config.wToken, tss });
 
-    let receiver_addr = await getReceiverAddress("", hre);
+    let receiver_addr = await getReceiverAddress("", hre, tss);
     let adapt_addr = await getDeploy(network.name, "SwapAdapterV3", "prod");
     config.v3.executors.push(adapt_addr);
     config.v3.executors.push(config.wToken);
@@ -43,8 +51,10 @@ module.exports = async (taskArgs, hre) => {
 task("receiverV2:deploy", "Deploy ReceiverV2 contract")
     .addParam("bridge", "Bridge address")
     .addParam("wtoken", "Wrapped token address")
+    .addFlag("tss", "Use the TSS-gateway receiver (deploy key ReceiverV2Tss) instead of the v3/MOS one")
     .setAction(async (taskArgs, hre) => {
         const { network } = hre;
+        let key = deployKey(taskArgs.tss);
         let deployer = createDeployer(hre, { autoVerify: true });
         let deployerAddr = await getDeployerAddr(hre);
 
@@ -52,13 +62,13 @@ task("receiverV2:deploy", "Deploy ReceiverV2 contract")
             let bridge = tronToHex(taskArgs.bridge);
             let wtoken = tronToHex(taskArgs.wtoken);
             let result = await deployer.deploy(CONTRACT, [deployerAddr, wtoken, bridge]);
-            console.log(`${CONTRACT} address: ${result.address}`);
-            await saveDeploy(network.name, CONTRACT, result.address);
+            console.log(`${key} address: ${result.address}`);
+            await saveDeploy(network.name, key, result.address);
         } else {
             let salt = process.env.RECEIVER_V2_DEPLOY_SALT || "";
             let result = await deployer.deploy(CONTRACT, [deployerAddr, taskArgs.wtoken, taskArgs.bridge], salt);
-            console.log(`${CONTRACT} address: ${result.address}`);
-            await saveDeploy(network.name, CONTRACT, result.address);
+            console.log(`${key} address: ${result.address}`);
+            await saveDeploy(network.name, key, result.address);
         }
     });
 
@@ -67,28 +77,31 @@ task("receiverV2:deploy", "Deploy ReceiverV2 contract")
 // ============================================================
 task("receiverV2:setAuthorization", "Set executor authorization")
     .addOptionalParam("receiver", "Receiver address", "", types.string)
+    .addFlag("tss", "Use the TSS-gateway receiver (deploy key ReceiverV2Tss) instead of the v3/MOS one")
     .addParam("executors", "Comma-separated executor addresses")
     .addOptionalParam("flag", "Authorization flag", true, types.boolean)
     .setAction(async (taskArgs, hre) => {
-        let addr = await getReceiverAddress(taskArgs.receiver, hre);
+        let addr = await getReceiverAddress(taskArgs.receiver, hre, taskArgs.tss);
         let list = taskArgs.executors.split(",").map(e => e.trim());
         await setAuthorization(hre, CONTRACT, addr, list, taskArgs.flag);
     });
 
 task("receiverV2:setBridge", "Set bridge address")
     .addOptionalParam("receiver", "Receiver address", "", types.string)
+    .addFlag("tss", "Use the TSS-gateway receiver (deploy key ReceiverV2Tss) instead of the v3/MOS one")
     .addParam("bridge", "Bridge address")
     .setAction(async (taskArgs, hre) => {
-        let addr = await getReceiverAddress(taskArgs.receiver, hre);
+        let addr = await getReceiverAddress(taskArgs.receiver, hre, taskArgs.tss);
         await setBridge(hre, CONTRACT, addr, taskArgs.bridge);
     });
 
 task("receiverV2:updateKeepers", "Update keeper authorization (comma-separated)")
     .addOptionalParam("receiver", "Receiver address", "", types.string)
+    .addFlag("tss", "Use the TSS-gateway receiver (deploy key ReceiverV2Tss) instead of the v3/MOS one")
     .addParam("keepers", "Keeper addresses (comma-separated)")
     .addOptionalParam("flag", "Authorization flag", true, types.boolean)
     .setAction(async (taskArgs, hre) => {
-        let receiver_addr = await getReceiverAddress(taskArgs.receiver, hre);
+        let receiver_addr = await getReceiverAddress(taskArgs.receiver, hre, taskArgs.tss);
         let c = await getContract(CONTRACT, hre, receiver_addr);
         let list = taskArgs.keepers.split(",").map(e => e.trim());
 
@@ -104,16 +117,18 @@ task("receiverV2:updateKeepers", "Update keeper authorization (comma-separated)"
 
 task("receiverV2:setOwner", "Transfer ownership")
     .addOptionalParam("receiver", "Receiver address", "", types.string)
+    .addFlag("tss", "Use the TSS-gateway receiver (deploy key ReceiverV2Tss) instead of the v3/MOS one")
     .addParam("owner", "New owner address")
     .setAction(async (taskArgs, hre) => {
-        let addr = await getReceiverAddress(taskArgs.receiver, hre);
+        let addr = await getReceiverAddress(taskArgs.receiver, hre, taskArgs.tss);
         await setOwner(hre, CONTRACT, addr, taskArgs.owner);
     });
 
 task("receiverV2:acceptOwnership", "Accept ownership")
     .addOptionalParam("receiver", "Receiver address", "", types.string)
+    .addFlag("tss", "Use the TSS-gateway receiver (deploy key ReceiverV2Tss) instead of the v3/MOS one")
     .setAction(async (taskArgs, hre) => {
-        let addr = await getReceiverAddress(taskArgs.receiver, hre);
+        let addr = await getReceiverAddress(taskArgs.receiver, hre, taskArgs.tss);
         let c = await getContract(CONTRACT, hre, addr);
         await (await c.acceptOwnership()).wait();
         console.log(`${CONTRACT} ${addr} ownership accepted by`, await c.owner());
@@ -124,8 +139,9 @@ task("receiverV2:acceptOwnership", "Accept ownership")
 // ============================================================
 task("receiverV2:update", "Check and update from config file")
     .addOptionalParam("receiver", "Receiver address", "", types.string)
+    .addFlag("tss", "Use the TSS-gateway receiver (deploy key ReceiverV2Tss) instead of the v3/MOS one")
     .setAction(async (taskArgs, hre) => {
-        let addr = await getReceiverAddress(taskArgs.receiver, hre);
+        let addr = await getReceiverAddress(taskArgs.receiver, hre, taskArgs.tss);
         let config = getConfig(hre.network.name);
         if (!config) throw "config not set";
 
@@ -141,8 +157,9 @@ task("receiverV2:update", "Check and update from config file")
 
 task("receiverV2:removeAuthFromConfig", "Remove authorization from config")
     .addOptionalParam("receiver", "Receiver address", "", types.string)
+    .addFlag("tss", "Use the TSS-gateway receiver (deploy key ReceiverV2Tss) instead of the v3/MOS one")
     .setAction(async (taskArgs, hre) => {
-        let addr = await getReceiverAddress(taskArgs.receiver, hre);
+        let addr = await getReceiverAddress(taskArgs.receiver, hre, taskArgs.tss);
         let config = getConfig(hre.network.name);
         if (!config) throw "config not set";
         await removeAuth(hre, CONTRACT, addr, config.removes);
@@ -187,12 +204,13 @@ async function checkNotExecuted(hre, contract, orderId) {
 
 task("receiverV2:execSwap", "Execute failed swap")
     .addOptionalParam("receiver", "Receiver address", "", types.string)
+    .addFlag("tss", "Use the TSS-gateway receiver (deploy key ReceiverV2Tss) instead of the v3/MOS one")
     .addParam("hash", "Transaction hash")
     .addParam("entrance", "Entrance of swap like ButterPlus, ButterTest, Okx etc.")
     .addOptionalParam("slippage", "Slippage tolerance in percentage (default 300 = 3%)", "300", types.string)
     .setAction(async (taskArgs, hre) => {
         const { network } = hre;
-        let receiver_addr = await getReceiverAddress(taskArgs.receiver, hre);
+        let receiver_addr = await getReceiverAddress(taskArgs.receiver, hre, taskArgs.tss);
         let c = await getContract(CONTRACT, hre, receiver_addr);
 
         // Fetch execSwap tx params from the Butter internal backend. The backend decodes the
@@ -246,10 +264,11 @@ task("receiverV2:execSwap", "Execute failed swap")
 
 task("receiverV2:swapRescueFunds", "Rescue funds from failed swap (send token directly to user)")
     .addOptionalParam("receiver", "Receiver address", "", types.string)
+    .addFlag("tss", "Use the TSS-gateway receiver (deploy key ReceiverV2Tss) instead of the v3/MOS one")
     .addParam("hash", "Transaction hash")
     .setAction(async (taskArgs, hre) => {
         const { network } = hre;
-        let receiver_addr = await getReceiverAddress(taskArgs.receiver, hre);
+        let receiver_addr = await getReceiverAddress(taskArgs.receiver, hre, taskArgs.tss);
         let c = await getContract(CONTRACT, hre, receiver_addr);
 
         let { orderId, decode } = await getSwapFailedEvent(hre, taskArgs.hash, receiver_addr);
@@ -266,3 +285,40 @@ task("receiverV2:swapRescueFunds", "Rescue funds from failed swap (send token di
         }
         console.log("swapRescueFunds succeeded");
     });
+
+task("receiverV2:rescueFunds", "Rescue stuck funds (owner withdraws token/native by amount)")
+    .addOptionalParam("receiver", "Receiver address", "", types.string)
+    .addFlag("tss", "Use the TSS-gateway receiver (deploy key ReceiverV2Tss) instead of the v3/MOS one")
+    .addParam("token", "Token address (zero address for native)")
+    .addParam("amount", "Amount in smallest unit")
+    .setAction(async (taskArgs, hre) => {
+        let addr = await getReceiverAddress(taskArgs.receiver, hre, taskArgs.tss);
+        let c = await getContract(CONTRACT, hre, addr);
+
+        let caller = await getDeployerAddr(hre);
+        console.log("caller:", caller);
+
+        if (isTronNetwork(hre.network.name)) {
+            await c.rescueFunds(tronToHex(taskArgs.token), taskArgs.amount).sendAndWait();
+        } else {
+            await (await c.rescueFunds(taskArgs.token, taskArgs.amount)).wait();
+        }
+        console.log(`${CONTRACT} ${addr} rescueFunds ${taskArgs.token} ${taskArgs.amount}`);
+    });
+
+// ============================================================
+// Helpers
+// ============================================================
+async function getDecimals(hre, token, wallet) {
+    const { ethers } = hre;
+    if (token.toLowerCase() === ethers.ZeroAddress) {
+        return isTronNetwork(hre.network.name) ? 6 : 18;
+    }
+    if (isTronNetwork(hre.network.name)) {
+        let t = await getContract("MockToken", hre, tronFromHex(token));
+        return t.decimals().call();
+    }
+    let ERC20 = ["function decimals() external view returns (uint8)"];
+    let t = await ethers.getContractAt(ERC20, token, wallet);
+    return t.decimals();
+}

@@ -66,7 +66,7 @@ Copy `.env.example` to `.env` and fill in:
 ```
 PRIVATE_KEY=              # EVM mainnet deployer
 TRON_PRIVATE_KEY=         # Tron mainnet deployer
-NETWORK_ENV=              # Required for mainnet: "main" or "prod"
+NETWORK_ENV=              # Default env for mainnet: "main" or "prod" (overridden by --env)
 ```
 
 See `.env.example` for the full list of variables.
@@ -83,17 +83,33 @@ npx hardhat test
 
 ## Deployment
 
-All mainnet deployments require `NETWORK_ENV` to be set:
+Mainnet tasks need an env, passed as `--env main|prod` (preferred) or via `NETWORK_ENV`.
+`--env` overrides `NETWORK_ENV`; any other value errors out. Testnets resolve to `test` automatically.
+Every task prints `>>> env: <env>, network: <network>` before running.
+
 ```bash
-# Deploy Router V4 + configure (full flow)
-NETWORK_ENV=main npx hardhat routerV4 --network Eth
+# Router V4 + TSS receiver (TSS gateway)
+npx hardhat routerV4 --env main --network Eth
+npx hardhat receiverV2 --tss --env main --network Eth
 
-# Deploy ReceiverV2 + configure
-NETWORK_ENV=main npx hardhat receiverV2 --network Eth
+# Router V31 + receiver (v3 butter bridge; MOS v3.1 in the main env)
+npx hardhat routerV31 --env main --network Bsc
+npx hardhat receiverV2 --env main --network Bsc
 
-# Tron deployment (no CREATE2 salt)
-NETWORK_ENV=main npx hardhat routerV4 --network Tron
+# Tron (no CREATE2 salt)
+npx hardhat routerV31 --env main --network Tron
 ```
+
+After deploying V31, approve each token it will bridge, otherwise `swapAndBridge` reverts:
+```bash
+npx hardhat routerV31:approveToken --env main --token <token> --spender <bridge> --network <network>
+```
+
+### Bridge Selection
+| Contract | prod | main |
+|---|---|---|
+| V3 / V31 / ReceiverV2 | `v3.bridge` | `v3.main_bridge` (MOS v3.1) |
+| V4 / ReceiverV2 `--tss` | `tss_prod_gateway` | `tss_main_gateway` |
 
 ### Configuration Tasks
 ```bash
@@ -104,6 +120,13 @@ npx hardhat routerV4:setBridge --bridge <addr> --network <network>
 npx hardhat routerV4:update --network <network>    # Sync all settings from config
 npx hardhat routerV4:info --network <network>      # Display contract state
 ```
+
+### Cross-Chain Transfer (V31)
+```bash
+# Plain transfer, no swap on the target chain; --token native wraps the native coin first
+npx hardhat routerV31:bridge --env prod --token native --amount 20000 --chain 1 --dryrun --network Map
+```
+`--dryrun` prints calldata and simulates via eth_call without sending. Drop it to send.
 
 ### Verification
 ```bash
@@ -125,7 +148,7 @@ npx hardhat flatten:all
 ### Deploy Record (deployments/deploy.json)
 Three-layer structure separating environments:
 - **prod** — Production contracts (all versions + shared infra)
-- **main** — Mainnet test contracts (V4/ReceiverV2)
+- **main** — Mainnet test contracts: V31 + `ReceiverV2` on MOS v3.1, V4 + `ReceiverV2Tss` on TSS
 - **test** — Testnet contracts
 
 ### Cross-Chain Flow
