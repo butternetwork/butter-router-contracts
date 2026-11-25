@@ -5,7 +5,7 @@ const {
     createDeployer,
 } = require("../utils/helper.js");
 const {
-    setAuthorization, setBridge, setOwner, removeAuth, checkFee,
+    setAuthorization, setBridge, setOwner, acceptOwnership, removeAuth, checkFee,
 } = require("../common/common.js");
 
 const { buildBridgeArgs, DEFAULT_REFERRER, DEFAULT_HEADER } = require("../utils/bridgeData.js");
@@ -204,6 +204,13 @@ task("routerV31:setOwner", "Transfer ownership")
     .setAction(async (taskArgs, hre) => {
         let addr = await getRouterAddress(taskArgs.router, hre);
         await setOwner(hre, CONTRACT, addr, taskArgs.owner);
+    });
+
+task("routerV31:acceptOwnership", "Accept ownership (signer must be the pending owner)")
+    .addOptionalParam("router", "Router address", "", types.string)
+    .setAction(async (taskArgs, hre) => {
+        let addr = await getRouterAddress(taskArgs.router, hre);
+        await acceptOwnership(hre, CONTRACT, addr);
     });
 
 // ============================================================

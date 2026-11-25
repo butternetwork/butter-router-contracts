@@ -5,7 +5,7 @@ const {
     createDeployer,
 } = require("../utils/helper.js");
 const {
-    setAuthorization, setBridge, setOwner, removeAuth,
+    setAuthorization, setBridge, setOwner, acceptOwnership, removeAuth,
 } = require("../common/common.js");
 const { httpPost } = require("../utils/httpUtil.js");
 
@@ -129,9 +129,7 @@ task("receiverV2:acceptOwnership", "Accept ownership")
     .addFlag("tss", "Use the TSS-gateway receiver (deploy key ReceiverV2Tss) instead of the v3/MOS one")
     .setAction(async (taskArgs, hre) => {
         let addr = await getReceiverAddress(taskArgs.receiver, hre, taskArgs.tss);
-        let c = await getContract(CONTRACT, hre, addr);
-        await (await c.acceptOwnership()).wait();
-        console.log(`${CONTRACT} ${addr} ownership accepted by`, await c.owner());
+        await acceptOwnership(hre, CONTRACT, addr);
     });
     
 // ============================================================
