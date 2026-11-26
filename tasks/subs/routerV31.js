@@ -5,8 +5,10 @@ const {
     createDeployer,
 } = require("../utils/helper.js");
 const {
-    setAuthorization, setBridge, setOwner, removeAuth, checkFee,
+    setAuthorization, setBridge, setOwner, acceptOwnership, removeAuth, checkFee,
 } = require("../common/common.js");
+
+const { buildBridgeArgs, DEFAULT_REFERRER, DEFAULT_HEADER } = require("../utils/bridgeData.js");
 
 const CONTRACT = "ButterRouterV31";
 
@@ -26,7 +28,7 @@ module.exports = async (taskArgs, hre) => {
     let config = getConfig(network.name);
     if (!config) throw "config not set";
 
-    let bridge = getBridge(network.name, config);
+    let bridge = getBridge(network.name, config, CONTRACT);
 
     await hre.run("routerV31:deploy", { bridge, wtoken: config.wToken });
 
@@ -204,6 +206,13 @@ task("routerV31:setOwner", "Transfer ownership")
         await setOwner(hre, CONTRACT, addr, taskArgs.owner);
     });
 
+task("routerV31:acceptOwnership", "Accept ownership (signer must be the pending owner)")
+    .addOptionalParam("router", "Router address", "", types.string)
+    .setAction(async (taskArgs, hre) => {
+        let addr = await getRouterAddress(taskArgs.router, hre);
+        await acceptOwnership(hre, CONTRACT, addr);
+    });
+
 // ============================================================
 // Operation tasks
 // ============================================================
@@ -275,7 +284,7 @@ task("routerV31:update", "Check and update from config file")
 
         await setAuthorization(hre, CONTRACT, addr, executors);
 
-        let bridge = getBridge(hre.network.name, config);
+        let bridge = getBridge(hre.network.name, config, CONTRACT);
         await setBridge(hre, CONTRACT, addr, bridge);
 
         await checkFee(hre, CONTRACT, addr, config.v3.fee);
@@ -296,11 +305,15 @@ task("routerV31:removeAuthFromConfig", "Remove authorization from config")
 // ============================================================
 // Bridge & Info
 // ============================================================
-task("routerV31:bridge", "Bridge tokens")
+task("routerV31:bridge", "Bridge a token cross-chain, no swap on target chain (native is wrapped first)")
     .addOptionalParam("router", "Router address", "", types.string)
-    .addParam("token", "Token address")
-    .addParam("amount", "Token amount")
+    .addParam("token", "Source token address, or 'native' for chain native coin (e.g. MAPO on Map)")
+    .addParam("amount", "Token amount (human readable, e.g. 1.5)")
     .addParam("chain", "Target chain ID")
+    .addOptionalParam("receiver", "Receiver on target chain (default: signer)", "", types.string)
+    .addOptionalParam("referrer", "Referrer address", DEFAULT_REFERRER, types.string)
+    .addOptionalParam("header", "Gateway payload header (6 bytes hex)", DEFAULT_HEADER, types.string)
+    .addFlag("dryrun", "Only print calldata and simulate via eth_call, send nothing")
     .setAction(async (taskArgs, hre) => {
         const { ethers } = hre;
         if (isTronNetwork(hre.network.name)) {
@@ -311,25 +324,72 @@ task("routerV31:bridge", "Bridge tokens")
         let addr = await getRouterAddress(taskArgs.router, hre);
         let [signer] = await ethers.getSigners();
         let router = await getContract(CONTRACT, hre, addr);
-        let token = await ethers.getContractAt("MockToken", taskArgs.token);
-        let decimals = await token.decimals();
-        let value = ethers.parseUnits(taskArgs.amount, decimals);
+        let receiver = taskArgs.receiver || signer.address;
 
-        let bridge = ethers.AbiCoder.defaultAbiCoder().encode(
-            ["uint256", "uint256", "bytes", "bytes"],
-            [taskArgs.chain, 0, signer.address, "0x"]
-        );
-        let bridgeData = ethers.solidityPacked(["uint256", "bytes"], [0x20, bridge]);
+        let isNative = taskArgs.token.toLowerCase() === "native" || taskArgs.token === ethers.ZeroAddress;
+        let wToken;
+        if (isNative) {
+            let config = getConfig(hre.network.name);
+            if (!config || !config.wToken) throw `wToken not set in config for ${hre.network.name}`;
+            wToken = config.wToken;
+        }
+        // Token actually handed to the bridge (wrapped token for native)
+        let bridgeToken = await ethers.getContractAt("MockToken", isNative ? wToken : taskArgs.token);
+        let decimals = isNative ? 18 : await bridgeToken.decimals();
+        let amount = ethers.parseUnits(taskArgs.amount, decimals);
 
-        let approved = await token.allowance(signer.address, addr);
-        if (approved < value) {
-            console.log(`Approving ${taskArgs.token}...`);
-            await (await token.approve(addr, value)).wait();
+        let { args, value } = buildBridgeArgs({
+            initiator: signer.address,
+            token: taskArgs.token,
+            amount,
+            toChain: taskArgs.chain,
+            receiver,
+            referrer: taskArgs.referrer,
+            header: taskArgs.header,
+            isNative,
+            wToken,
+        });
+        let calldata = router.interface.encodeFunctionData("swapAndBridge", args);
+
+        console.log(`router:   ${addr}`);
+        console.log(`from:     ${signer.address}`);
+        console.log(`token:    ${isNative ? `native (wrap -> ${wToken})` : taskArgs.token}  amount ${taskArgs.amount} (${amount})`);
+        console.log(`toChain:  ${taskArgs.chain}  receiver ${receiver}`);
+        console.log(`referrer: ${taskArgs.referrer}  header ${taskArgs.header}`);
+
+        // V31 does not approve the bridge itself; owner must have called approveToken beforehand
+        let bridgeAddr = await router.bridgeAddress();
+        let routerToBridge = await bridgeToken.allowance(addr, bridgeAddr);
+        if (routerToBridge < amount) {
+            console.log(`WARNING: router allowance to bridge ${bridgeAddr} is ${routerToBridge} < ${amount}, tx will revert. Owner needs approveToken first.`);
         }
 
-        let result = await (await router.swapAndBridge(
-            ethers.ZeroHash, signer.address, taskArgs.token, value, [], bridgeData, [], "0x"
-        )).wait();
+        let balance = isNative ? await ethers.provider.getBalance(signer.address) : await bridgeToken.balanceOf(signer.address);
+        let approved = isNative ? amount : await bridgeToken.allowance(signer.address, addr);
+        console.log(`balance:  ${balance}${isNative ? "" : `, allowance to router: ${approved}`}`);
+
+        if (taskArgs.dryrun) {
+            console.log(`\nto:    ${addr}\nvalue: ${value}\ncalldata:\n${calldata}\n`);
+            if (approved < amount || balance < amount) {
+                console.log("Skip simulation: insufficient balance or allowance");
+                return;
+            }
+            try {
+                let orderId = await router.swapAndBridge.staticCall(...args, { value });
+                console.log(`Simulation OK, orderId: ${orderId}`);
+            } catch (e) {
+                console.log(`Simulation reverted: ${e.shortMessage || e.message}`);
+            }
+            return;
+        }
+
+        if (balance < amount) throw `insufficient balance: ${balance} < ${amount}`;
+        if (approved < amount) {
+            console.log(`Approving ${taskArgs.token}...`);
+            await (await bridgeToken.approve(addr, amount)).wait();
+        }
+
+        let result = await (await router.swapAndBridge(...args, { value })).wait();
 
         if (result.status === 1) {
             console.log(`Bridge succeeded. tx: ${result.hash}`);

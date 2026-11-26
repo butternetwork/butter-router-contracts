@@ -3,6 +3,7 @@ require("dotenv/config");
 require("@matterlabs/hardhat-zksync");
 require("hardhat-preprocessor");
 require("@xplorfin/hardhat-solc-excludes");
+require("hardhat-abi-exporter");
 require("./tasks");
 
 /** @type import('hardhat/config').HardhatUserConfig */
@@ -12,16 +13,28 @@ module.exports = {
     compilerSource: "binary",
     settings: {},
   },
+  abiExporter: {
+    path: "./abi",
+    only: [
+      ":ReceiverV2*",
+      ":*RouterV3*",
+      ":*RouterV4*",
+      ":*Executor*",
+      ":*Affiliate*",
+    ],
+    clear: false,
+    flat: true,
+  },
   paths: {
     sources: "./contracts",
     tests: "./test",
     cache: "./cache",
-    artifacts: "./artifacts"
+    artifacts: "./artifacts",
   },
 
   solidity: {
     excludes: {
-      directories: ["contracts/legacy"]
+      directories: ["contracts/legacy"],
     },
     compilers: [
       {
@@ -43,7 +56,7 @@ module.exports = {
             runs: 200,
           },
         },
-      }
+      },
     ],
   },
   // defaultNetwork: 'Eth',
@@ -53,7 +66,7 @@ module.exports = {
       initialBaseFeePerGas: 0,
     },
     Eth: {
-      url: "https://eth.llamarpc.com",
+      url: "https://ethereum.publicnode.com",
       chainId: 1,
       zksync: false,
       accounts:
@@ -67,7 +80,7 @@ module.exports = {
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     Matic: {
-      url: `https://api.zan.top/polygon-mainnet`,
+      url: `https://public.1rpc.io/matic`,
       chainId: 137,
       // gasPrice: 140000000000,
       zksync: false,
@@ -75,7 +88,7 @@ module.exports = {
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     Bsc: {
-      url: `https://1rpc.io/bnb`,
+      url: process.env.BSC_RPC_URL || `https://bsc-dataseed.bnb.org`,
       chainId: 56,
       zksync: false,
       accounts:
@@ -195,9 +208,9 @@ module.exports = {
 
     Mon: {
       url: `https://rpc1.monad.xyz`,
-      chainId : 143,
+      chainId: 143,
       accounts:
-          process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
 
     Avalanche: {
@@ -210,7 +223,9 @@ module.exports = {
       url: process.env.TRON_RPC_URL || "https://api.trongrid.io/jsonrpc",
       chainId: 728126428,
       accounts:
-        process.env.TRON_PRIVATE_KEY !== undefined ? [process.env.TRON_PRIVATE_KEY] : [],
+        process.env.TRON_PRIVATE_KEY !== undefined
+          ? [process.env.TRON_PRIVATE_KEY]
+          : [],
     },
 
     Unichain: {
@@ -222,53 +237,74 @@ module.exports = {
 
     Xlayer: {
       url: `https://rpc.xlayer.tech`,
-      chainId : 196,
+      chainId: 196,
       accounts:
-          process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
 
     Makalu: {
       chainId: 212,
       url: "https://testnet-rpc.maplabs.io",
-      accounts: process.env.TESTNET_PRIVATE_KEY !== undefined ? [process.env.TESTNET_PRIVATE_KEY] : [],
+      accounts:
+        process.env.TESTNET_PRIVATE_KEY !== undefined
+          ? [process.env.TESTNET_PRIVATE_KEY]
+          : [],
     },
     Sepolia: {
       url: `https://1rpc.io/sepolia`,
       chainId: 11155111,
-      accounts: process.env.TESTNET_PRIVATE_KEY !== undefined ? [process.env.TESTNET_PRIVATE_KEY] : [],
+      accounts:
+        process.env.TESTNET_PRIVATE_KEY !== undefined
+          ? [process.env.TESTNET_PRIVATE_KEY]
+          : [],
     },
     ArbitrumSepolia: {
       chainId: 421614,
       url: `https://arbitrum-sepolia.blockpi.network/v1/rpc/public`,
-      accounts: process.env.TESTNET_PRIVATE_KEY !== undefined ? [process.env.TESTNET_PRIVATE_KEY] : [],
+      accounts:
+        process.env.TESTNET_PRIVATE_KEY !== undefined
+          ? [process.env.TESTNET_PRIVATE_KEY]
+          : [],
     },
     BscTest: {
       url: `https://data-seed-prebsc-2-s1.binance.org:8545/`,
       chainId: 97,
-      accounts: process.env.TESTNET_PRIVATE_KEY !== undefined ? [process.env.TESTNET_PRIVATE_KEY] : [],
+      accounts:
+        process.env.TESTNET_PRIVATE_KEY !== undefined
+          ? [process.env.TESTNET_PRIVATE_KEY]
+          : [],
     },
     KlayTest: {
       url: `https://api.baobab.klaytn.net:8651/`,
       chainId: 1001,
-      accounts: process.env.TESTNET_PRIVATE_KEY !== undefined ? [process.env.TESTNET_PRIVATE_KEY] : [],
+      accounts:
+        process.env.TESTNET_PRIVATE_KEY !== undefined
+          ? [process.env.TESTNET_PRIVATE_KEY]
+          : [],
     },
     ConfluxTest: {
       url: `https://evmtestnet.confluxrpc.com`,
       chainId: 71,
-      accounts: process.env.TESTNET_PRIVATE_KEY !== undefined ? [process.env.TESTNET_PRIVATE_KEY] : [],
+      accounts:
+        process.env.TESTNET_PRIVATE_KEY !== undefined
+          ? [process.env.TESTNET_PRIVATE_KEY]
+          : [],
     },
     TronTest: {
       url: "https://nile.trongrid.io/jsonrpc",
       chainId: 3448148188,
-      accounts: process.env.TRON_TESTNET_PRIVATE_KEY !== undefined ? [process.env.TRON_TESTNET_PRIVATE_KEY] : [],
+      accounts:
+        process.env.TRON_TESTNET_PRIVATE_KEY !== undefined
+          ? [process.env.TRON_TESTNET_PRIVATE_KEY]
+          : [],
     },
   },
 
   etherscan: {
     apiKey: {
       Bttc: process.env.API_KEY_BTTC,
-      Eth:  process.env.API_KEY_ETH,
-      Bsc:  process.env.API_KEY_ETH,
+      Eth: process.env.API_KEY_ETH,
+      Bsc: process.env.API_KEY_ETH,
       Matic: process.env.API_KEY_ETH,
       Blast: process.env.API_KEY_BLAST,
       Base: process.env.API_KEY_ETH,
@@ -278,13 +314,13 @@ module.exports = {
       Linea: process.env.API_KEY_LINEA,
       Scroll: process.env.API_KEY_SCROLL,
       Mantle: process.env.API_KEY_MANTLE,
-      Map:' ',
-      Klaytn: ' ',
-      Unichain:  process.env.API_KEY_ETH,
-      Mon:  process.env.API_KEY_ETH,
+      Map: " ",
+      Klaytn: " ",
+      Unichain: process.env.API_KEY_ETH,
+      Mon: process.env.API_KEY_ETH,
       Avalanche: process.env.API_KEY_ETH,
-      Xlayer: ' ',
-      Robinhood: ' '
+      Xlayer: " ",
+      Robinhood: " ",
     },
     customChains: [
       {
@@ -339,11 +375,12 @@ module.exports = {
         },
       },
 
-     {
+      {
         network: "Klaytn",
         chainId: 8217,
         urls: {
-          apiURL: "https://www.oklink.com/api/v5/explorer/contract/verify-source-code-plugin/Kaia",
+          apiURL:
+            "https://www.oklink.com/api/v5/explorer/contract/verify-source-code-plugin/Kaia",
           browserURL: "https://www.oklink.com",
         },
       },
@@ -428,7 +465,7 @@ module.exports = {
         chainId: 22776,
         urls: {
           apiURL: "https://explorer-api.chainservice.io/api",
-          browserURL: "https://explorer.mapprotocol.io"
+          browserURL: "https://explorer.mapprotocol.io",
         },
       },
 
@@ -437,7 +474,7 @@ module.exports = {
         chainId: 4663,
         urls: {
           apiURL: "https://robinhoodchain.blockscout.com/api/",
-          browserURL: "https://robinhoodchain.blockscout.com/"
+          browserURL: "https://robinhoodchain.blockscout.com/",
         },
       },
 
@@ -445,10 +482,11 @@ module.exports = {
         network: "Xlayer",
         chainId: 196,
         urls: {
-          apiURL: "https://www.oklink.com/api/v5/explorer/contract/verify-source-code-plugin/xlayer",
+          apiURL:
+            "https://www.oklink.com/api/v5/explorer/contract/verify-source-code-plugin/xlayer",
           browserURL: "https://www.oklink.com",
         },
-      }
+      },
     ],
   },
 };

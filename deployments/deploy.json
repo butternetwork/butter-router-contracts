@@ -65,7 +65,7 @@
 			"Receiver": "TJKb72SKzSmYKC4jNievJwTLx9XDmcip7n",
 			"ButterRouterV31": "TRXHvKozuwbyRZLyPShscieHfGduwvsBFo",
 			"ButterRouterV4": "TJCardiXqac1B5EQrRUVmZkaxUyp5puPiM",
-			"ReceiverV2": "TV2P66YkGdRosQSBWjsLxCEr4XP4FFxFaW"
+			"ReceiverV2": "TBFdGufroLtVwJkjyT9aThiEfRdduSc2GK"
 		},
 		"Conflux": {
 			"ButterRouterV2": "0xbB21e441fb738F54e6eC244e435475096E179d66",
@@ -210,43 +210,51 @@
 	"main": {
 		"Eth": {
 			"ButterRouterV4": "0x2c702868572b2B7BAa70B7296dB6C0991f46B150",
-			"ReceiverV2": "0xed991c6c1B24811CA4D15ed0E0CFB21aAB3c2ef7"
+			"ReceiverV2Tss": "0xed991c6c1B24811CA4D15ed0E0CFB21aAB3c2ef7"
 		},
 		"Bsc": {
 			"ButterRouterV4": "0x2c702868572b2B7BAa70B7296dB6C0991f46B150",
-			"ReceiverV2": "0xed991c6c1B24811CA4D15ed0E0CFB21aAB3c2ef7"
+			"ReceiverV2Tss": "0xed991c6c1B24811CA4D15ed0E0CFB21aAB3c2ef7",
+			"ReceiverV2": "0xdd7850dE9D63a592392B327B26D6EF9432C42608",
+			"ButterRouterV31": "0xAc9243f9298Cb42889CB350A0Eae1B0a0fC8868B"
 		},
 		"Matic": {
 			"ButterRouterV4": "0x2c702868572b2B7BAa70B7296dB6C0991f46B150",
-			"ReceiverV2": "0xed991c6c1B24811CA4D15ed0E0CFB21aAB3c2ef7"
+			"ReceiverV2Tss": "0xed991c6c1B24811CA4D15ed0E0CFB21aAB3c2ef7"
 		},
 		"Map": {
-			"ReceiverV2": "0xed991c6c1B24811CA4D15ed0E0CFB21aAB3c2ef7",
-			"ButterRouterV4": "0x2c702868572b2B7BAa70B7296dB6C0991f46B150"
+			"ReceiverV2Tss": "0xed991c6c1B24811CA4D15ed0E0CFB21aAB3c2ef7",
+			"ButterRouterV4": "0x2c702868572b2B7BAa70B7296dB6C0991f46B150",
+			"ReceiverV2": "0xdd7850dE9D63a592392B327B26D6EF9432C42608",
+			"ButterRouterV31": "0xAc9243f9298Cb42889CB350A0Eae1B0a0fC8868B"
 		},
 		"Tron": {
 			"ButterRouterV4": "THFErfT795icjDttxFmawD19NxorEnvMA5",
-			"ReceiverV2": "TD4EbXcip3cqE3FeL8WWkkhnqVU5c5qN73"
+			"ReceiverV2Tss": "TD4EbXcip3cqE3FeL8WWkkhnqVU5c5qN73",
+			"ButterRouterV31": "TPcMso7jrAQNi8JR8k1c3MXLAZc4AoqMTV",
+			"ReceiverV2": "TDHZy953mQvz7KVobG9N8ZQtqmBA2efkhH"
 		},
 		"Base": {
-			"ReceiverV2": "0xed991c6c1B24811CA4D15ed0E0CFB21aAB3c2ef7",
+			"ReceiverV2Tss": "0xed991c6c1B24811CA4D15ed0E0CFB21aAB3c2ef7",
 			"ButterRouterV4": "0x2c702868572b2B7BAa70B7296dB6C0991f46B150"
 		},
 		"Optimism": {
 			"ButterRouterV4": "0x2c702868572b2B7BAa70B7296dB6C0991f46B150",
-			"ReceiverV2": "0xed991c6c1B24811CA4D15ed0E0CFB21aAB3c2ef7"
+			"ReceiverV2Tss": "0xed991c6c1B24811CA4D15ed0E0CFB21aAB3c2ef7"
 		},
 		"Arbitrum": {
 			"ButterRouterV4": "0x2c702868572b2B7BAa70B7296dB6C0991f46B150",
-			"ReceiverV2": "0xed991c6c1B24811CA4D15ed0E0CFB21aAB3c2ef7"
+			"ReceiverV2Tss": "0xed991c6c1B24811CA4D15ed0E0CFB21aAB3c2ef7",
+			"ReceiverV2": "0xdd7850dE9D63a592392B327B26D6EF9432C42608",
+			"ButterRouterV31": "0xAc9243f9298Cb42889CB350A0Eae1B0a0fC8868B"
 		},
 		"Unichain": {
 			"ButterRouterV4": "0x2c702868572b2B7BAa70B7296dB6C0991f46B150",
-			"ReceiverV2": "0xed991c6c1B24811CA4D15ed0E0CFB21aAB3c2ef7"
+			"ReceiverV2Tss": "0xed991c6c1B24811CA4D15ed0E0CFB21aAB3c2ef7"
 		},
 		"Xlayer": {
 			"ButterRouterV4": "0x2c702868572b2B7BAa70B7296dB6C0991f46B150",
-			"ReceiverV2": "0xed991c6c1B24811CA4D15ed0E0CFB21aAB3c2ef7"
+			"ReceiverV2Tss": "0xed991c6c1B24811CA4D15ed0E0CFB21aAB3c2ef7"
 		}
 	},
 	"test": {

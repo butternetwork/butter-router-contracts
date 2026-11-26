@@ -24,7 +24,7 @@ module.exports = async (taskArgs, hre) => {
     let config = getConfig(network.name);
     if (!config) throw "config not set";
 
-    let bridge = getBridge(network.name, config);
+    let bridge = getBridge(network.name, config, CONTRACT);
 
     console.log("deploy SolanaReceiver with bridge:", bridge);
     await hre.run("solanaReceiver:deploy", { bridge, wtoken: config.wToken });

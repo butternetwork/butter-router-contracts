@@ -48,6 +48,7 @@
     "dotenv": "^16.0.3",
     "ethers": "^6.16.0",
     "hardhat": "^2.22.0",
+    "hardhat-abi-exporter": "^2.10.1",
     "hardhat-deploy": "^0.12.0",
     "hardhat-gas-reporter": "^1.0.10",
     "hardhat-preprocessor": "^0.1.5",
@@ -61,7 +62,7 @@
   },
   "dependencies": {
     "@butternetwork/bridge": "3.0.0",
-    "@mapprotocol/common-contracts": "^0.4.2",
+    "@mapprotocol/common-contracts": "^0.4.3",
     "@openzeppelin/contracts": "4.9.6"
   },
   "overrides": {

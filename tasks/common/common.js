@@ -1,5 +1,5 @@
 const {
-    getContract, isTronNetwork, tronToHex, tronFromHex,
+    getContract, getDeployerAddr, isTronNetwork, tronToHex, tronFromHex,
 } = require("../utils/helper.js");
 
 /**
@@ -89,6 +89,31 @@ exports.setOwner = async function (hre, contractName, addr, owner) {
         await (await c.transferOwnership(owner)).wait();
     }
     console.log(`${contractName} ${addr} transferOwnership ${owner}`);
+    // Ownable2Step: the new owner only becomes pending until it calls acceptOwnership
+    let pending = isTronNetwork(hre.network.name)
+        ? tronFromHex(await c.pendingOwner().call())
+        : await c.pendingOwner();
+    console.log(`${contractName} ${addr} pendingOwner ${pending} (must call acceptOwnership)`);
+};
+
+/**
+ * Accept a pending Ownable2Step transfer. The signer must be the pending owner.
+ */
+exports.acceptOwnership = async function (hre, contractName, addr) {
+    let c = await getContract(contractName, hre, addr);
+    let tron = isTronNetwork(hre.network.name);
+    let pending = tron ? tronToHex(await c.pendingOwner().call()) : await c.pendingOwner();
+    let signer = await getDeployerAddr(hre); // hex for both EVM and Tron
+    if (pending.toLowerCase() !== signer.toLowerCase()) {
+        throw `signer ${tron ? tronFromHex(signer) : signer} is not pendingOwner ${tron ? tronFromHex(pending) : pending}`;
+    }
+    if (tron) {
+        await c.acceptOwnership().sendAndWait();
+    } else {
+        await (await c.acceptOwnership()).wait();
+    }
+    let owner = tron ? tronFromHex(await c.owner().call()) : await c.owner();
+    console.log(`${contractName} ${addr} ownership accepted, owner ${owner}`);
 };
 
 /**
